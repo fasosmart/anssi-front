@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function SignupPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -13,6 +14,17 @@ export default function SignupPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary">
       <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-background p-4 md:rounded-2xl md:p-8">
+        {/* Lien de retour à l'accueil */}
+        <div className="mb-4">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm text-primary hover:underline transition-colors"
+            aria-label="Retour à l'accueil"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Retour à l'accueil
+          </Link>
+        </div>
         <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
           Créer votre compte
         </h2>
@@ -24,16 +36,16 @@ export default function SignupPage() {
           <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
             <LabelInputContainer>
               <Label htmlFor="firstname">Prénom</Label>
-              <Input id="firstname" placeholder="John" type="text" />
+              <Input id="firstname" placeholder="BANO" type="text" />
             </LabelInputContainer>
             <LabelInputContainer>
               <Label htmlFor="lastname">Nom</Label>
-              <Input id="lastname" placeholder="Doe" type="text" />
+              <Input id="lastname" placeholder="Barry" type="text" />
             </LabelInputContainer>
           </div>
           <LabelInputContainer className="mb-4">
             <Label htmlFor="email">Adresse e-mail</Label>
-            <Input id="email" placeholder="john.doe@exemple.com" type="email" />
+            <Input id="email" placeholder="bano.barry@exemple.com" type="email" />
           </LabelInputContainer>
           <LabelInputContainer className="mb-4">
             <Label htmlFor="password">Mot de passe</Label>
