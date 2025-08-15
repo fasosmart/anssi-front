@@ -1,27 +1,28 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await auth();
 
-  // If the user is not authenticated, redirect to the login page
-  if (!session) {
-    redirect("/login");
+  if (!session?.user) {
+    return redirect("/login");
   }
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">
-          Bienvenue sur votre tableau de bord, {session.user?.name}!
+    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Bienvenue, {session.user.name ?? "Utilisateur"} !
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          C'est ici que vous gérerez votre structure et vos demandes d'accréditation.
+        <p className="text-muted-foreground">
+          Vous êtes prêt à commencer. Prochaine étape : enregistrer votre structure.
         </p>
-        <p className="mt-4 text-sm">
-          Votre email: {session.user?.email}
-        </p>
-        {/* We will add a sign out button later */}
+        <Button className="mt-4" asChild>
+          <Link href="/dashboard/structure">Enregistrer ma structure</Link>
+        </Button>
       </div>
     </div>
   );

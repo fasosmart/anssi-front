@@ -3,8 +3,11 @@
 import { motion, Variants } from "framer-motion";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
 
 export function Hero() {
+  const { data: session, status } = useSession();
+
   const title = "Plateforme d'Accréditation de l'ANSSI";
   const subtitle = "Bâtissons ensemble un espace numérique sécurisé en conformité avec les normes nationales.";
 
@@ -61,12 +64,13 @@ export function Hero() {
             </motion.span>
           ))}
         </motion.p>
-        
-        <div className="mt-8">
-          <Button asChild size="lg">
-            <Link href="/register">Commencer la procédure</Link>
-          </Button>
-        </div>
+        {!session && (
+            <div className="mt-8">
+            <Button asChild size="lg">
+                <Link href="/register">Commencer la procédure</Link>
+            </Button>
+            </div>
+        )}
       </div>
     </section>
   );

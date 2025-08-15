@@ -8,7 +8,8 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Menu } from "lucide-react";
 
@@ -65,8 +66,19 @@ export function UserNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {session.user.name}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {session.user.email}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/dashboard">
+          <Link href="/dashboard/">
             <User className="mr-2 h-4 w-4" />
             <span>Tableau de bord</span>
           </Link>

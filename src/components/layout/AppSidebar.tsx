@@ -43,7 +43,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar>
+    <Sidebar className="hidden border-r md:block">
       <SidebarHeader className="p-4">
         <Link href="/" className="text-2xl font-bold text-primary">
           ANSSI
