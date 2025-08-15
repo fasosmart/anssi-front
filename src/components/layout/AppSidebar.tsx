@@ -59,6 +59,8 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
+                    variant="default"
+                    size="lg"
                   >
                     <Link href={item.href}>
                       <item.icon className="h-5 w-5" />
