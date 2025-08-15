@@ -48,7 +48,7 @@ export default function StructurePage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Informations sur l'entreprise</CardTitle>
+          <CardTitle>Informations sur l&apos;entreprise</CardTitle>
           <CardDescription>
             Assurez-vous que ces informations sont exactes et à jour.
           </CardDescription>
@@ -57,7 +57,7 @@ export default function StructurePage() {
           <form onSubmit={handleSubmit} className="grid gap-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="companyName">Nom de l'entreprise</Label>
+                <Label htmlFor="companyName">Nom de l&apos;entreprise</Label>
                 <Input
                   id="companyName"
                   name="companyName"
@@ -68,7 +68,7 @@ export default function StructurePage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="registrationNumber">
-                  Numéro d'immatriculation
+                  Numéro d&apos;immatriculation
                 </Label>
                 <Input
                   id="registrationNumber"
@@ -87,7 +87,7 @@ export default function StructurePage() {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  placeholder="123 Rue de l'Innovation, Conakry"
+                  placeholder="123 Rue de l&apos;Innovation, Conakry"
                 />
               </div>
               <div className="grid gap-2">
@@ -103,7 +103,7 @@ export default function StructurePage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="activityDescription">
-                Description de l'activité
+                Description de l&apos;activité
               </Label>
               <Textarea
                 id="activityDescription"

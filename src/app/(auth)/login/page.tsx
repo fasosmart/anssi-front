@@ -40,7 +40,7 @@ export default function LoginPage() {
             className="inline-flex items-center text-sm text-primary hover:underline"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </Link>
         </div>
         <h2 className="text-xl font-bold text-foreground">Connexion</h2>
@@ -97,7 +97,7 @@ export default function LoginPage() {
           <div className="text-center text-sm text-muted-foreground">
             Pas encore de compte?{" "}
             <Link href="/register" className="font-medium text-primary hover:underline">
-              S'inscrire
+              S&apos;inscrire
             </Link>
           </div>
         </form>

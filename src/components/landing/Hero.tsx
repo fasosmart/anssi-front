@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 
 export function Hero() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const title = "Plateforme d'Accréditation de l'ANSSI";
   const subtitle = "Bâtissons ensemble un espace numérique sécurisé en conformité avec les normes nationales.";

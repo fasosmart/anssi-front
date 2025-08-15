@@ -35,7 +35,7 @@ export default function RegisterPage() {
       } else {
         router.push("/dashboard/user");
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred.");
     }
   };
@@ -49,7 +49,7 @@ export default function RegisterPage() {
             className="inline-flex items-center text-sm text-primary hover:underline"
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </Link>
         </div>
         <h2 className="text-xl font-bold text-foreground">Créer votre compte</h2>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
             className="group/btn relative block h-10 w-full rounded-md bg-primary font-medium text-primary-foreground"
             type="submit"
           >
-            S'inscrire &rarr;
+            S&apos;inscrire &rarr;
           </button>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent" />
