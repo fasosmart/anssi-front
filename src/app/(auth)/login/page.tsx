@@ -1,16 +1,37 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
+    setError(null);
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result?.error) {
+      setError("Les identifiants sont incorrects. Veuillez réessayer.");
+    } else {
+      // Redirect to the dashboard upon successful login
+      router.push("/dashboard");
+    }
   };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary">
       <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-background p-4 md:rounded-2xl md:p-8">
@@ -32,9 +53,21 @@ export default function LoginPage() {
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
+          {error && (
+            <div className="mb-4 rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <LabelInputContainer className="mb-4">
             <Label htmlFor="email">Adresse e-mail</Label>
-            <Input id="email" placeholder="bano.barry@exemple.com" type="email" />
+            <Input 
+              id="email" 
+              placeholder="bano.barry@exemple.com" 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </LabelInputContainer>
           <LabelInputContainer className="mb-4">
             <div className="flex justify-between">
@@ -45,14 +78,15 @@ export default function LoginPage() {
               >
                 Mot de passe oublié ?
               </Link>
-              <Link
-                href="/forgot-password"
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Mot de passe oublié ?
-              </Link>
             </div>
-            <Input id="password" placeholder="••••••••" type="password" />
+            <Input 
+              id="password" 
+              placeholder="••••••••" 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </LabelInputContainer>
 
           <button
