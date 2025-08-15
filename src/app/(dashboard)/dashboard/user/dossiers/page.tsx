@@ -54,7 +54,7 @@ export default function DossiersPage() {
         <div>
           <h1 className="text-2xl font-bold">Mes Dossiers</h1>
           <p className="text-muted-foreground">
-            Suivez l'état de vos demandes d'accréditation.
+            Suivez l&apos;état de vos demandes d&apos;accréditation.
           </p>
         </div>
         <Button asChild>

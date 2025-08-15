@@ -15,14 +15,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 // This would typically come from a database or API
-const sectors = [
-  "Technologie de l'information",
-  "Finance",
-  "Santé",
-  "Éducation",
-  "Commerce",
-  "Autre",
-];
+// const sectors = [
+//   "Technologie de l'information",
+//   "Finance",
+//   "Santé",
+//   "Éducation",
+//   "Commerce",
+//   "Autre",
+// ];
 
 export default function StructurePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,30 +54,30 @@ export default function StructurePage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Informations sur l'entreprise</CardTitle>
+          <CardTitle>Informations sur l&apos;entreprise</CardTitle>
           <CardDescription>
             Assurez-vous que ces informations sont exactes et à jour.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="company-name">Nom de l'entreprise</Label>
+            <Label htmlFor="company-name">Nom de l&apos;entreprise</Label>
             <Input id="company-name" name="companyName" placeholder="Ex: FasoSmart" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="registration-number">Numéro d'immatriculation</Label>
+            <Label htmlFor="registration-number">Numéro d&apos;immatriculation</Label>
             <Input id="registration-number" name="registrationNumber" placeholder="RCCM..." required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Adresse</Label>
-            <Input id="address" name="address" placeholder="123 Rue de l'Innovation, Ouagadougou" required />
+            <Input id="address" name="address" placeholder="123 Rue de l&apos;Innovation, Ouagadougou" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Numéro de téléphone</Label>
             <Input id="phone" name="phone" type="tel" placeholder="+226 XX XX XX XX" required />
           </div>
           <div className="md:col-span-2 space-y-2">
-            <Label htmlFor="description">Description de l'activité</Label>
+            <Label htmlFor="description">Description de l&apos;activité</Label>
             <Textarea 
               id="description"
               name="description"

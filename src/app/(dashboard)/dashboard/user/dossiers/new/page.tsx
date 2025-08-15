@@ -208,7 +208,7 @@ export default function NewDossierPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Nouvelle demande d'accréditation</CardTitle>
+          <CardTitle>Nouvelle demande d&apos;accréditation</CardTitle>
           <CardDescription>
             Étape {currentStep} sur {steps.length}: {activeStep?.title}
           </CardDescription>

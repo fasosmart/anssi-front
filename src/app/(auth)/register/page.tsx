@@ -49,14 +49,14 @@ export default function SignupPage() {
             aria-label="Retour à l'accueil"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Retour à l'accueil
+            Retour à l&apos;accueil
           </Link>
         </div>
         <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
           Créer votre compte
         </h2>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Rejoignez la plateforme pour commencer votre procédure d'accréditation.
+          Rejoignez la plateforme pour commencer votre procédure d&apos;accréditation.
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
@@ -116,7 +116,7 @@ export default function SignupPage() {
             className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-primary to-primary/80 font-medium text-primary-foreground shadow-[0px_1px_0px_0px_var(--zinc-100)_inset,0px_-1px_0px_0px_var(--zinc-100)_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
             type="submit"
           >
-            S'inscrire &rarr;
+            S&apos;inscrire &rarr;
             <BottomGradient />
           </button>
 
