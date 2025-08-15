@@ -78,9 +78,9 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/">
+          <Link href="/dashboard/user/profile">
             <User className="mr-2 h-4 w-4" />
-            <span>Tableau de bord</span>
+            <span>Mon Profil</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

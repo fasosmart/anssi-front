@@ -33,7 +33,7 @@ export default function SignupPage() {
     if (result?.error) {
       setError("Une erreur est survenue lors de la connexion automatique. Veuillez réessayer.");
     } else {
-      router.push("/dashboard");
+      router.push("/dashboard/user");
     }
   };
 

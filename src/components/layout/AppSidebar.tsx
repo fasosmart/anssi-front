@@ -18,22 +18,22 @@ import { usePathname } from "next/navigation";
 
 const menuItems = [
   {
-    href: "/dashboard",
+    href: "/dashboard/user",
     icon: Home,
     label: "Accueil",
   },
   {
-    href: "/dashboard/structure",
+    href: "/dashboard/user/structure",
     icon: Building,
     label: "Ma Structure",
   },
   {
-    href: "/dashboard/dossiers",
+    href: "/dashboard/user/dossiers",
     icon: FileText,
     label: "Mes Dossiers",
   },
   {
-    href: "/dashboard/profile",
+    href: "/dashboard/user/profile",
     icon: User,
     label: "Mon Profil",
   },

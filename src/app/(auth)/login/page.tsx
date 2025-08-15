@@ -28,7 +28,7 @@ export default function LoginPage() {
       setError("Les identifiants sont incorrects. Veuillez réessayer.");
     } else {
       // Redirect to the dashboard upon successful login
-      router.push("/dashboard");
+      router.push("/dashboard/user");
     }
   };
 
