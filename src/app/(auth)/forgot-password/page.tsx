@@ -6,29 +6,29 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
+    console.log("Forgot password form submitted");
   };
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary">
+    <div className="flex items-center justify-center min-h-screen bg-secondary">
       <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-background p-4 md:rounded-2xl md:p-8">
         <div className="mb-4">
           <Link
-            href="/"
-            className="inline-flex items-center text-sm text-primary hover:underline"
-            aria-label="Retour à l'accueil"
+            href="/login"
+            className="inline-flex items-center text-sm text-primary hover:underline transition-colors"
+            aria-label="Retour à la page de connexion"
           >
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Retour à l'accueil
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Retour à la connexion
           </Link>
         </div>
-        <h2 className="text-xl font-bold text-foreground">
-          Connexion à votre espace
+        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+          Mot de passe oublié ?
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Entrez vos identifiants pour accéder à votre espace.
+        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+          Pas de souci. Entrez votre e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.
         </p>
 
         <form className="my-8" onSubmit={handleSubmit}>
@@ -36,41 +36,14 @@ export default function LoginPage() {
             <Label htmlFor="email">Adresse e-mail</Label>
             <Input id="email" placeholder="bano.barry@exemple.com" type="email" />
           </LabelInputContainer>
-          <LabelInputContainer className="mb-4">
-            <div className="flex justify-between">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Link
-                href="/forgot-password"
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Mot de passe oublié ?
-              </Link>
-              <Link
-                href="/forgot-password"
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Mot de passe oublié ?
-              </Link>
-            </div>
-            <Input id="password" placeholder="••••••••" type="password" />
-          </LabelInputContainer>
 
           <button
             className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-primary to-primary/80 font-medium text-primary-foreground shadow-[0px_1px_0px_0px_var(--zinc-100)_inset,0px_-1px_0px_0px_var(--zinc-100)_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
             type="submit"
           >
-            Se connecter &rarr;
+            Envoyer le lien &rarr;
             <BottomGradient />
           </button>
-
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-          
-          <div className="text-center text-sm text-muted-foreground">
-            Pas encore de compte?{" "}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              S'inscrire
-            </Link>
-          </div>
         </form>
       </div>
     </div>
