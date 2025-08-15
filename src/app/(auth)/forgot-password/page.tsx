@@ -24,10 +24,10 @@ export default function ForgotPasswordPage() {
             Retour à la connexion
           </Link>
         </div>
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+        <h2 className="text-xl font-bold text-foreground">
           Mot de passe oublié ?
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           Pas de souci. Entrez votre e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.
         </p>
 

@@ -25,30 +25,30 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217 91% 60%;
+    --ring: 235 52% 23%; /* ANSSI Brand Blue for focus */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 47.4% 11.2%;
+    --background: 224 71% 4%; /* Deep Blue-Black */
     --foreground: 210 40% 98%;
-    --card: 222.2 47.4% 11.2%;
+    --card: 224 71% 6%; /* Slightly Lighter Blue-Black for cards */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 47.4% 11.2%;
+    --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 235 52% 23%;
+    --primary: 235 52% 43%; /* Lighter ANSSI Blue for dark mode */
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 55.1%; /* Brighter muted text */
     --accent: 235 52% 23%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 217 91% 60%;
+    --ring: 235 52% 43%; /* Lighter focus ring for dark mode */
   }
 }
 

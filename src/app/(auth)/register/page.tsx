@@ -52,7 +52,7 @@ export default function SignupPage() {
             Retour à l'accueil
           </Link>
         </div>
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+        <h2 className="text-xl font-bold text-foreground">
           Créer votre compte
         </h2>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
@@ -120,7 +120,7 @@ export default function SignupPage() {
             <BottomGradient />
           </button>
 
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent" />
           
           <div className="text-center text-sm text-muted-foreground">
             Déjà un compte?{" "}

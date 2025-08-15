@@ -97,7 +97,7 @@ export default function LoginPage() {
             <BottomGradient />
           </button>
 
-          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+          <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent" />
           
           <div className="text-center text-sm text-muted-foreground">
             Pas encore de compte?{" "}
