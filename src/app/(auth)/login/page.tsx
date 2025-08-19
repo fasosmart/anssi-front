@@ -12,22 +12,30 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-    if (result?.error) {
-      setError("Les identifiants sont incorrects. Veuillez réessayer.");
-    } else {
-      router.push("/dashboard/user");
+      if (result?.error) {
+        setError("Les identifiants sont incorrects ou le compte n'est pas activé. Veuillez réessayer.");
+      } else {
+        router.push("/dashboard/user");
+      }
+    } catch (error) {
+        setError("Une erreur inattendue est survenue. Veuillez réessayer.");
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -50,7 +58,7 @@ export default function LoginPage() {
 
         <form className="my-8" onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-center text-sm text-destructive-foreground">
+            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-center text-black text-sm text-destructive-foreground">
               {error}
             </div>
           )}
@@ -86,10 +94,11 @@ export default function LoginPage() {
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-primary font-medium text-primary-foreground"
+            className="group/btn relative block h-10 w-full rounded-md bg-primary font-medium text-primary-foreground disabled:opacity-50"
             type="submit"
+            disabled={isLoading}
           >
-            Se connecter &rarr;
+            {isLoading ? "Connexion en cours..." : "Se connecter →"}
           </button>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent" />

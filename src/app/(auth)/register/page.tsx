@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,29 +13,50 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setIsSuccess(false);
 
     try {
-       const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-        firstName,
-        lastName,
-        callbackUrl: "/dashboard/user",
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            password: password,
+          }),
+        }
+      );
 
-      if (result?.error) {
-        setError("Invalid credentials. Please try again.");
-      } else {
-        router.push("/dashboard/user");
+      if (!response.ok) {
+        const errorData = await response.json();
+        // Handle specific API errors, e.g., email already exists
+        if (errorData.email) {
+          setError(`Email: ${errorData.email[0]}`);
+        } else {
+          setError("Une erreur est survenue lors de l'inscription.");
+        }
+        return;
       }
-    } catch {
-      setError("An unexpected error occurred.");
+      
+      // Handle successful registration
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000); // Redirect to login after 3 seconds
+
+    } catch (err) {
+      setError("Impossible de se connecter au serveur. Veuillez réessayer plus tard.");
     }
   };
 
@@ -59,8 +79,13 @@ export default function RegisterPage() {
 
         <form className="my-8" onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-center text-sm text-destructive-foreground">
+            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-center text-black text-sm text-destructive-foreground">
               {error}
+            </div>
+          )}
+          {isSuccess && (
+            <div className="mb-4 rounded-md border border-green-500 bg-green-500/10 p-3 text-center text-sm text-green-700">
+              Inscription réussie ! Vous allez être redirigé vers la page de connexion. Veuillez vérifier vos e-mails pour activer votre compte.
             </div>
           )}
           <div className="mb-4 flex flex-col gap-4 md:flex-row">
@@ -68,7 +93,7 @@ export default function RegisterPage() {
               <Label htmlFor="firstname">Prénom</Label>
               <Input
                 id="firstname"
-                placeholder="John"
+                placeholder="BANO"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -79,7 +104,7 @@ export default function RegisterPage() {
               <Label htmlFor="lastname">Nom</Label>
               <Input
                 id="lastname"
-                placeholder="Doe"
+                placeholder="Barry"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -91,7 +116,7 @@ export default function RegisterPage() {
             <Label htmlFor="email">Adresse e-mail</Label>
             <Input
               id="email"
-              placeholder="john.doe@exemple.com"
+              placeholder="bano.barry@exemple.com"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -111,10 +136,11 @@ export default function RegisterPage() {
           </LabelInputContainer>
 
           <button
-            className="group/btn relative block h-10 w-full rounded-md bg-primary font-medium text-primary-foreground"
+            className="group/btn relative block h-10 w-full rounded-md bg-primary font-medium text-primary-foreground disabled:opacity-50"
             type="submit"
+            disabled={isSuccess}
           >
-            S&apos;inscrire &rarr;
+            Créer un compte &rarr;
           </button>
 
           <div className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent" />
