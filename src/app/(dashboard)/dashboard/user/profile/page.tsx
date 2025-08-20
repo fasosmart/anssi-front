@@ -22,6 +22,14 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isSecurityLoading, setIsSecurityLoading] = useState(false);
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (session?.user) {
@@ -68,6 +76,46 @@ export default function ProfilePage() {
       setError(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSecuritySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      setSecurityError("Les nouveaux mots de passe ne correspondent pas.");
+      return;
+    }
+
+    setIsSecurityLoading(true);
+    setSecurityError(null);
+    setSecuritySuccess(null);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/set_password/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.accessToken}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("La modification du mot de passe a échoué. Vérifiez votre mot de passe actuel.");
+      }
+      
+      setSecuritySuccess("Mot de passe mis à jour avec succès !");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+    } catch (err: any) {
+      setSecurityError(err.message);
+    } finally {
+      setIsSecurityLoading(false);
     }
   };
 
@@ -131,15 +179,51 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle>Sécurité</CardTitle>
           <CardDescription>
-            Gérez les paramètres de sécurité de votre compte.
+            Modifiez votre mot de passe ici.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {/* We will add password change logic here later */}
-        </CardContent>
-        <CardFooter>
-          <Button variant="outline" disabled>Changer le mot de passe</Button>
-        </CardFooter>
+        <form onSubmit={handleSecuritySubmit}>
+          <CardContent className="space-y-4">
+            {securityError && <p className="text-sm text-destructive">{securityError}</p>}
+            {securitySuccess && <p className="text-sm text-green-600">{securitySuccess}</p>}
+            
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+              <Input 
+                id="currentPassword" 
+                type="password" 
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+              <Input 
+                id="newPassword" 
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmNewPassword">Confirmer le nouveau mot de passe</Label>
+              <Input 
+                id="confirmNewPassword" 
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                required
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" type="submit" disabled={isSecurityLoading}>
+              {isSecurityLoading ? "Modification..." : "Changer le mot de passe"}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
