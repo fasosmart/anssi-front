@@ -69,13 +69,13 @@ export const {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // The 'user' object is only available during the initial sign-in.
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.user = {
-            first_name: user.first_name ?? null,
+            first_name: user.first_name,
             last_name: user.last_name,
             slug: user.slug,
             email: user.email,
@@ -83,9 +83,10 @@ export const {
         }
       }
 
-      // Here you could add logic to refresh the access token if it's expired
-      // using the refreshToken. For simplicity, we'll omit that for now
-      // but it's a crucial step for a production application.
+      // This trigger is fired when the session is updated from the client side.
+      if (trigger === "update" && session?.user) {
+        token.user = { ...token.user, ...session.user };
+      }
 
       return token;
     },
