@@ -75,9 +75,11 @@ export const {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.user = {
-            id: user.id,
+            first_name: user.first_name ?? null,
+            last_name: user.last_name,
+            slug: user.slug,
             email: user.email,
-            name: user.name,
+            name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         }
       }
 
@@ -89,7 +91,9 @@ export const {
     },
     async session({ session, token }) {
       // Pass the user data and tokens to the session object
-      session.user = token.user as User;
+      if (token.user) {
+        session.user = token.user;
+      }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
       

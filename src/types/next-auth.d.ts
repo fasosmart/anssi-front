@@ -9,6 +9,9 @@ declare module "next-auth" {
   interface User {
     accessToken?: string;
     refreshToken?: string;
+    first_name?: string;
+    last_name?: string;
+    slug?: string;
   }
 
   /**
@@ -18,9 +21,11 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
     user: {
-      id?: string | null;
       email?: string | null;
       name?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      slug?: string | null;
     };
   }
 }
@@ -31,9 +36,11 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     refreshToken?: string;
     user?: {
-        id?: string | null;
         email?: string | null;
         name?: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+        slug?: string | null;
     }
   }
 }
