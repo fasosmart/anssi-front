@@ -50,7 +50,7 @@ export default function ResetPasswordConfirmPage() {
       } else {
         setError("Le lien de réinitialisation est invalide ou a expiré.");
       }
-    } catch (err) {
+    } catch {
       setError("Une erreur de réseau est survenue.");
     } finally {
       setIsLoading(false);

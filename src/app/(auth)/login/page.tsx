@@ -32,7 +32,7 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard/user");
       }
-    } catch (error) {
+    } catch {
         setError("Une erreur inattendue est survenue. Veuillez réessayer.");
     } finally {
         setIsLoading(false);

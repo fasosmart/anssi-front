@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
       } else {
         setIsSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError("Une erreur de réseau est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);

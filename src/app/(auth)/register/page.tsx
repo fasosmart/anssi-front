@@ -55,7 +55,7 @@ export default function RegisterPage() {
         router.push("/login");
       }, 3000); // Redirect to login after 3 seconds
 
-    } catch (err) {
+    } catch {
       setError("Impossible de se connecter au serveur. Veuillez réessayer plus tard.");
     }
   };

@@ -75,10 +75,11 @@ export const {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.user = {
+            id: user.slug ?? null,
+            emailVerified: null,
             first_name: user.first_name,
             last_name: user.last_name,
             slug: user.slug,
-            email: user.email,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         }
       }
@@ -92,8 +93,11 @@ export const {
     },
     async session({ session, token }) {
       // Pass the user data and tokens to the session object
-      if (token.user) {
-        session.user = token.user;
+      if (token.user && session.user) {
+        session.user.first_name = token.user.first_name ?? undefined;
+        session.user.last_name  = token.user.last_name ?? undefined;
+        session.user.slug       = token.user.slug ?? undefined;
+        session.user.name       = token.user.name ?? undefined;
       }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;

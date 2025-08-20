@@ -49,7 +49,7 @@ export default function ActivationPage() {
           setErrorMessage(message);
           setStatus("error");
         }
-      } catch (error) {
+      } catch {
         setErrorMessage("Une erreur de réseau est survenue. Veuillez réessayer.");
         setStatus("error");
       }
@@ -87,10 +87,10 @@ export default function ActivationPage() {
         return (
           <>
             <XCircle className="h-12 w-12 text-destructive" />
-            <h2 className="mt-4 text-xl font-bold">Échec de l'activation</h2>
+            <h2 className="mt-4 text-xl font-bold">Échec de l&apos;activation</h2>
             <p className="text-muted-foreground">{errorMessage}</p>
             <Button asChild className="mt-6">
-               <Link href="/register">Retourner à l'inscription</Link>
+               <Link href="/register">Retourner à l&apos;inscription</Link>
             </Button>
           </>
         );

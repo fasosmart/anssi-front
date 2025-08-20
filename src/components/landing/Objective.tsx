@@ -22,7 +22,7 @@ export function Objective() {
               Notre Objectif
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Le processus d'accréditation vise à établir un écosystème de confiance en qualifiant les acteurs de la cybersécurité en République de Guinée, conformément à la stratégie nationale.
+              Le processus d&apos;accréditation vise à établir un écosystème de confiance en qualifiant les acteurs de la cybersécurité en République de Guinée, conformément à la stratégie nationale.
             </p>
             <ul className="space-y-4">
               {objectives.map((objective, index) => (

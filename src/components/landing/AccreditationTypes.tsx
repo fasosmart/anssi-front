@@ -40,10 +40,10 @@ export function AccreditationTypes() {
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold">
-            Les Accréditations Délivrées par l'ANSSI
+            Les Accréditations Délivrées par l&apos;ANSSI
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
-            L'ANSSI Guinée propose plusieurs types d'accréditations pour couvrir les différents métiers de la cybersécurité.
+            L&apos;ANSSI Guinée propose plusieurs types d&apos;accréditations pour couvrir les différents métiers de la cybersécurité.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

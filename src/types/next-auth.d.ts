@@ -7,6 +7,8 @@ declare module "next-auth" {
    * available here as `user`.
    */
   interface User {
+    id?: string | null;
+    emailVerified?: Date | null;
     accessToken?: string;
     refreshToken?: string;
     first_name?: string;
@@ -21,7 +23,9 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
     user: {
+      id?: string | null;
       email?: string | null;
+      emailVerified?: Date | null;
       name?: string | null;
       first_name?: string | null;
       last_name?: string | null;
@@ -36,7 +40,9 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     refreshToken?: string;
     user?: {
+        id?: string | null;
         email?: string | null;
+        emailVerified?: Date | null;
         name?: string | null;
         first_name?: string | null;
         last_name?: string | null;

@@ -11,11 +11,11 @@ export function CallToAction() {
           Prêt à devenir un partenaire de confiance ?
         </h2>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-          Rejoignez un réseau d'experts qualifiés et contribuez à la sécurisation de l'écosystème numérique guinéen.
+          Rejoignez un réseau d&apos;experts qualifiés et contribuez à la sécurisation de l&apos;écosystème numérique guinéen.
         </p>
         <div className="mt-8">
           <Button asChild size="lg">
-            <Link href="/register">Démarrer votre demande d'accréditation</Link>
+            <Link href="/register">Démarrer votre demande d&apos;accréditation</Link>
           </Button>
         </div>
       </div>

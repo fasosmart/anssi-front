@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,13 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ResetPasswordConfirmPage({ params }: { params: { uid: string; token: string } }) {
+const ResetPasswordConfirmPage = () => {
   const router = useRouter();
-  const { uid, token } = params;
+  const params = useParams();
+  
+  // Extraction des paramètres avec le hook useParams
+  const uid = params.uid as string;
+  const token = params.token as string;
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,7 +49,7 @@ export default function ResetPasswordConfirmPage({ params }: { params: { uid: st
           router.push('/login');
         }, 4000);
       }
-    } catch (err) {
+    } catch {
       setError("Une erreur de réseau est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
@@ -70,7 +74,7 @@ export default function ResetPasswordConfirmPage({ params }: { params: { uid: st
 
         <form className="my-8" onSubmit={handleSubmit}>
           {error && (
-            <div className="mb-4 rounded-md border border-destructive bg-destructive p-3 text-center text-sm text-destructive-foreground">
+            <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3 text-center text-sm text-destructive-foreground">
               {error}
             </div>
           )}
@@ -116,7 +120,9 @@ export default function ResetPasswordConfirmPage({ params }: { params: { uid: st
       </div>
     </div>
   );
-}
+};
+
+export default ResetPasswordConfirmPage;
 
 const LabelInputContainer = ({
   children,

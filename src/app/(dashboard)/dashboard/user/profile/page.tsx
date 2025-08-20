@@ -72,8 +72,12 @@ export default function ProfilePage() {
       
       setSuccess("Profil mis à jour avec succès !");
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Une erreur inattendue est survenue.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +116,12 @@ export default function ProfilePage() {
       setNewPassword("");
       setConfirmNewPassword("");
 
-    } catch (err: any) {
-      setSecurityError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setSecurityError(err.message);
+      } else {
+        setSecurityError("Une erreur inattendue est survenue.");
+      }
     } finally {
       setIsSecurityLoading(false);
     }
