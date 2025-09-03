@@ -26,8 +26,8 @@ export interface Representative {
   mobile?: string | null;
   email?: string | null;
   idcard_number?: string | null;
-  idcard_issued_at?: string | null;
-  idcard_expires_at?: string | null;
+  idcard_issued_at?: string | null; // This corresponds to idDeliveryDate
+  idcard_expires_at?: string | null; // This corresponds to idExpirationDate
 }
 
 export interface Degree {
@@ -52,9 +52,9 @@ export interface Training {
 export interface Experience {
     slug?: string;
     created_at?: string;
-    job_title: string;
-    company: string;
-    start_date: string;
-    end_date?: string | null;
-    file?: string | null;
+    job_title: string; // Corresponds to 'position' in the form
+    company: string; // Corresponds to 'organization' in the form
+    start_date: string; // Needs to be constructed
+    end_date?: string | null; // Needs to be constructed
+    file?: string | null; // Corresponds to 'reference' (if it's a file path)
 }

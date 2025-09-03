@@ -23,51 +23,11 @@ import { API } from "@/lib/api";
 import { Entity, Representative, Degree, Training, Experience } from "@/types/api";
 
 interface FormData {
-  companyInfo?: {
-    name: string;
-    acronym: string;
-    sector: string;
-    taxId: string;
-    tradeRegister: string;
-    personnelCount: number | string;
-    website?: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  legalRepresentative?: {
-    firstName: string;
-    lastName: string;
-    nationality: string;
-    position: string;
-    idType: string;
-    idNumber: string;
-    idDeliveryDate: string;
-    idExpirationDate: string;
-    address: string;
-    phone: string;
-    email: string;
-  };
-  representativeDiplomas?: {
-    degree: string;
-    institution: string;
-    specialty: string;
-    year: string;
-    reference: string;
-  }[];
-  representativeCertifications?: {
-    certification: string;
-    institution: string;
-    year: string;
-    reference: string;
-  }[];
-  representativeExperience?: {
-    organization: string;
-    recruitmentType: string;
-    position: string;
-    duration: string;
-    reference: string;
-  }[];
+  companyInfo?: Partial<Entity>;
+  legalRepresentative?: Partial<Representative>;
+  representativeDiplomas?: Partial<Degree>[];
+  representativeCertifications?: Partial<Training>[];
+  representativeExperience?: Partial<Experience>[];
   accreditationTypes?: {
     apacs: boolean;
     apassi: boolean;
@@ -113,9 +73,9 @@ export default function NewDossierPage() {
             name: formData.companyInfo?.name || "",
             acronym: formData.companyInfo?.acronym,
             business_sector: formData.companyInfo?.sector,
-            tax_id: formData.companyInfo?.taxId,
-            commercial_register: formData.companyInfo?.tradeRegister,
-            total_staff: Number(formData.companyInfo?.personnelCount) || 0,
+            tax_id: formData.companyInfo?.tax_id,
+            commercial_register: formData.companyInfo?.commercial_register,
+            total_staff: Number(formData.companyInfo?.total_staff) || 0,
             address: formData.companyInfo?.address,
             phone: formData.companyInfo?.phone,
             email: formData.companyInfo?.email,
@@ -141,14 +101,12 @@ export default function NewDossierPage() {
 
         // Step 2: Create the Representative
         const representativePayload: Representative = {
-            first_name: formData.legalRepresentative?.firstName || "",
-            last_name: formData.legalRepresentative?.lastName || "",
-            job_title: formData.legalRepresentative?.position || "",
-            nationality: formData.legalRepresentative?.nationality,
-            idcard_number: formData.legalRepresentative?.idNumber,
-            idcard_issued_at: formData.legalRepresentative?.idDeliveryDate,
-            idcard_expires_at: formData.legalRepresentative?.idExpirationDate,
-            address: formData.legalRepresentative?.address,
+            first_name: formData.legalRepresentative?.first_name || "",
+            last_name: formData.legalRepresentative?.last_name || "",
+            job_title: formData.legalRepresentative?.job_title || "",
+            idcard_number: formData.legalRepresentative?.idcard_number,
+            idcard_issued_at: formData.legalRepresentative?.idcard_issued_at,
+            idcard_expires_at: formData.legalRepresentative?.idcard_expires_at,
             phone: formData.legalRepresentative?.phone,
             email: formData.legalRepresentative?.email,
         };
@@ -176,10 +134,10 @@ export default function NewDossierPage() {
         if (formData.representativeDiplomas) {
             for (const diploma of formData.representativeDiplomas) {
                 const diplomaPayload: Degree = {
-                    degree_name: diploma.degree,
+                    degree_name: diploma.degree_name,
                     institution: diploma.institution,
-                    specialty: diploma.specialty, // Note: This field is not in the Degree type from api.ts
-                    year_obtained: Number(diploma.year)
+                    specialty: diploma.specialty,
+                    year_obtained: Number(diploma.year_obtained)
                 };
                 cursusPromises.push(
                     fetch(API.degrees.create(entitySlug, repSlug), {
@@ -195,9 +153,9 @@ export default function NewDossierPage() {
         if (formData.representativeCertifications) {
             for (const certification of formData.representativeCertifications) {
                 const trainingPayload: Training = {
-                    training_name: certification.certification,
+                    training_name: certification.training_name,
                     institution: certification.institution,
-                    year_obtained: Number(certification.year)
+                    year_obtained: Number(certification.year_obtained)
                 };
                 cursusPromises.push(
                     fetch(API.trainings.create(entitySlug, repSlug), {
@@ -212,12 +170,13 @@ export default function NewDossierPage() {
         // Experiences
         if (formData.representativeExperience) {
             for (const experience of formData.representativeExperience) {
-                const experiencePayload: Experience = {
-                    organization: experience.organization,
-                    recruitment_type: experience.recruitmentType,
-                    position: experience.position,
-                    duration: experience.duration,
-                    reference: experience.reference
+                // NOTE: The form data for experience does not directly map to the API.
+                // A conversion is needed here. For now, we map what we can.
+                const experiencePayload: Partial<Experience> = {
+                    company: experience.company,
+                    job_title: experience.job_title,
+                    // 'start_date' and 'end_date' are required by the API but not in the form data.
+                    // This will need to be addressed.
                 };
                 cursusPromises.push(
                     fetch(API.experiences.create(entitySlug, repSlug), {
