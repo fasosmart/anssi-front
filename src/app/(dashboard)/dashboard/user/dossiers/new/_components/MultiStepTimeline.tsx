@@ -21,7 +21,7 @@ export const MultiStepTimeline: React.FC<MultiStepTimelineProps> = ({
   setCurrentStep,
 }) => {
   return (
-    <div className="flex items-start justify-center p-4">
+    <div className="flex flex-col md:flex-row items-center justify-center p-4">
       {steps.map((step, index) => {
         const isCompleted = step.id < currentStep;
         const isCurrent = step.id === currentStep;
@@ -47,27 +47,38 @@ export const MultiStepTimeline: React.FC<MultiStepTimelineProps> = ({
               >
                 {isCompleted ? <Check className="h-6 w-6" /> : step.id}
               </button>
-              <p className={cn(
-                "text-center text-sm w-32",
-                {
+              <p
+                className={cn("text-center text-sm w-40 md:w-32", {
                   "text-primary font-semibold": isCurrent,
                   "text-muted-foreground": !isCurrent,
-                }
-                )}
+                })}
               >
                 {step.title}
               </p>
             </div>
             {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  "flex-auto border-t-2 transition-colors mt-5",
-                  {
+              <>
+                {/* Mobile connector */}
+                <div
+                  className={cn("md:hidden h-12 my-2 border-l-2", {
                     "border-primary": isCompleted || isCurrent,
-                    "border-muted-foreground/30": !isCompleted && !isCurrent,
-                  }
-                )}
-              />
+                    "border-muted-foreground/30":
+                      !isCompleted && !isCurrent,
+                  })}
+                />
+
+                {/* Desktop connector */}
+                <div
+                  className={cn(
+                    "hidden md:block flex-auto border-t-2 transition-colors mt-5",
+                    {
+                      "border-primary": isCompleted || isCurrent,
+                      "border-muted-foreground/30":
+                        !isCompleted && !isCurrent,
+                    }
+                  )}
+                />
+              </>
             )}
           </React.Fragment>
         );
