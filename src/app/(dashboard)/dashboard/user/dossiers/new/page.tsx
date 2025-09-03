@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardHeader, 
@@ -17,10 +19,11 @@ import { Step2RepresentativeCursus } from "./_components/Step2RepresentativeCurs
 import { Step3AccreditationRequest } from "./_components/Step3AccreditationRequest";
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
+import { API } from "@/lib/api";
+import { Entity, Representative, Degree, Training, Experience } from "@/types/api";
 
 interface FormData {
-  // Step 1
-  companyInfo: {
+  companyInfo?: {
     name: string;
     acronym: string;
     sector: string;
@@ -32,7 +35,7 @@ interface FormData {
     phone: string;
     address: string;
   };
-  legalRepresentative: {
+  legalRepresentative?: {
     firstName: string;
     lastName: string;
     nationality: string;
@@ -45,55 +48,199 @@ interface FormData {
     phone: string;
     email: string;
   };
-
-  // Step 2
-  representativeDiplomas: {
+  representativeDiplomas?: {
     degree: string;
     institution: string;
     specialty: string;
     year: string;
     reference: string;
   }[];
-  representativeCertifications: {
+  representativeCertifications?: {
     certification: string;
     institution: string;
     year: string;
     reference: string;
   }[];
-  representativeExperience: {
+  representativeExperience?: {
     organization: string;
     recruitmentType: string;
     position: string;
     duration: string;
     reference: string;
   }[];
-
-  // Step 3
-  accreditationTypes: {
+  accreditationTypes?: {
     apacs: boolean;
     apassi: boolean;
     apdis: boolean;
     apris: boolean;
     apin: boolean;
   };
-  
-  uploadedDocuments: {
+  uploadedDocuments?: {
     idCopy: File | null;
     taxIdCopy: File | null;
     tradeRegisterCopy: File | null;
   };
-
-  // Step 4
-  declaration: boolean;
+  declaration?: boolean;
 }
 
 
 export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<FormData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const updateFormData = (fields: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    // Add toast notifications for user feedback
+    
+    if (!session?.accessToken) {
+        // Handle not authenticated error
+        console.error("User is not authenticated");
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+        // Step 1: Create the Entity
+        const entityPayload: Entity = {
+            name: formData.companyInfo?.name || "",
+            acronym: formData.companyInfo?.acronym,
+            business_sector: formData.companyInfo?.sector,
+            tax_id: formData.companyInfo?.taxId,
+            commercial_register: formData.companyInfo?.tradeRegister,
+            total_staff: Number(formData.companyInfo?.personnelCount) || 0,
+            address: formData.companyInfo?.address,
+            phone: formData.companyInfo?.phone,
+            email: formData.companyInfo?.email,
+            website: formData.companyInfo?.website,
+            entity_type: 'business',
+        };
+        
+        const entityResponse = await fetch(API.entities.create(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.accessToken}`
+            },
+            body: JSON.stringify(entityPayload)
+        });
+
+        if (!entityResponse.ok) {
+            throw new Error(`Failed to create entity: ${entityResponse.statusText}`);
+        }
+        
+        const newEntity = await entityResponse.json();
+        const entitySlug = newEntity.slug;
+
+        // Step 2: Create the Representative
+        const representativePayload: Representative = {
+            first_name: formData.legalRepresentative?.firstName || "",
+            last_name: formData.legalRepresentative?.lastName || "",
+            job_title: formData.legalRepresentative?.position || "",
+            nationality: formData.legalRepresentative?.nationality,
+            idcard_number: formData.legalRepresentative?.idNumber,
+            idcard_issued_at: formData.legalRepresentative?.idDeliveryDate,
+            idcard_expires_at: formData.legalRepresentative?.idExpirationDate,
+            address: formData.legalRepresentative?.address,
+            phone: formData.legalRepresentative?.phone,
+            email: formData.legalRepresentative?.email,
+        };
+
+        const repResponse = await fetch(API.representatives.create(entitySlug), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.accessToken}`
+            },
+            body: JSON.stringify(representativePayload)
+        });
+        
+        if (!repResponse.ok) {
+            throw new Error(`Failed to create representative: ${repResponse.statusText}`);
+        }
+
+        const newRep = await repResponse.json();
+        const repSlug = newRep.slug;
+        
+        // Step 3: Create Degrees, Trainings, Experiences
+        const cursusPromises = [];
+
+        // Degrees
+        if (formData.representativeDiplomas) {
+            for (const diploma of formData.representativeDiplomas) {
+                const diplomaPayload: Degree = {
+                    degree_name: diploma.degree,
+                    institution: diploma.institution,
+                    specialty: diploma.specialty, // Note: This field is not in the Degree type from api.ts
+                    year_obtained: Number(diploma.year)
+                };
+                cursusPromises.push(
+                    fetch(API.degrees.create(entitySlug, repSlug), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
+                        body: JSON.stringify(diplomaPayload)
+                    })
+                );
+            }
+        }
+        
+        // Trainings
+        if (formData.representativeCertifications) {
+            for (const certification of formData.representativeCertifications) {
+                const trainingPayload: Training = {
+                    training_name: certification.certification,
+                    institution: certification.institution,
+                    year_obtained: Number(certification.year)
+                };
+                cursusPromises.push(
+                    fetch(API.trainings.create(entitySlug, repSlug), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
+                        body: JSON.stringify(trainingPayload)
+                    })
+                );
+            }
+        }
+
+        // Experiences
+        if (formData.representativeExperience) {
+            for (const experience of formData.representativeExperience) {
+                const experiencePayload: Experience = {
+                    organization: experience.organization,
+                    recruitment_type: experience.recruitmentType,
+                    position: experience.position,
+                    duration: experience.duration,
+                    reference: experience.reference
+                };
+                cursusPromises.push(
+                    fetch(API.experiences.create(entitySlug, repSlug), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
+                        body: JSON.stringify(experiencePayload)
+                    })
+                );
+            }
+        }
+
+        await Promise.all(cursusPromises);
+
+
+        // On success
+        router.push("/dashboard/user/dossiers");
+
+    } catch (error) {
+        console.error("Failed to submit dossier:", error);
+        // Handle submission error
+    } finally {
+        setIsSubmitting(false);
+    }
   };
   
   const handleNext = () => {
@@ -144,13 +291,15 @@ export default function NewDossierPage() {
           {activeStep?.component}
         </CardContent>
         <CardFooter className="flex justify-between border-t pt-6">
-          <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
+          <Button variant="outline" onClick={handleBack} disabled={currentStep === 1 || isSubmitting}>
             Précédent
           </Button>
           {currentStep < steps.length ? (
-            <Button onClick={handleNext}>Suivant</Button>
+            <Button onClick={handleNext} disabled={isSubmitting}>Suivant</Button>
           ) : (
-            <Button disabled={!formData.declaration}>Soumettre le dossier</Button>
+            <Button onClick={handleSubmit} disabled={!formData.declaration || isSubmitting}>
+              {isSubmitting ? "Soumission en cours..." : "Soumettre le dossier"}
+            </Button>
           )}
         </CardFooter>
       </Card>
