@@ -58,3 +58,24 @@ export interface Experience {
     end_date?: string | null; // Needs to be constructed
     file?: string | null; // Corresponds to 'reference' (if it's a file path)
 }
+
+export interface DossierFormData {
+  companyInfo?: Partial<Entity>;
+  legalRepresentative?: Partial<Representative>;
+  representativeDiplomas?: Partial<Degree>[];
+  representativeCertifications?: Partial<Training>[];
+  representativeExperience?: Partial<Experience>[];
+  accreditationTypes?: {
+    apacs: boolean;
+    apassi: boolean;
+    apdis: boolean;
+    apris: boolean;
+    apin: boolean;
+  };
+  uploadedDocuments?: {
+    idCopy: File | null;
+    taxIdCopy: File | null;
+    tradeRegisterCopy: File | null;
+  };
+  declaration?: boolean;
+}

@@ -7,14 +7,17 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { UploadCloud, File, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DossierFormData } from "@/types/api";
 
-// Temporary prop definition. Will be replaced by the one from page.tsx
+type AccreditationKeys = keyof NonNullable<DossierFormData['accreditationTypes']>;
+type DocumentKeys = keyof NonNullable<DossierFormData['uploadedDocuments']>;
+
 interface StepProps {
-  data: any;
-  updateData: (fields: any) => void;
+  data: Partial<DossierFormData>;
+  updateData: (fields: Partial<DossierFormData>) => void;
 }
 
-const accreditationOptions = [
+const accreditationOptions: {id: AccreditationKeys, label: string}[] = [
   { id: "apacs", label: "APACS - Accompagnement et Conseil en sécurité" },
   { id: "apassi", label: "APASSI - Audit de la Sécurité des Systèmes d’Information" },
   { id: "apdis", label: "APDIS - Détection d’Incidents de Sécurité" },
@@ -23,35 +26,39 @@ const accreditationOptions = [
 ];
 
 export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateData }) => {
-  const handleAccreditationChange = (checked: boolean, id: string) => {
+  const handleAccreditationChange = (checked: boolean, id: AccreditationKeys) => {
+    const currentTypes = data.accreditationTypes || { apacs: false, apassi: false, apdis: false, apris: false, apin: false };
     updateData({
-      accreditationTypes: { ...data.accreditationTypes, [id]: checked }
+      accreditationTypes: { ...currentTypes, [id]: checked }
     });
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const id = e.target.id as DocumentKeys;
     if (file) {
+      const currentDocs = data.uploadedDocuments || { idCopy: null, taxIdCopy: null, tradeRegisterCopy: null };
       updateData({
-        uploadedDocuments: { ...data.uploadedDocuments, [e.target.id]: file }
+        uploadedDocuments: { ...currentDocs, [id]: file }
       });
     }
   };
 
-  const removeFile = (id: string) => {
+  const removeFile = (id: DocumentKeys) => {
+     const currentDocs = data.uploadedDocuments || { idCopy: null, taxIdCopy: null, tradeRegisterCopy: null };
      updateData({
-        uploadedDocuments: { ...data.uploadedDocuments, [id]: null }
+        uploadedDocuments: { ...currentDocs, [id]: null }
       });
   };
 
-  const renderFileUpload = (id: string, label: string, description: string) => (
+  const renderFileUpload = (id: DocumentKeys, label: string, description: string) => (
     <div className="space-y-2">
       <Label>{label}</Label>
       {data.uploadedDocuments?.[id] ? (
         <div className="flex items-center justify-between p-2 text-sm border rounded-md">
             <div className="flex items-center gap-2">
                 <File className="h-4 w-4 text-muted-foreground" />
-                <span>{data.uploadedDocuments[id].name}</span>
+                <span>{data.uploadedDocuments[id]?.name}</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => removeFile(id)}>
                 <X className="h-4 w-4" />

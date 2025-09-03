@@ -4,11 +4,11 @@ import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { DossierFormData } from "@/types/api";
 
-// Temporary prop definition. Will be replaced by the one from page.tsx
 interface StepProps {
-  data: any;
-  updateData?: (fields: any) => void; // updateData is optional for the review step
+  data: Partial<DossierFormData>;
+  updateData?: (fields: Partial<DossierFormData>) => void; // updateData is optional for the review step
 }
 
 const accreditationLabels: { [key: string]: string } = {
@@ -57,9 +57,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
         {companyInfo && (
           <ReviewSection title="Identité de la société">
             <ReviewItem label="Raison Sociale" value={companyInfo.name} />
-            <ReviewItem label="Secteur d’activité" value={companyInfo.sector} />
-            <ReviewItem label="Identifiant fiscal" value={companyInfo.taxId} />
-            <ReviewItem label="Registre du commerce" value={companyInfo.tradeRegister} />
+            <ReviewItem label="Secteur d’activité" value={companyInfo.business_sector} />
+            <ReviewItem label="Identifiant fiscal" value={companyInfo.tax_id} />
+            <ReviewItem label="Registre du commerce" value={companyInfo.commercial_register} />
             <ReviewItem label="Adresse" value={companyInfo.address} />
             <ReviewItem label="Email" value={companyInfo.email} />
             <ReviewItem label="Téléphone" value={companyInfo.phone} />
@@ -68,8 +68,8 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
         
         {legalRepresentative && (
             <ReviewSection title="Représentant Légal">
-                <ReviewItem label="Nom et Prénom" value={`${legalRepresentative.firstName} ${legalRepresentative.lastName}`} />
-                <ReviewItem label="Fonction" value={legalRepresentative.position} />
+                <ReviewItem label="Nom et Prénom" value={`${legalRepresentative.first_name} ${legalRepresentative.last_name}`} />
+                <ReviewItem label="Fonction" value={legalRepresentative.job_title} />
                 <ReviewItem label="Email" value={legalRepresentative.email} />
                 <ReviewItem label="Téléphone" value={legalRepresentative.phone} />
             </ReviewSection>

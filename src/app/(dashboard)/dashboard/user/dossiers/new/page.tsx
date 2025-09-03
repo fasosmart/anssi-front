@@ -20,39 +20,17 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { Entity, Representative, Degree, Training, Experience } from "@/types/api";
-
-interface FormData {
-  companyInfo?: Partial<Entity>;
-  legalRepresentative?: Partial<Representative>;
-  representativeDiplomas?: Partial<Degree>[];
-  representativeCertifications?: Partial<Training>[];
-  representativeExperience?: Partial<Experience>[];
-  accreditationTypes?: {
-    apacs: boolean;
-    apassi: boolean;
-    apdis: boolean;
-    apris: boolean;
-    apin: boolean;
-  };
-  uploadedDocuments?: {
-    idCopy: File | null;
-    taxIdCopy: File | null;
-    tradeRegisterCopy: File | null;
-  };
-  declaration?: boolean;
-}
-
+import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
 
 export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<Partial<FormData>>({});
+  const [formData, setFormData] = useState<Partial<DossierFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { data: session } = useSession();
   const router = useRouter();
 
-  const updateFormData = (fields: Partial<FormData>) => {
+  const updateFormData = (fields: Partial<DossierFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
   };
 
@@ -69,19 +47,7 @@ export default function NewDossierPage() {
 
     try {
         // Step 1: Create the Entity
-        const entityPayload: Entity = {
-            name: formData.companyInfo?.name || "",
-            acronym: formData.companyInfo?.acronym,
-            business_sector: formData.companyInfo?.sector,
-            tax_id: formData.companyInfo?.tax_id,
-            commercial_register: formData.companyInfo?.commercial_register,
-            total_staff: Number(formData.companyInfo?.total_staff) || 0,
-            address: formData.companyInfo?.address,
-            phone: formData.companyInfo?.phone,
-            email: formData.companyInfo?.email,
-            website: formData.companyInfo?.website,
-            entity_type: 'business',
-        };
+        const entityPayload: Entity = { ...formData.companyInfo, name: formData.companyInfo?.name || "", entity_type: 'business' };
         
         const entityResponse = await fetch(API.entities.create(), {
             method: 'POST',
@@ -100,16 +66,7 @@ export default function NewDossierPage() {
         const entitySlug = newEntity.slug;
 
         // Step 2: Create the Representative
-        const representativePayload: Representative = {
-            first_name: formData.legalRepresentative?.first_name || "",
-            last_name: formData.legalRepresentative?.last_name || "",
-            job_title: formData.legalRepresentative?.job_title || "",
-            idcard_number: formData.legalRepresentative?.idcard_number,
-            idcard_issued_at: formData.legalRepresentative?.idcard_issued_at,
-            idcard_expires_at: formData.legalRepresentative?.idcard_expires_at,
-            phone: formData.legalRepresentative?.phone,
-            email: formData.legalRepresentative?.email,
-        };
+        const representativePayload: Representative = { ...formData.legalRepresentative, first_name: formData.legalRepresentative?.first_name || "", last_name: formData.legalRepresentative?.last_name || "", job_title: formData.legalRepresentative?.job_title || "" };
 
         const repResponse = await fetch(API.representatives.create(entitySlug), {
             method: 'POST',
@@ -127,23 +84,34 @@ export default function NewDossierPage() {
         const newRep = await repResponse.json();
         const repSlug = newRep.slug;
         
-        // Step 3: Create Degrees, Trainings, Experiences
+        // Helper function to append fields to FormData
+        const appendToFd = (fd: globalThis.FormData, obj: any) => {
+            for (const key in obj) {
+                // Ensure the key is own property and value is not null/undefined
+                if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== null && obj[key] !== undefined) {
+                    fd.append(key, obj[key]);
+                }
+            }
+        };
+
+        // Step 3: Create Degrees, Trainings, Experiences with files
         const cursusPromises = [];
 
         // Degrees
         if (formData.representativeDiplomas) {
             for (const diploma of formData.representativeDiplomas) {
-                const diplomaPayload: Degree = {
-                    degree_name: diploma.degree_name,
-                    institution: diploma.institution,
-                    specialty: diploma.specialty,
-                    year_obtained: Number(diploma.year_obtained)
-                };
+                const fd = new FormData();
+                const { file, ...diplomaData } = diploma;
+                appendToFd(fd, diplomaData);
+                if (file) {
+                    fd.append('file', file);
+                }
+                
                 cursusPromises.push(
                     fetch(API.degrees.create(entitySlug, repSlug), {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
-                        body: JSON.stringify(diplomaPayload)
+                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
+                        body: fd
                     })
                 );
             }
@@ -152,16 +120,18 @@ export default function NewDossierPage() {
         // Trainings
         if (formData.representativeCertifications) {
             for (const certification of formData.representativeCertifications) {
-                const trainingPayload: Training = {
-                    training_name: certification.training_name,
-                    institution: certification.institution,
-                    year_obtained: Number(certification.year_obtained)
-                };
+                 const fd = new FormData();
+                 const { file, ...certData } = certification;
+                 appendToFd(fd, certData);
+                 if (file) {
+                    fd.append('file', file);
+                 }
+
                 cursusPromises.push(
                     fetch(API.trainings.create(entitySlug, repSlug), {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
-                        body: JSON.stringify(trainingPayload)
+                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
+                        body: fd
                     })
                 );
             }
@@ -170,26 +140,24 @@ export default function NewDossierPage() {
         // Experiences
         if (formData.representativeExperience) {
             for (const experience of formData.representativeExperience) {
-                // NOTE: The form data for experience does not directly map to the API.
-                // A conversion is needed here. For now, we map what we can.
-                const experiencePayload: Partial<Experience> = {
-                    company: experience.company,
-                    job_title: experience.job_title,
-                    // 'start_date' and 'end_date' are required by the API but not in the form data.
-                    // This will need to be addressed.
-                };
+                const fd = new FormData();
+                const { file, ...expData } = experience;
+                appendToFd(fd, expData);
+                if (file) {
+                    fd.append('file', file);
+                }
+
                 cursusPromises.push(
                     fetch(API.experiences.create(entitySlug, repSlug), {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.accessToken}`},
-                        body: JSON.stringify(experiencePayload)
+                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
+                        body: fd
                     })
                 );
             }
         }
 
         await Promise.all(cursusPromises);
-
 
         // On success
         router.push("/dashboard/user/dossiers");

@@ -5,38 +5,79 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, UploadCloud, File as FileIcon, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { DossierFormData } from "@/types/api";
 
-// Define a more specific type instead of any
-interface FormData {
-  [key: string]: any;
-}
+type ListKey = keyof Pick<DossierFormData, 'representativeDiplomas' | 'representativeCertifications' | 'representativeExperience'>;
 
-// Temporary prop definition. Will be replaced by the one from page.tsx
 interface StepProps {
-  data: Partial<FormData>;
-  updateData: (fields: Partial<FormData>) => void;
+  data: Partial<DossierFormData>;
+  updateData: (fields: Partial<DossierFormData>) => void;
 }
 
-const initialDiploma = { degree: "", institution: "", specialty: "", year: "", reference: "" };
-const initialCertification = { certification: "", institution: "", year: "", reference: "" };
-const initialExperience = { organization: "", recruitmentType: "", position: "", duration: "", reference: "" };
+const initialDiploma = { degree_name: "", institution: "", year_obtained: "", file: null };
+const initialCertification = { training_name: "", institution: "", year_obtained: "", file: null };
+const initialExperience = { company: "", job_title: "", start_date: "", end_date: "", file: null };
+
+const FileUpload: React.FC<{ file: File | null, onFileChange: (file: File | null) => void, id: string }> = ({ file, onFileChange, id }) => {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onFileChange(event.target.files ? event.target.files[0] : null);
+    };
+    
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={id}>Pièce justificative</Label>
+            {file ? (
+                <div className="flex items-center justify-between p-2 text-sm border rounded-md">
+                    <div className="flex items-center gap-2 truncate">
+                        <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{file.name}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => onFileChange(null)}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            ) : (
+                <div className="relative">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full">
+                        <div className="flex items-center justify-center w-full p-2 border-2 border-dashed rounded-lg hover:bg-muted/50 text-sm">
+                           <UploadCloud className="w-4 h-4 mr-2 text-muted-foreground" />
+                           Téléverser un fichier
+                        </div>
+                    </button>
+                    <Input ref={fileInputRef} id={id} type="file" className="hidden" onChange={handleFileSelect} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateData }) => {
   
-  const handleListChange = (listName: string, index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleListChange = (listName: ListKey, index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const newList = [...(data[listName] || [])];
-    newList[index] = { ...newList[index], [e.target.name]: e.target.value };
+    const fieldName = e.target.name;
+    const value = e.target.type === 'file' ? (e.target.files ? e.target.files[0] : null) : e.target.value;
+    newList[index] = { ...newList[index], [fieldName]: value };
+    updateData({ [listName]: newList });
+  };
+  
+  const handleFileInListChange = (listName: ListKey, index: number, file: File | null) => {
+    const newList = [...(data[listName] || [])];
+    newList[index] = { ...newList[index], file: file };
     updateData({ [listName]: newList });
   };
 
-  const addToList = (listName: string, initialItem: object) => {
+  const addToList = (listName: ListKey, initialItem: object) => {
     const newList = [...(data[listName] || []), initialItem];
     updateData({ [listName]: newList });
   };
 
-  const removeFromList = (listName: string, index: number) => {
+  const removeFromList = (listName: ListKey, index: number) => {
     const newList = [...(data[listName] || [])];
     newList.splice(index, 1);
     updateData({ [listName]: newList });
@@ -44,21 +85,24 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
 
   return (
     <div className="space-y-8">
-      {/* Section 1: Diplômes du Représentant Juridique */}
+      {/* Section 1: Diplômes */}
       <div>
         <h3 className="text-lg font-medium mb-4">Diplômes du Représentant Juridique</h3>
         <div className="space-y-4">
-          {(data.representativeDiplomas || []).map((diploma: object, index: number) => (
+          {(data.representativeDiplomas || []).map((diploma: any, index: number) => (
             <Card key={index}>
-              <CardContent className="pt-6 grid gap-4 md:grid-cols-2 relative">
-                 <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
-                    <Input name="degree" value={(diploma as any).degree} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Diplôme" />
-                    <Input name="institution" value={(diploma as any).institution} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Institution" />
-                    <Input name="specialty" value={(diploma as any).specialty} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Spécialité / Année" />
+              <CardContent className="pt-6 grid gap-4 relative">
+                 <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
+                    <Input name="degree_name" value={diploma.degree_name} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Diplôme" />
+                    <Input name="institution" value={diploma.institution} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Institution" />
                  </div>
-                 <div className="md:col-span-2 grid md:grid-cols-3 gap-4">
-                    <Input name="year" value={(diploma as any).year} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Année" />
-                    <Input name="reference" value={(diploma as any).reference} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Références de la pièce justificative*" className="md:col-span-2" />
+                 <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
+                    <Input name="year_obtained" value={diploma.year_obtained} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Année" />
+                    <FileUpload 
+                        id={`diploma-file-${index}`}
+                        file={diploma.file} 
+                        onFileChange={(file) => handleFileInListChange('representativeDiplomas', index, file)} 
+                    />
                  </div>
                  <Button variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeFromList('representativeDiplomas', index)}>
                     <Trash2 className="h-4 w-4" />
@@ -74,19 +118,25 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
 
       <Separator />
 
-      {/* Section 2: Cycles de formations du Représentant Juridique */}
-       <div>
+      {/* Section 2: Formations */}
+      <div>
         <h3 className="text-lg font-medium mb-4">Cycles de formations du Représentant Juridique</h3>
         <div className="space-y-4">
-           {(data.representativeCertifications || []).map((cert: object, index: number) => (
+           {(data.representativeCertifications || []).map((cert: any, index: number) => (
             <Card key={index}>
               <CardContent className="pt-6 grid gap-4 relative">
                 <div className="grid md:grid-cols-3 gap-4">
-                    <Input name="certification" value={(cert as any).certification} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Formation / Certification" />
-                    <Input name="institution" value={(cert as any).institution} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Institut / Organisme" />
-                    <Input name="year" value={(cert as any).year} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Promotion / Année" />
+                    <Input name="training_name" value={cert.training_name} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Formation / Certification" />
+                    <Input name="institution" value={cert.institution} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Institut / Organisme" />
+                    <Input name="year_obtained" value={cert.year_obtained} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Promotion / Année" />
                 </div>
-                <Input name="reference" value={(cert as any).reference} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Références de la pièce justificative*" />
+                <div className="md:col-span-3">
+                    <FileUpload 
+                        id={`cert-file-${index}`}
+                        file={cert.file} 
+                        onFileChange={(file) => handleFileInListChange('representativeCertifications', index, file)} 
+                    />
+                </div>
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeFromList('representativeCertifications', index)}>
                     <Trash2 className="h-4 w-4" />
                 </Button>
@@ -101,21 +151,27 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
 
       <Separator />
 
-      {/* Section 3: Cursus professionnel du Représentant Juridique */}
+      {/* Section 3: Expériences */}
        <div>
         <h3 className="text-lg font-medium mb-4">Cursus professionnel du Représentant Juridique</h3>
         <div className="space-y-4">
-           {(data.representativeExperience || []).map((exp: object, index: number) => (
+           {(data.representativeExperience || []).map((exp: any, index: number) => (
              <Card key={index}>
                 <CardContent className="pt-6 grid gap-4 relative">
                     <div className="grid md:grid-cols-3 gap-4">
-                        <Input name="organization" value={(exp as any).organization} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Organisme" />
-                        <Input name="recruitmentType" value={(exp as any).recruitmentType} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Forme de recrutement" />
-                        <Input name="position" value={(exp as any).position} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Fonctions exercées" />
+                        <Input name="company" value={exp.company} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Organisme" />
+                        <Input name="job_title" value={exp.job_title} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Fonctions exercées" />
+                        <Input name="start_date" value={exp.start_date} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de début (YYYY-MM-DD)" />
                     </div>
-                     <div className="grid md:grid-cols-3 gap-4">
-                        <Input name="duration" value={(exp as any).duration} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Durée" />
-                        <Input name="reference" value={(exp as any).reference} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Numéro de la pièce justificative*" className="md:col-span-2" />
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <Input name="end_date" value={exp.end_date} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de fin (YYYY-MM-DD)" />
+                        <div className="md:col-span-2">
+                            <FileUpload 
+                                id={`exp-file-${index}`}
+                                file={exp.file} 
+                                onFileChange={(file) => handleFileInListChange('representativeExperience', index, file)} 
+                            />
+                        </div>
                     </div>
                     <Button variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeFromList('representativeExperience', index)}>
                         <Trash2 className="h-4 w-4" />
