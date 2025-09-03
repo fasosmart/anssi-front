@@ -16,6 +16,7 @@ import { Step1EntityInfo } from "./_components/Step1EntityInfo";
 import { Step2RepresentativeCursus } from "./_components/Step2RepresentativeCursus";
 import { Step3AccreditationRequest } from "./_components/Step3AccreditationRequest";
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
+import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 
 interface FormData {
   // Step 1
@@ -103,11 +104,18 @@ export default function NewDossierPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleStepClick = (stepId: number) => {
+    // Allow navigation only to previous steps
+    if (stepId < currentStep) {
+        setCurrentStep(stepId);
+    }
+  };
+
   const steps = [
-    { id: 1, title: "Renseignements sur l'Entité", component: <Step1EntityInfo data={formData} updateData={updateFormData} /> },
-    { id: 2, title: "Cursus du Représentant Juridique", component: <Step2RepresentativeCursus data={formData} updateData={updateFormData} /> },
-    { id: 3, title: "L'Accréditation et les Justificatifs", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} /> },
-    { id: 4, title: "Engagement et Récapitulatif", component: <Step4ReviewSubmit data={formData} /> },
+    { id: 1, title: "Renseignements", component: <Step1EntityInfo data={formData} updateData={updateFormData} /> },
+    { id: 2, title: "Cursus", component: <Step2RepresentativeCursus data={formData} updateData={updateFormData} /> },
+    { id: 3, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} /> },
+    { id: 4, title: "Soumission", component: <Step4ReviewSubmit data={formData} updateData={updateFormData} /> },
   ];
 
   const activeStep = steps.find((step) => step.id === currentStep);
@@ -118,6 +126,12 @@ export default function NewDossierPage() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Retour à la liste des dossiers
       </Link>
+
+      <MultiStepTimeline 
+        steps={steps.map(s => ({id: s.id, title: s.title}))}
+        currentStep={currentStep}
+        setCurrentStep={handleStepClick}
+      />
 
       <Card>
         <CardHeader>

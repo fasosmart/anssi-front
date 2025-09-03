@@ -1,11 +1,19 @@
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Rocket } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export function CallToAction() {
+  const { data: session } = useSession();
+
   return (
-    <section className="py-20 md:py-32 bg-background">
-      <div className="container mx-auto px-6 text-center">
+    <>
+    {
+      !session && (
+        <section className="py-20 md:py-32 bg-background">
+        <div className="container mx-auto px-6 text-center">
         <Rocket className="w-16 h-16 text-primary mx-auto mb-6" />
         <h2 className="text-3xl md:text-4xl font-bold text-foreground">
           Prêt à devenir un partenaire de confiance ?
@@ -19,6 +27,9 @@ export function CallToAction() {
           </Button>
         </div>
       </div>
-    </section>
+      </section>
+    )
+  }
+  </>
   );
 }
