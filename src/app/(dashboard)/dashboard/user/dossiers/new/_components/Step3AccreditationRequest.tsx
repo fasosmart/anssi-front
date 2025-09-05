@@ -84,7 +84,7 @@ export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateDat
     <div className="space-y-8">
       {/* Section 1: Préciser l'accréditation sollicitée */}
       <div>
-        <h3 className="text-lg font-medium mb-4">Préciser l'accréditation sollicitée (plusieurs peuvent être sollicitées)</h3>
+        <h3 className="text-lg font-medium mb-4">Préciser l&apos;accréditation sollicitée (plusieurs peuvent être sollicitées)</h3>
         <div className="space-y-3">
           {accreditationOptions.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">

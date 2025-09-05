@@ -27,7 +27,7 @@ const ReviewSection: React.FC<{ title: string; children: React.ReactNode }> = ({
   </div>
 );
 
-const ReviewItem: React.FC<{ label: string; value: any }> = ({ label, value }) => (
+const ReviewItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
   <div className="flex justify-between">
     <span className="text-muted-foreground">{label}:</span>
     <span className="text-right font-medium">{value || "Non renseigné"}</span>
@@ -93,7 +93,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
 
       {/* Section Engagement */}
       <div>
-        <h3 className="text-lg font-medium">Engagement et déclaration sur l'honneur</h3>
+        <h3 className="text-lg font-medium">Engagement et déclaration sur l&apos;honneur</h3>
         <div className="mt-4 space-y-4 rounded-md border p-4">
           <p className="text-sm">
             Je soussigné(e), m’engage à respecter les dispositions du cahier des charges, et j’assume mes responsabilités face à toute infraction.

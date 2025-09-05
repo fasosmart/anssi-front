@@ -18,6 +18,7 @@ import { API } from "@/lib/api";
 import { Entity } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 // Assume you have a toast library for notifications
 // e.g., import { toast } from 'sonner';
@@ -90,9 +91,10 @@ export default function StructurePage() {
 
       setEntity(response.data);
       toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
-    } catch (error: any) {
-      console.error("Failed to save entity:", error);
-      toast.error(`Erreur: ${error.response?.data?.detail || error.message}`);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ detail: string }>;
+      console.error("Failed to save entity:", axiosError);
+      toast.error(`Erreur: ${axiosError.response?.data?.detail || axiosError.message}`);
     } finally {
       setIsSubmitting(false);
     }

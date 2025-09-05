@@ -20,7 +20,7 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
+import { Entity, Representative, DossierFormData } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
 import { toast } from "sonner";
 
@@ -106,11 +106,16 @@ export default function NewDossierPage() {
         const repSlug = newRep.slug;
         
         // Helper function to append fields to FormData
-        const appendToFd = (fd: globalThis.FormData, obj: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const appendToFd = (fd: globalThis. FormData, obj: Record<string, any>) => {
             for (const key in obj) {
-                // Ensure the key is own property and value is not null/undefined
                 if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== null && obj[key] !== undefined) {
-                    fd.append(key, obj[key]);
+                    const value = obj[key];
+                    if (value instanceof File) {
+                        fd.append(key, value);
+                    } else {
+                        fd.append(key, String(value));
+                    }
                 }
             }
         };

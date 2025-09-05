@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PlusCircle, Trash2, UploadCloud, File as FileIcon, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DossierFormData } from "@/types/api";
+import { DossierFormData, Degree, Training, Experience } from "@/types/api";
 
 type ListKey = keyof Pick<DossierFormData, 'representativeDiplomas' | 'representativeCertifications' | 'representativeExperience'>;
 
@@ -89,7 +89,7 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
       <div>
         <h3 className="text-lg font-medium mb-4">Diplômes du Représentant Juridique</h3>
         <div className="space-y-4">
-          {(data.representativeDiplomas || []).map((diploma: any, index: number) => (
+          {(data.representativeDiplomas || []).map((diploma: Partial<Degree>, index: number) => (
             <Card key={index}>
               <CardContent className="pt-6 grid gap-4 relative">
                  <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
@@ -122,7 +122,7 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
       <div>
         <h3 className="text-lg font-medium mb-4">Cycles de formations du Représentant Juridique</h3>
         <div className="space-y-4">
-           {(data.representativeCertifications || []).map((cert: any, index: number) => (
+           {(data.representativeCertifications || []).map((cert: Partial<Training>, index: number) => (
             <Card key={index}>
               <CardContent className="pt-6 grid gap-4 relative">
                 <div className="grid md:grid-cols-3 gap-4">
@@ -155,7 +155,7 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
        <div>
         <h3 className="text-lg font-medium mb-4">Cursus professionnel du Représentant Juridique</h3>
         <div className="space-y-4">
-           {(data.representativeExperience || []).map((exp: any, index: number) => (
+           {(data.representativeExperience || []).map((exp: Partial<Experience>, index: number) => (
              <Card key={index}>
                 <CardContent className="pt-6 grid gap-4 relative">
                     <div className="grid md:grid-cols-3 gap-4">
