@@ -93,14 +93,14 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
             <Card key={index}>
               <CardContent className="pt-6 grid gap-4 relative">
                  <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
-                    <Input name="degree_name" value={diploma.degree_name} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Diplôme" />
-                    <Input name="institution" value={diploma.institution} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Institution" />
+                    <Input name="degree_name" value={diploma.degree_name || ''} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Diplôme" />
+                    <Input name="institution" value={diploma.institution || ''} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Institution" />
                  </div>
                  <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
-                    <Input name="year_obtained" value={diploma.year_obtained} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Année" />
+                    <Input name="year_obtained" value={diploma.year_obtained || ''} onChange={(e) => handleListChange('representativeDiplomas', index, e)} placeholder="Année" />
                     <FileUpload 
                         id={`diploma-file-${index}`}
-                        file={diploma.file} 
+                        file={typeof diploma.file === 'string' ? null : diploma.file || null} 
                         onFileChange={(file) => handleFileInListChange('representativeDiplomas', index, file)} 
                     />
                  </div>
@@ -126,14 +126,14 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
             <Card key={index}>
               <CardContent className="pt-6 grid gap-4 relative">
                 <div className="grid md:grid-cols-3 gap-4">
-                    <Input name="training_name" value={cert.training_name} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Formation / Certification" />
-                    <Input name="institution" value={cert.institution} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Institut / Organisme" />
-                    <Input name="year_obtained" value={cert.year_obtained} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Promotion / Année" />
+                    <Input name="training_name" value={cert.training_name || ''} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Formation / Certification" />
+                    <Input name="institution" value={cert.institution || ''} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Institut / Organisme" />
+                    <Input name="year_obtained" value={cert.year_obtained || ''} onChange={(e) => handleListChange('representativeCertifications', index, e)} placeholder="Promotion / Année" />
                 </div>
                 <div className="md:col-span-3">
                     <FileUpload 
                         id={`cert-file-${index}`}
-                        file={cert.file} 
+                        file={typeof cert.file === 'string' ? null : cert.file || null}
                         onFileChange={(file) => handleFileInListChange('representativeCertifications', index, file)} 
                     />
                 </div>
@@ -159,16 +159,16 @@ export const Step2RepresentativeCursus: React.FC<StepProps> = ({ data, updateDat
              <Card key={index}>
                 <CardContent className="pt-6 grid gap-4 relative">
                     <div className="grid md:grid-cols-3 gap-4">
-                        <Input name="company" value={exp.company} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Organisme" />
-                        <Input name="job_title" value={exp.job_title} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Fonctions exercées" />
-                        <Input name="start_date" value={exp.start_date} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de début (YYYY-MM-DD)" />
+                        <Input name="company" value={exp.company || ''} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Organisme" />
+                        <Input name="job_title" value={exp.job_title || ''} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Fonctions exercées" />
+                        <Input name="start_date" value={exp.start_date || ''} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de début (YYYY-MM-DD)" />
                     </div>
                      <div className="grid md:grid-cols-2 gap-4">
-                        <Input name="end_date" value={exp.end_date} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de fin (YYYY-MM-DD)" />
+                        <Input name="end_date" value={exp.end_date || ''} onChange={(e) => handleListChange('representativeExperience', index, e)} placeholder="Date de fin (YYYY-MM-DD)" />
                         <div className="md:col-span-2">
                             <FileUpload 
                                 id={`exp-file-${index}`}
-                                file={exp.file} 
+                                file={typeof exp.file === 'string' ? null : exp.file || null}
                                 onFileChange={(file) => handleFileInListChange('representativeExperience', index, file)} 
                             />
                         </div>

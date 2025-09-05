@@ -37,7 +37,7 @@ export interface Degree {
   institution: string;
   specialty?: string; // Added specialty to match form data
   year_obtained: number;
-  file?: string | null;
+  file?: string | File | null;
 }
 
 export interface Training {
@@ -46,7 +46,7 @@ export interface Training {
     training_name: string;
     institution: string;
     year_obtained: number;
-    file?: string | null;
+    file?: string | File | null;
 }
 
 export interface Experience {
@@ -56,7 +56,7 @@ export interface Experience {
     company: string; // Corresponds to 'organization' in the form
     start_date: string; // Needs to be constructed
     end_date?: string | null; // Needs to be constructed
-    file?: string | null; // Corresponds to 'reference' (if it's a file path)
+    file?: string | File | null; // Corresponds to 'reference' (if it's a file path)
 }
 
 export interface DossierFormData {
