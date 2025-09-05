@@ -30,19 +30,33 @@ export default function StructurePage() {
     const fetchEntity = async () => {
       if (session?.accessToken) {
         try {
-          const response = await fetch(API.entities.list(), {
+          // Step 1: Fetch the list of entities to get the slug
+          const listResponse = await fetch(API.entities.list(), {
             headers: {
               Authorization: `Bearer ${session.accessToken}`,
             },
           });
-          if (!response.ok) {
-            throw new Error("Failed to fetch entities");
+          if (!listResponse.ok) {
+            throw new Error("Failed to fetch entity list");
           }
-          const data = await response.json();
-          console.log(`data entities: ${JSON.stringify(data)}`);
+          const listData = await listResponse.json();
+
           // Assuming the user is associated with the first entity in the list
-          if (data.results && data.results.length > 0) {
-            setEntity(data.results[0]);
+          if (listData.results && listData.results.length > 0) {
+            const entitySlug = listData.results[0].slug;
+
+            // Step 2: Fetch the detailed entity view using the slug
+            const detailsResponse = await fetch(API.entities.details(entitySlug), {
+              headers: {
+                Authorization: `Bearer ${session.accessToken}`,
+              },
+            });
+            if (!detailsResponse.ok) {
+              throw new Error("Failed to fetch entity details");
+            }
+            const detailedEntity = await detailsResponse.json();
+            setEntity(detailedEntity);
+            
           } else {
             setEntity({}); // No entity found, prepare for creation
           }

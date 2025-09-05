@@ -36,20 +36,30 @@ export default function NewDossierPage() {
     const fetchUserEntity = async () => {
       if (session?.accessToken) {
         try {
-          const response = await fetch(API.entities.list(), {
+          // Étape 1 : Récupérer la liste pour obtenir le slug de la structure
+          const listResponse = await fetch(API.entities.list(), {
             headers: { Authorization: `Bearer ${session.accessToken}` },
           });
-          if (!response.ok) throw new Error("Failed to fetch entity.");
-          const data = await response.json();
-          if (data.results && data.results.length > 0) {
-            const entity = data.results[0];
-            setUserEntity(entity);
-            // Pre-fill form data with entity info
-            updateFormData({ companyInfo: entity });
+          if (!listResponse.ok) throw new Error("Failed to fetch entity list.");
+          const listData = await listResponse.json();
+
+          if (listData.results && listData.results.length > 0) {
+            const entitySlug = listData.results[0].slug;
+
+            // Étape 2 : Utiliser le slug pour récupérer les infos complètes de la structure
+            const detailsResponse = await fetch(API.entities.details(entitySlug), {
+              headers: { Authorization: `Bearer ${session.accessToken}` },
+            });
+            if (!detailsResponse.ok) throw new Error("Failed to fetch entity details.");
+            const detailedEntity = await detailsResponse.json();
+
+            setUserEntity(detailedEntity);
+            // Pré-remplir le formulaire avec les infos complètes de la structure
+            updateFormData({ companyInfo: detailedEntity });
           }
         } catch (error) {
           console.error("Error fetching user entity:", error);
-          // Handle error, e.g., show a toast
+          // Gérer l'erreur, ex: afficher un toast
         } finally {
           setEntityLoading(false);
         }
