@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import { Entity } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
+import { toast } from "sonner";
 
 // Assume you have a toast library for notifications
 // e.g., import { toast } from 'sonner';
@@ -49,7 +50,7 @@ export default function StructurePage() {
           }
         } catch (error) {
           console.error("Error fetching entity:", error);
-          // toast.error("Erreur lors de la récupération de votre structure.");
+          toast.error("Erreur lors de la récupération de votre structure.");
           setEntity({}); // Prepare for creation in case of error
         } finally {
           setIsLoading(false);
@@ -88,10 +89,10 @@ export default function StructurePage() {
       });
 
       setEntity(response.data);
-      // toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
+      toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
     } catch (error: any) {
       console.error("Failed to save entity:", error);
-      // toast.error(`Erreur: ${error.response?.data?.detail || error.message}`);
+      toast.error(`Erreur: ${error.response?.data?.detail || error.message}`);
     } finally {
       setIsSubmitting(false);
     }

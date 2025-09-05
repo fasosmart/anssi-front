@@ -22,6 +22,7 @@ import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
 import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
+import { toast } from "sonner";
 
 export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -55,7 +56,7 @@ export default function NewDossierPage() {
           }
         } catch (error) {
           console.error("Error fetching user entity:", error);
-          // Gérer l'erreur, ex: afficher un toast
+          toast.error("Erreur lors de la récupération des informations de votre structure.");
         } finally {
           setEntityLoading(false);
         }
@@ -86,7 +87,7 @@ export default function NewDossierPage() {
     
     if (!userEntity?.slug) {
         console.error("User entity is not available for submission.");
-        // toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
+        toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
         setIsSubmitting(false);
         return;
     }
@@ -174,11 +175,12 @@ export default function NewDossierPage() {
         await Promise.all(cursusPromises);
 
         // On success
+        toast.success("Votre dossier a été soumis avec succès !");
         router.push("/dashboard/user/dossiers");
 
     } catch (error) {
         console.error("Failed to submit dossier:", error);
-        // Handle submission error
+        toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {
         setIsSubmitting(false);
     }

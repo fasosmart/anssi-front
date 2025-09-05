@@ -5,6 +5,7 @@ import { AppBreadcrumb } from "@/components/layout/AppBreadcrumb";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { UserNav } from "@/components/layout/UserNav";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function DashboardLayout({
   children,
@@ -23,11 +24,12 @@ export default function DashboardLayout({
               <UserNav />
             </div>
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             <AppBreadcrumb />
             {children}
           </main>
         </div>
+        <Toaster />
       </div>
     </SidebarProvider>
   );
