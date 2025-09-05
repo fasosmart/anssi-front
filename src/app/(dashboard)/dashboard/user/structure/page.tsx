@@ -12,29 +12,99 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { API } from "@/lib/api";
+import { Entity } from "@/types/api";
+
+// Assume you have a toast library for notifications
+// e.g., import { toast } from 'sonner';
 
 export default function StructurePage() {
-  const [formData, setFormData] = useState({
-    companyName: "",
-    registrationNumber: "",
-    address: "",
-    phoneNumber: "",
-    activityDescription: "",
-  });
+  const { data: session } = useSession();
+  const [entity, setEntity] = useState<Partial<Entity> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchEntity = async () => {
+      if (session?.accessToken) {
+        try {
+          const response = await fetch(API.entities.list(), {
+            headers: {
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error("Failed to fetch entities");
+          }
+          const data = await response.json();
+          // Assuming the user is associated with the first entity in the list
+          if (data.results && data.results.length > 0) {
+            setEntity(data.results[0]);
+          } else {
+            setEntity({}); // No entity found, prepare for creation
+          }
+        } catch (error) {
+          console.error("Error fetching entity:", error);
+          // toast.error("Erreur lors de la récupération de votre structure.");
+          setEntity({}); // Prepare for creation in case of error
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (session) {
+      fetchEntity();
+    }
+  }, [session]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setEntity((prev) => (prev ? { ...prev, [name]: value } : { [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form data submitted:", formData);
-    // Ici, vous ajouteriez la logique pour envoyer les données à votre API
+    if (!session?.accessToken || !entity) return;
+
+    setIsSubmitting(true);
+    const isUpdate = !!entity.slug;
+    const url = isUpdate ? API.entities.update(entity.slug!) : API.entities.create();
+    const method = isUpdate ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({ ...entity, entity_type: 'business' }), // Ensure entity_type is set
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Something went wrong");
+      }
+
+      const updatedEntity = await response.json();
+      setEntity(updatedEntity);
+      // toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
+    } catch (error: any) {
+      console.error("Failed to save entity:", error);
+      // toast.error(`Erreur: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return <div>Chargement de votre structure...</div>; // Replace with a proper skeleton loader
+  }
 
   return (
     <div className="grid gap-6">
@@ -47,78 +117,162 @@ export default function StructurePage() {
         </div>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>Informations sur l&apos;entreprise</CardTitle>
-          <CardDescription>
-            Assurez-vous que ces informations sont exactes et à jour.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-6">
+        <form onSubmit={handleSubmit}>
+          <CardHeader>
+            <CardTitle>Informations sur l&apos;entreprise</CardTitle>
+            <CardDescription>
+              Assurez-vous que ces informations sont exactes et à jour.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="companyName">Nom de l&apos;entreprise</Label>
+                <Label htmlFor="name">Nom de l&apos;entreprise</Label>
                 <Input
-                  id="companyName"
-                  name="companyName"
-                  value={formData.companyName}
+                  id="name"
+                  name="name"
+                  value={entity?.name || ""}
                   onChange={handleChange}
                   placeholder="Ex: FasoSmart"
+                  required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="registrationNumber">
-                  Numéro d&apos;immatriculation
+                <Label htmlFor="acronym">Sigle</Label>
+                <Input
+                  id="acronym"
+                  name="acronym"
+                  value={entity?.acronym || ""}
+                  onChange={handleChange}
+                  placeholder="Ex: FS"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
+              <Input
+                id="business_sector"
+                name="business_sector"
+                value={entity?.business_sector || ""}
+                onChange={handleChange}
+                placeholder="Ex: Technologies de l'Information et de la Communication"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+               <div className="grid gap-2">
+                <Label htmlFor="tax_id">Identifiant fiscal (IFU)</Label>
+                <Input
+                  id="tax_id"
+                  name="tax_id"
+                  value={entity?.tax_id || ""}
+                  onChange={handleChange}
+                  placeholder="Numéro IFU"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="commercial_register">
+                  Numéro du Registre de Commerce (RCCM)
                 </Label>
                 <Input
-                  id="registrationNumber"
-                  name="registrationNumber"
-                  value={formData.registrationNumber}
+                  id="commercial_register"
+                  name="commercial_register"
+                  value={entity?.commercial_register || ""}
                   onChange={handleChange}
                   placeholder="RCCM..."
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="address">Adresse</Label>
+             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+               <div className="grid gap-2">
+                <Label htmlFor="total_staff">Effectif Total</Label>
                 <Input
-                  id="address"
-                  name="address"
-                  value={formData.address}
+                  id="total_staff"
+                  name="total_staff"
+                  type="number"
+                  value={entity?.total_staff || ""}
                   onChange={handleChange}
-                  placeholder="123 Rue de l&apos;Innovation, Conakry"
+                  placeholder="Ex: 10"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phoneNumber">Numéro de téléphone</Label>
+                <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
+                 <Input
+                  id="cybersecurity_experts"
+                  name="cybersecurity_experts"
+                  type="number"
+                  value={entity?.cybersecurity_experts || ""}
+                  onChange={handleChange}
+                  placeholder="Ex: 3"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+                <Label htmlFor="address">Adresse complète</Label>
+                <Textarea
+                  id="address"
+                  name="address"
+                  value={entity?.address || ""}
+                  onChange={handleChange}
+                  placeholder="Siège social, ville, pays"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+               <div className="grid gap-2">
+                <Label htmlFor="phone">Numéro de téléphone</Label>
                 <Input
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
+                  id="phone"
+                  name="phone"
+                  value={entity?.phone || ""}
+                  onChange={handleChange}
+                  placeholder="+224 XX XX XX XX"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="mobile">Téléphone mobile</Label>
+                 <Input
+                  id="mobile"
+                  name="mobile"
+                  value={entity?.mobile || ""}
                   onChange={handleChange}
                   placeholder="+224 XX XX XX XX"
                 />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="activityDescription">
-                Description de l&apos;activité
-              </Label>
-              <Textarea
-                id="activityDescription"
-                name="activityDescription"
-                value={formData.activityDescription}
-                onChange={handleChange}
-                placeholder="Décrivez brièvement les activités principales de votre entreprise."
-                className="min-h-[100px]"
-              />
+             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+               <div className="grid gap-2">
+                <Label htmlFor="email">Email de l&apos;entreprise</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={entity?.email || ""}
+                  onChange={handleChange}
+                  placeholder="contact@example.com"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="website">Site web</Label>
+                 <Input
+                  id="website"
+                  name="website"
+                  type="url"
+                  value={entity?.website || ""}
+                  onChange={handleChange}
+                  placeholder="https://www.example.com"
+                />
+              </div>
             </div>
-          </form>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button onClick={handleSubmit}>Enregistrer les modifications</Button>
-        </CardFooter>
+          </CardContent>
+          <CardFooter className="border-t px-6 py-4">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );

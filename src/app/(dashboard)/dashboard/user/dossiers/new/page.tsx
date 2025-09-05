@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { 
@@ -26,9 +26,40 @@ export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<DossierFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [entityLoading, setEntityLoading] = useState(true);
+  const [userEntity, setUserEntity] = useState<Entity | null>(null);
   
   const { data: session } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserEntity = async () => {
+      if (session?.accessToken) {
+        try {
+          const response = await fetch(API.entities.list(), {
+            headers: { Authorization: `Bearer ${session.accessToken}` },
+          });
+          if (!response.ok) throw new Error("Failed to fetch entity.");
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+            const entity = data.results[0];
+            setUserEntity(entity);
+            // Pre-fill form data with entity info
+            updateFormData({ companyInfo: entity });
+          }
+        } catch (error) {
+          console.error("Error fetching user entity:", error);
+          // Handle error, e.g., show a toast
+        } finally {
+          setEntityLoading(false);
+        }
+      }
+    };
+
+    if (session) {
+      fetchUserEntity();
+    }
+  }, [session]);
 
   const updateFormData = (fields: Partial<DossierFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
@@ -44,27 +75,19 @@ export default function NewDossierPage() {
         setIsSubmitting(false);
         return;
     }
+    
+    if (!userEntity?.slug) {
+        console.error("User entity is not available for submission.");
+        // toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
+        setIsSubmitting(false);
+        return;
+    }
 
     try {
-        // Step 1: Create the Entity
-        const entityPayload: Entity = { ...formData.companyInfo, name: formData.companyInfo?.name || "", entity_type: 'business' };
-        
-        const entityResponse = await fetch(API.entities.create(), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.accessToken}`
-            },
-            body: JSON.stringify(entityPayload)
-        });
+        const entitySlug = userEntity.slug;
 
-        if (!entityResponse.ok) {
-            throw new Error(`Failed to create entity: ${entityResponse.statusText}`);
-        }
+        // Step 1 is now skipped, as the entity already exists.
         
-        const newEntity = await entityResponse.json();
-        const entitySlug = newEntity.slug;
-
         // Step 2: Create the Representative
         const representativePayload: Representative = { ...formData.legalRepresentative, first_name: formData.legalRepresentative?.first_name || "", last_name: formData.legalRepresentative?.last_name || "", job_title: formData.legalRepresentative?.job_title || "" };
 
@@ -193,6 +216,37 @@ export default function NewDossierPage() {
   ];
 
   const activeStep = steps.find((step) => step.id === currentStep);
+
+  if (entityLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Chargement des informations de votre structure...</p>
+      </div>
+    );
+  }
+
+  if (!userEntity) {
+    return (
+      <div className="space-y-6 text-center">
+         <Card>
+            <CardHeader>
+                <CardTitle>Aucune structure trouvée</CardTitle>
+                <CardDescription>
+                Vous devez d&apos;abord enregistrer les informations de votre structure avant de pouvoir créer un dossier d&apos;accréditation.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p>Cliquez sur le bouton ci-dessous pour accéder à la page de gestion de votre structure.</p>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+                <Link href="/dashboard/user/structure">
+                    <Button>Gérer ma structure</Button>
+                </Link>
+            </CardFooter>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
