@@ -1,4 +1,4 @@
-const BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`;
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export const API = {
   // Authentication

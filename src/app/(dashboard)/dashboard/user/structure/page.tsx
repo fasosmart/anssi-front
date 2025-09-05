@@ -39,6 +39,7 @@ export default function StructurePage() {
             throw new Error("Failed to fetch entities");
           }
           const data = await response.json();
+          console.log(`data entities: ${JSON.stringify(data)}`);
           // Assuming the user is associated with the first entity in the list
           if (data.results && data.results.length > 0) {
             setEntity(data.results[0]);
