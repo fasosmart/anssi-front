@@ -16,6 +16,7 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import { Entity } from "@/types/api";
+import apiClient, { setAuthToken } from "@/lib/apiClient";
 
 // Assume you have a toast library for notifications
 // e.g., import { toast } from 'sonner';
@@ -29,33 +30,19 @@ export default function StructurePage() {
   useEffect(() => {
     const fetchEntity = async () => {
       if (session?.accessToken) {
+        setAuthToken(session.accessToken);
         try {
           // Step 1: Fetch the list of entities to get the slug
-          const listResponse = await fetch(API.entities.list(), {
-            headers: {
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          });
-          if (!listResponse.ok) {
-            throw new Error("Failed to fetch entity list");
-          }
-          const listData = await listResponse.json();
-
+          const listResponse = await apiClient.get(API.entities.list());
+          
           // Assuming the user is associated with the first entity in the list
-          if (listData.results && listData.results.length > 0) {
-            const entitySlug = listData.results[0].slug;
+          if (listResponse.data.results && listResponse.data.results.length > 0) {
+            const entitySlug = listResponse.data.results[0].slug;
 
             // Step 2: Fetch the detailed entity view using the slug
-            const detailsResponse = await fetch(API.entities.details(entitySlug), {
-              headers: {
-                Authorization: `Bearer ${session.accessToken}`,
-              },
-            });
-            if (!detailsResponse.ok) {
-              throw new Error("Failed to fetch entity details");
-            }
-            const detailedEntity = await detailsResponse.json();
-            setEntity(detailedEntity);
+            const detailsResponse = await apiClient.get(API.entities.details(entitySlug));
+            
+            setEntity(detailsResponse.data);
             
           } else {
             setEntity({}); // No entity found, prepare for creation
@@ -87,31 +74,24 @@ export default function StructurePage() {
     if (!session?.accessToken || !entity) return;
 
     setIsSubmitting(true);
+    setAuthToken(session.accessToken); // Ensure token is set for submission
     const isUpdate = !!entity.slug;
     const url = isUpdate ? API.entities.update(entity.slug!) : API.entities.create();
-    const method = isUpdate ? "PUT" : "POST";
+    const method = isUpdate ? "put" : "post";
+    const data = { ...entity, entity_type: 'business' };
 
     try {
-      const response = await fetch(url, {
+      const response = await apiClient({
+        url,
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-        body: JSON.stringify({ ...entity, entity_type: 'business' }), // Ensure entity_type is set
+        data,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Something went wrong");
-      }
-
-      const updatedEntity = await response.json();
-      setEntity(updatedEntity);
+      setEntity(response.data);
       // toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
     } catch (error: any) {
       console.error("Failed to save entity:", error);
-      // toast.error(`Erreur: ${error.message}`);
+      // toast.error(`Erreur: ${error.response?.data?.detail || error.message}`);
     } finally {
       setIsSubmitting(false);
     }

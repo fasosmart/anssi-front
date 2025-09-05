@@ -21,6 +21,7 @@ import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
 import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
+import apiClient, { setAuthToken } from "@/lib/apiClient";
 
 export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -35,23 +36,18 @@ export default function NewDossierPage() {
   useEffect(() => {
     const fetchUserEntity = async () => {
       if (session?.accessToken) {
+        setAuthToken(session.accessToken);
         try {
           // Étape 1 : Récupérer la liste pour obtenir le slug de la structure
-          const listResponse = await fetch(API.entities.list(), {
-            headers: { Authorization: `Bearer ${session.accessToken}` },
-          });
-          if (!listResponse.ok) throw new Error("Failed to fetch entity list.");
-          const listData = await listResponse.json();
+          const listResponse = await apiClient.get(API.entities.list());
 
-          if (listData.results && listData.results.length > 0) {
-            const entitySlug = listData.results[0].slug;
+          if (listResponse.data.results && listResponse.data.results.length > 0) {
+            const entitySlug = listResponse.data.results[0].slug;
 
             // Étape 2 : Utiliser le slug pour récupérer les infos complètes de la structure
-            const detailsResponse = await fetch(API.entities.details(entitySlug), {
-              headers: { Authorization: `Bearer ${session.accessToken}` },
-            });
-            if (!detailsResponse.ok) throw new Error("Failed to fetch entity details.");
-            const detailedEntity = await detailsResponse.json();
+            const detailsResponse = await apiClient.get(API.entities.details(entitySlug));
+            
+            const detailedEntity = detailsResponse.data;
 
             setUserEntity(detailedEntity);
             // Pré-remplir le formulaire avec les infos complètes de la structure
@@ -86,6 +82,8 @@ export default function NewDossierPage() {
         return;
     }
     
+    setAuthToken(session.accessToken);
+    
     if (!userEntity?.slug) {
         console.error("User entity is not available for submission.");
         // toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
@@ -101,20 +99,9 @@ export default function NewDossierPage() {
         // Step 2: Create the Representative
         const representativePayload: Representative = { ...formData.legalRepresentative, first_name: formData.legalRepresentative?.first_name || "", last_name: formData.legalRepresentative?.last_name || "", job_title: formData.legalRepresentative?.job_title || "" };
 
-        const repResponse = await fetch(API.representatives.create(entitySlug), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.accessToken}`
-            },
-            body: JSON.stringify(representativePayload)
-        });
+        const repResponse = await apiClient.post(API.representatives.create(entitySlug), representativePayload);
         
-        if (!repResponse.ok) {
-            throw new Error(`Failed to create representative: ${repResponse.statusText}`);
-        }
-
-        const newRep = await repResponse.json();
+        const newRep = repResponse.data;
         const repSlug = newRep.slug;
         
         // Helper function to append fields to FormData
@@ -141,10 +128,8 @@ export default function NewDossierPage() {
                 }
                 
                 cursusPromises.push(
-                    fetch(API.degrees.create(entitySlug, repSlug), {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
-                        body: fd
+                    apiClient.post(API.degrees.create(entitySlug, repSlug), fd, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
                     })
                 );
             }
@@ -161,10 +146,8 @@ export default function NewDossierPage() {
                  }
 
                 cursusPromises.push(
-                    fetch(API.trainings.create(entitySlug, repSlug), {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
-                        body: fd
+                    apiClient.post(API.trainings.create(entitySlug, repSlug), fd, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
                     })
                 );
             }
@@ -181,10 +164,8 @@ export default function NewDossierPage() {
                 }
 
                 cursusPromises.push(
-                    fetch(API.experiences.create(entitySlug, repSlug), {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${session.accessToken}`},
-                        body: fd
+                    apiClient.post(API.experiences.create(entitySlug, repSlug), fd, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
                     })
                 );
             }
