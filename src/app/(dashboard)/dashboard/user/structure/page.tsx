@@ -50,7 +50,7 @@ export default function StructurePage() {
             setEntity({}); // No entity found, prepare for creation
           }
         } catch (error) {
-          console.error("Error fetching entity:", error);
+          //console.error("Error fetching entity:", error);
           toast.error("Erreur lors de la récupération de votre structure.");
           setEntity({}); // Prepare for creation in case of error
         } finally {
@@ -93,7 +93,7 @@ export default function StructurePage() {
       toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
     } catch (error) {
       const axiosError = error as AxiosError<{ detail: string }>;
-      console.error("Failed to save entity:", axiosError);
+      // console.error("Failed to save entity:", axiosError);
       toast.error(`Erreur: ${axiosError.response?.data?.detail || axiosError.message}`);
     } finally {
       setIsSubmitting(false);

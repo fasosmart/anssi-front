@@ -55,7 +55,7 @@ export default function NewDossierPage() {
             updateFormData({ companyInfo: detailedEntity });
           }
         } catch (error) {
-          console.error("Error fetching user entity:", error);
+          // console.error("Error fetching user entity:", error);
           toast.error("Erreur lors de la récupération des informations de votre structure.");
         } finally {
           setEntityLoading(false);
@@ -78,7 +78,8 @@ export default function NewDossierPage() {
     
     if (!session?.accessToken) {
         // Handle not authenticated error
-        console.error("User is not authenticated");
+        // console.error("User is not authenticated");
+        toast.error("Vous devez être connecté pour soumettre un dossier.");
         setIsSubmitting(false);
         return;
     }
@@ -86,7 +87,7 @@ export default function NewDossierPage() {
     setAuthToken(session.accessToken);
     
     if (!userEntity?.slug) {
-        console.error("User entity is not available for submission.");
+        // console.error("User entity is not available for submission.");
         toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
         setIsSubmitting(false);
         return;
@@ -184,7 +185,7 @@ export default function NewDossierPage() {
         router.push("/dashboard/user/dossiers");
 
     } catch (error) {
-        console.error("Failed to submit dossier:", error);
+        // console.error("Failed to submit dossier:", error);
         toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {
         setIsSubmitting(false);
