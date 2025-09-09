@@ -198,7 +198,12 @@ export default function RepresentativesPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => handleEdit(rep)}>Modifier</DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier les informations</DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/user/representatives/${rep.slug}`}>
+                                                    Gérer le cursus
+                                                </Link>
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
                                                 Supprimer
                                             </DropdownMenuItem>
