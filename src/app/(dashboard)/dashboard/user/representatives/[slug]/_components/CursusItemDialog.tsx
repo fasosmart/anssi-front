@@ -51,7 +51,7 @@ export function CursusItemDialog({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData((prev) => ({ ...prev, file: file }));
+      setFormData((prev) => ({ ...prev, file: file, file_url: undefined })); // Clear file_url when new file is selected
     }
   };
 
@@ -62,6 +62,10 @@ export function CursusItemDialog({
     const data = new FormData();
     Object.keys(formData).forEach(key => {
         const value = (formData as any)[key];
+        // Ne pas ajouter le champ de fichier s'il n'est pas une instance de Fichier (par exemple, si c'est une URL)
+        if (key === 'file' && !(value instanceof File)) {
+            return;
+        }
         if (value !== null && value !== undefined) {
              data.append(key, value);
         }
@@ -128,6 +132,11 @@ export function CursusItemDialog({
                 <div className="grid gap-2">
                     <Label htmlFor="file">Justificatif (PDF, PNG, JPG)</Label>
                     <Input id="file" name="file" type="file" onChange={handleFileChange} />
+                    {(item as any)?.file && (
+                        <p className="text-sm text-gray-500 mt-2">
+                            Fichier actuel: <a href={(item as any).file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Voir le fichier</a>
+                        </p>
+                    )}
                 </div>
             </div>
             <DialogFooter>
