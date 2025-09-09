@@ -34,6 +34,7 @@ import { Representative, Entity } from "@/types/api";
 import { AddEditRepresentativeDialog } from "./_components/AddEditRepresentativeDialog";
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
+import { useRouter } from "next/navigation";
 
 export default function RepresentativesPage() {
   const { data: session, status } = useSession();
@@ -43,6 +44,7 @@ export default function RepresentativesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRepresentative, setSelectedRepresentative] = useState<Representative | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const router = useRouter();
 
   const fetchRepresentatives = async (entitySlug: string) => {
      if (!session?.accessToken) return;
@@ -121,6 +123,10 @@ export default function RepresentativesPage() {
     }
   }
 
+  const handleRowClick = (rep: Representative) => {
+    router.push(`/dashboard/user/representatives/${rep.slug}`);
+  }
+
   if (isLoading) {
     return <div>Chargement...</div>; // Replace with a skeleton loader
   }
@@ -183,12 +189,12 @@ export default function RepresentativesPage() {
                 <TableBody>
                     {representatives.length > 0 ? (
                         representatives.map((rep) => (
-                            <TableRow key={rep.slug}>
+                            <TableRow key={rep.slug} onClick={() => handleRowClick(rep)} className="cursor-pointer">
                                 <TableCell className="font-medium">{rep.first_name} {rep.last_name}</TableCell>
                                 <TableCell>{rep.job_title}</TableCell>
                                 <TableCell>{rep.email}</TableCell>
                                 <TableCell>{rep.mobile || rep.phone}</TableCell>
-                                <TableCell>
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button aria-haspopup="true" size="icon" variant="ghost">

@@ -19,6 +19,10 @@ const breadcrumbNameMap: { [key: string]: string } = {
   "structure": "Ma Structure",
   "dossiers": "Mes Dossiers",
   "new": "Nouveau Dossier",
+  "representatives": "Représentants",
+  "degrees": "Diplômes",
+  "trainings": "Formations",
+  "experiences": "Expériences",
 };
 
 export const AppBreadcrumb = () => {
