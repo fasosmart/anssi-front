@@ -10,6 +10,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { CursusItemDialog } from "./CursusItemDialog";
 import { DeleteConfirmationDialog } from "../../_components/DeleteConfirmationDialog";
+import { useRouter } from "next/navigation";
 
 interface CursusManagerProps {
   itemType: 'degree' | 'training' | 'experience';
@@ -26,6 +27,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const router = useRouter();
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -77,6 +79,12 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     setSelectedItem(null);
     fetchData();
   };
+  
+  const handleRowClick = (item: any) => {
+    // This is a simplified navigation. It assumes a nested URL structure.
+    // e.g., /representatives/[slug]/degrees/[degreeSlug]
+    router.push(`${window.location.pathname}/${itemType}s/${item.slug}`);
+  }
 
   return (
     <Card>
@@ -100,13 +108,13 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
               <TableRow><TableCell colSpan={columns.length + 1} className="h-24 text-center">Chargement...</TableCell></TableRow>
             ) : items.length > 0 ? (
               items.map((item: any) => (
-                <TableRow key={item.slug}>
+                <TableRow key={item.slug} onClick={() => handleRowClick(item)} className="cursor-pointer">
                   {columns.map(col => (
                     <TableCell key={col.key} className="font-medium">
                       {col.render ? col.render(item) : item[col.key]}
                     </TableCell>
                   ))}
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Menu</span></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
