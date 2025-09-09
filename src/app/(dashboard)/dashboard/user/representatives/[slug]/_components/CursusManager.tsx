@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { CursusItemDialog } from "./CursusItemDialog";
+import { DeleteConfirmationDialog } from "../../_components/DeleteConfirmationDialog";
 
 interface CursusManagerProps {
   itemType: 'degree' | 'training' | 'experience';
@@ -23,7 +24,8 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -51,13 +53,22 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (itemId: string) => {
+  const handleDelete = (item: any) => {
+    setSelectedItem(item);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedItem?.slug) return;
     try {
-        await apiClient.delete(itemApiEndpoint(itemId));
+        await apiClient.delete(itemApiEndpoint(selectedItem.slug));
         toast.success("Élément supprimé avec succès.");
         fetchData();
     } catch(error) {
         toast.error("Erreur lors de la suppression.");
+    } finally {
+        setIsDeleteAlertOpen(false);
+        setSelectedItem(null);
     }
   }
 
@@ -101,7 +112,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => handleEdit(item)}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleDelete(item.slug)} className="text-red-600">Supprimer</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleDelete(item)} className="text-red-600">Supprimer</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -120,6 +131,12 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
         item={selectedItem}
         itemType={itemType}
         apiEndpoint={itemApiEndpoint}
+      />
+      <DeleteConfirmationDialog
+        isOpen={isDeleteAlertOpen}
+        onOpenChange={setIsDeleteAlertOpen}
+        onConfirm={confirmDelete}
+        itemName={selectedItem?.degree_name || selectedItem?.training_name || selectedItem?.job_title || ''}
       />
     </Card>
   );

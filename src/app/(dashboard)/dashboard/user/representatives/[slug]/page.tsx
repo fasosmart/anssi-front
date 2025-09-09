@@ -3,61 +3,66 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
-import { Representative } from "@/types/api";
+import { Representative, Entity } from "@/types/api";
 import { API } from "@/lib/api";
 import { useSession } from "next-auth/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CursusManager } from "./_components/CursusManager";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AddEditRepresentativeDialog } from "../_components/AddEditRepresentativeDialog";
 
 export default function RepresentativeDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: session, status } = useSession();
   const [representative, setRepresentative] = useState<Representative | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [entity, setEntity] = useState<Entity | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // We need the entity slug to fetch the representative details.
-  // For now, let's assume we can get it. This will be improved.
-  const [entitySlug, setEntitySlug] = useState<string | null>(null);
+  const fetchRepresentativeDetails = async (entitySlug: string) => {
+    if (entitySlug && slug && session?.accessToken) {
+      setIsLoading(true);
+      try {
+        const response = await apiClient.get(API.representatives.details(entitySlug, slug));
+        setRepresentative(response.data);
+      } catch (error) {
+        console.error("Failed to fetch representative details", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    // A simple way to get the entity slug is to fetch the list first.
-    // In a real app, this might be stored in a global state/context.
-    const getEntitySlug = async () => {
+    const getEntity = async () => {
         if (session?.accessToken) {
             const response = await apiClient.get(API.entities.list());
             if (response.data.results && response.data.results.length > 0) {
-                setEntitySlug(response.data.results[0].slug);
+                const fetchedEntity = response.data.results[0];
+                setEntity(fetchedEntity);
+                fetchRepresentativeDetails(fetchedEntity.slug);
             }
         }
     };
     if (status === "authenticated") {
-        getEntitySlug();
+        getEntity();
     }
-  }, [status, session]);
+  }, [status, session, slug]);
 
 
-  useEffect(() => {
-    const fetchRepresentativeDetails = async () => {
-      if (entitySlug && slug && session?.accessToken) {
-        setIsLoading(true);
-        try {
-          const response = await apiClient.get(API.representatives.details(entitySlug, slug));
-          setRepresentative(response.data);
-        } catch (error) {
-          console.error("Failed to fetch representative details", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-    fetchRepresentativeDetails();
-  }, [entitySlug, slug, session]);
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    if(entity?.slug) {
+        fetchRepresentativeDetails(entity.slug);
+    }
+  }
 
   if (isLoading) {
     return <div>Chargement du profil du représentant...</div>;
   }
 
-  if (!representative) {
+  if (!representative || !entity) {
     return <div>Représentant non trouvé.</div>;
   }
 
@@ -80,6 +85,12 @@ export default function RepresentativeDetailPage() {
     { key: 'end_date', header: 'Fin' },
   ];
 
+  const InfoField = ({ label, value }: { label: string; value?: string | null }) => (
+    <div className="grid grid-cols-3 gap-4">
+      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
+      <dd className="text-sm col-span-2">{value || "N/A"}</dd>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -89,25 +100,48 @@ export default function RepresentativeDetailPage() {
             {representative.first_name} {representative.last_name}
           </h1>
           <p className="text-muted-foreground">
-            Gérez le profil et le cursus de {representative.job_title}.
+            Gérez le profil et le cursus de : {representative.job_title}.
           </p>
         </div>
-        {/* We will add an edit button here later */}
       </div>
 
-      <Tabs defaultValue="degrees">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="general">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general">Informations Générales</TabsTrigger>
           <TabsTrigger value="degrees">Diplômes</TabsTrigger>
           <TabsTrigger value="trainings">Formations & Certifications</TabsTrigger>
           <TabsTrigger value="experiences">Expériences Professionnelles</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="general">
+            <Card className="mt-4">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Détails du profil</CardTitle>
+                        <CardDescription>Informations personnelles et de contact.</CardDescription>
+                    </div>
+                    <Button onClick={() => setIsDialogOpen(true)}>Modifier</Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <InfoField label="Nom complet" value={`${representative.first_name} ${representative.last_name}`} />
+                    <InfoField label="Fonction" value={representative.job_title} />
+                    <InfoField label="Email" value={representative.email} />
+                    <InfoField label="Téléphone" value={representative.phone} />
+                    <InfoField label="Mobile" value={representative.mobile} />
+                    <InfoField label="N° Pièce d'identité" value={representative.idcard_number} />
+                    <InfoField label="Date de délivrance" value={representative.idcard_issued_at} />
+                    <InfoField label="Date d'expiration" value={representative.idcard_expires_at} />
+                </CardContent>
+            </Card>
+        </TabsContent>
+
         <TabsContent value="degrees">
           <CursusManager
             itemType="degree"
             title="Diplômes et Titres Académiques"
             description="Gérez les diplômes et titres académiques du représentant."
-            listApiEndpoint={API.degrees.list(entitySlug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entitySlug!, slug, itemId) : API.degrees.create(entitySlug!, slug)}
+            listApiEndpoint={API.degrees.list(entity.slug, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entity.slug, slug, itemId) : API.degrees.create(entity.slug, slug)}
             columns={degreeColumns}
           />
         </TabsContent>
@@ -116,8 +150,8 @@ export default function RepresentativeDetailPage() {
             itemType="training"
             title="Formations et Certifications"
             description="Gérez les formations et certifications professionnelles."
-            listApiEndpoint={API.trainings.list(entitySlug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entitySlug!, slug, itemId) : API.trainings.create(entitySlug!, slug)}
+            listApiEndpoint={API.trainings.list(entity.slug, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entity.slug, slug, itemId) : API.trainings.create(entity.slug, slug)}
             columns={trainingColumns}
           />
         </TabsContent>
@@ -126,12 +160,20 @@ export default function RepresentativeDetailPage() {
             itemType="experience"
             title="Expériences Professionnelles"
             description="Gérez l'historique professionnel du représentant."
-            listApiEndpoint={API.experiences.list(entitySlug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entitySlug!, slug, itemId) : API.experiences.create(entitySlug!, slug)}
+            listApiEndpoint={API.experiences.list(entity.slug, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entity.slug, slug, itemId) : API.experiences.create(entity.slug, slug)}
             columns={experienceColumns}
           />
         </TabsContent>
       </Tabs>
+
+       <AddEditRepresentativeDialog 
+        isOpen={isDialogOpen}
+        setIsOpen={setIsDialogOpen}
+        onSuccess={handleSuccess}
+        entity={entity}
+        representative={representative}
+      />
     </div>
   );
 }
