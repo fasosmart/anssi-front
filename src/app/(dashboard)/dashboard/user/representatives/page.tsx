@@ -35,6 +35,7 @@ import { AddEditRepresentativeDialog } from "./_components/AddEditRepresentative
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function RepresentativesPage() {
   const { data: session, status } = useSession();
@@ -177,6 +178,10 @@ export default function RepresentativesPage() {
             <Table>
                 <TableHeader>
                     <TableRow>
+                        <TableHead className="w-[40px]">
+                            <Checkbox aria-label="Select all" />
+                        </TableHead>
+                        <TableHead className="w-[50px]">#</TableHead>
                         <TableHead>Nom complet</TableHead>
                         <TableHead>Fonction</TableHead>
                         <TableHead>Email</TableHead>
@@ -188,8 +193,12 @@ export default function RepresentativesPage() {
                 </TableHeader>
                 <TableBody>
                     {representatives.length > 0 ? (
-                        representatives.map((rep) => (
+                        representatives.map((rep, index) => (
                             <TableRow key={rep.slug} onClick={() => handleRowClick(rep)} className="cursor-pointer">
+                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                    <Checkbox aria-label={`Select row ${index + 1}`} />
+                                </TableCell>
+                                <TableCell>{index + 1}</TableCell>
                                 <TableCell className="font-medium">{rep.first_name} {rep.last_name}</TableCell>
                                 <TableCell>{rep.job_title}</TableCell>
                                 <TableCell>{rep.email}</TableCell>
@@ -220,7 +229,7 @@ export default function RepresentativesPage() {
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center">
+                            <TableCell colSpan={7} className="h-24 text-center">
                                 Aucun représentant trouvé.
                             </TableCell>
                         </TableRow>

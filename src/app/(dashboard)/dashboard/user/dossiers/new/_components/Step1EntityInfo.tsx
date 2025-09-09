@@ -1,25 +1,53 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { DossierFormData } from "@/types/api";
+import { DossierFormData, Representative } from "@/types/api";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import apiClient from "@/lib/apiClient";
+import { API } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface StepProps {
   data: Partial<DossierFormData>;
   updateData: (fields: Partial<DossierFormData>) => void;
 }
 
+const InfoField = ({ label, value }: { label: string; value?: string | null }) => (
+    <div className="text-sm">
+      <p className="font-medium text-muted-foreground">{label}</p>
+      <p>{value || "N/A"}</p>
+    </div>
+);
+
 export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
-  // Company info is now read-only, so we only need the representative change handler
-  const handleRepresentativeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateData({
-      legalRepresentative: { ...data.legalRepresentative, [e.target.id]: e.target.value }
-    });
+  const [representatives, setRepresentatives] = useState<Representative[]>([]);
+  
+  useEffect(() => {
+    const fetchRepresentatives = async () => {
+        if(data.companyInfo?.slug) {
+            try {
+                const response = await apiClient.get(API.representatives.list(data.companyInfo.slug));
+                setRepresentatives(response.data.results || []);
+            } catch (error) {
+                console.error("Failed to fetch representatives for selection", error);
+            }
+        }
+    }
+    fetchRepresentatives();
+  }, [data.companyInfo]);
+
+  const handleRepresentativeSelect = (repSlug: string) => {
+    const selectedRep = representatives.find(r => r.slug === repSlug);
+    if(selectedRep) {
+        updateData({ legalRepresentative: selectedRep });
+    }
   };
 
   return (
@@ -38,98 +66,65 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
             </AlertDescription>
         </Alert>
         <div className="grid gap-6 md:grid-cols-2">
+          {/* Read-only company info fields remain here */}
           <div className="space-y-2">
             <Label htmlFor="name">Nom / Raison Sociale</Label>
             <Input id="name" value={data.companyInfo?.name || ''} readOnly />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="acronym">Sigle</Label>
-            <Input id="acronym" value={data.companyInfo?.acronym || ''} readOnly />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="business_sector">Secteur d’activité</Label>
-            <Input id="business_sector" value={data.companyInfo?.business_sector || ''} readOnly />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="tax_id">Identifiant fiscal N°</Label>
             <Input id="tax_id" value={data.companyInfo?.tax_id || ''} readOnly />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="commercial_register">Registre du commerce N°</Label>
-            <Input id="commercial_register" value={data.companyInfo?.commercial_register || ''} readOnly />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="total_staff">Nombre du personnel</Label>
-            <Input id="total_staff" type="number" value={data.companyInfo?.total_staff || ''} readOnly />
-          </div>
         </div>
       </div>
 
       <Separator />
 
-      {/* Section 2: Identité du représentant juridique */}
+      {/* Section 2: Sélection du représentant juridique */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Identité du représentant juridique</h3>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="last_name">Nom</Label>
-            <Input id="last_name" placeholder="Nom de famille" onChange={handleRepresentativeChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="first_name">Prénom</Label>
-            <Input id="first_name" placeholder="Prénom" onChange={handleRepresentativeChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="job_title">Fonction</Label>
-            <Input id="job_title" placeholder="Ex: Directeur Général" onChange={handleRepresentativeChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" placeholder="representant@entreprise.com" onChange={handleRepresentativeChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Téléphone</Label>
-            <Input id="phone" type="tel" placeholder="+224 XX XX XX XX" onChange={handleRepresentativeChange} />
-          </div>
-          <div className="md:col-span-2 grid md:grid-cols-3 gap-6">
+        <h3 className="text-lg font-medium">Sélection du représentant juridique</h3>
+        <div className="grid gap-6">
             <div className="space-y-2">
-              <Label htmlFor="idcard_number">N° de la pièce d&apos;identité</Label>
-              <Input id="idcard_number" placeholder="Numéro de la pièce" onChange={handleRepresentativeChange} />
+                <Label htmlFor="representative">Choisissez un représentant</Label>
+                 <Select onValueChange={handleRepresentativeSelect} value={data.legalRepresentative?.slug}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez une personne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {representatives.length > 0 ? (
+                            representatives.map(rep => (
+                                <SelectItem key={rep.slug} value={rep.slug}>
+                                    {rep.first_name} {rep.last_name} ({rep.job_title})
+                                </SelectItem>
+                            ))
+                        ) : (
+                            <div className="p-4 text-sm text-center text-muted-foreground">
+                                Aucun représentant trouvé.
+                                <Link href="/dashboard/user/representatives">
+                                    <Button variant="link" className="p-1 h-auto">En ajouter un</Button>
+                                </Link>
+                            </div>
+                        )}
+                    </SelectContent>
+                </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="idcard_issued_at">Délivrée le</Label>
-              <Input id="idcard_issued_at" type="date" onChange={handleRepresentativeChange} />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="idcard_expires_at">Expire le</Label>
-              <Input id="idcard_expires_at" type="date" onChange={handleRepresentativeChange} />
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <Separator />
 
-      {/* Section 3: Coordonnées de la société */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Coordonnées de la société</h3>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="address">Adresse</Label>
-            <Input id="address" value={data.companyInfo?.address || ''} readOnly />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Téléphone</Label>
-            <Input id="phone" type="tel" value={data.companyInfo?.phone || ''} readOnly />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" value={data.companyInfo?.email || ''} readOnly />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="website">Site Web</Label>
-            <Input id="website" value={data.companyInfo?.website || ''} readOnly />
-          </div>
+            {data.legalRepresentative && (
+                <Card className="bg-muted/30">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <Users className="h-5 w-5"/>
+                            Profil du représentant sélectionné
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-6">
+                        <InfoField label="Nom complet" value={`${data.legalRepresentative.first_name} ${data.legalRepresentative.last_name}`} />
+                        <InfoField label="Fonction" value={data.legalRepresentative.job_title} />
+                        <InfoField label="Email" value={data.legalRepresentative.email} />
+                        <InfoField label="Téléphone" value={data.legalRepresentative.mobile || data.legalRepresentative.phone} />
+                    </CardContent>
+                </Card>
+            )}
         </div>
       </div>
     </div>

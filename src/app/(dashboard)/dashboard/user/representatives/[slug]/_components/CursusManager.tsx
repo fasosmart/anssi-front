@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { CursusItemDialog } from "./CursusItemDialog";
 import { DeleteConfirmationDialog } from "../../_components/DeleteConfirmationDialog";
 import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CursusManagerProps {
   itemType: 'degree' | 'training' | 'experience';
@@ -99,16 +100,20 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[40px]"><Checkbox /></TableHead>
+              <TableHead className="w-[50px]">#</TableHead>
               {columns.map(col => <TableHead key={col.key}>{col.header}</TableHead>)}
               <TableHead><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={columns.length + 1} className="h-24 text-center">Chargement...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Chargement...</TableCell></TableRow>
             ) : items.length > 0 ? (
-              items.map((item: any) => (
+              items.map((item: any, index: number) => (
                 <TableRow key={item.slug} onClick={() => handleRowClick(item)} className="cursor-pointer">
+                  <TableCell onClick={(e) => e.stopPropagation()}><Checkbox /></TableCell>
+                  <TableCell>{index + 1}</TableCell>
                   {columns.map(col => (
                     <TableCell key={col.key} className="font-medium">
                       {col.render ? col.render(item) : item[col.key]}
@@ -127,7 +132,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
                 </TableRow>
               ))
             ) : (
-              <TableRow><TableCell colSpan={columns.length + 1} className="h-24 text-center">Aucun élément trouvé.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Aucun élément trouvé.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
