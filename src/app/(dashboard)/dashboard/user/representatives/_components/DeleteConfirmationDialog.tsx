@@ -30,7 +30,7 @@ export function DeleteConfirmationDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irréversible. Le représentant "{itemName}" sera définitivement supprimé de votre organisation.
+            Cette action est irréversible. Le représentant &quot;{itemName}&quot; sera définitivement supprimé de votre organisation.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

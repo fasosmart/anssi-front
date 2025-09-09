@@ -51,11 +51,11 @@ export default function ExperienceDetailPage() {
     }, [status, session, repSlug, expSlug]);
 
     if (isLoading) {
-        return <div>Chargement de l'expérience...</div>;
+        return <div>Chargement de l&apos;expérience...</div>;
     }
 
     if (!experience) {
-        return <div>Détails de l'expérience non trouvés.</div>;
+        return <div>Détails de l&apos;expérience non trouvés.</div>;
     }
 
     return (
@@ -67,7 +67,7 @@ export default function ExperienceDetailPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>{experience.job_title} chez {experience.company}</CardTitle>
-                    <CardDescription>Détails de l'expérience professionnelle.</CardDescription>
+                    <CardDescription>Détails de l&apos;expérience professionnelle.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <dl>

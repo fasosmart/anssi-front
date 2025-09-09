@@ -13,20 +13,22 @@ import { DeleteConfirmationDialog } from "../../_components/DeleteConfirmationDi
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 
+type GenericItem = Record<string, unknown> & { slug?: string };
+
 interface CursusManagerProps {
   itemType: 'degree' | 'training' | 'experience';
   listApiEndpoint: string;
   itemApiEndpoint: (itemId?: string) => string;
-  columns: { key: string; header: string; render?: (item: any) => React.ReactNode }[];
+  columns: { key: string; header: string; render?: (item: GenericItem) => React.ReactNode }[];
   title: string;
   description: string;
 }
 
 export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, columns, title, description }: CursusManagerProps) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<GenericItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<GenericItem | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const router = useRouter();
 
@@ -51,12 +53,12 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     setIsDialogOpen(true);
   };
   
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: GenericItem) => {
     setSelectedItem(item);
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (item: any) => {
+  const handleDelete = (item: GenericItem) => {
     setSelectedItem(item);
     setIsDeleteAlertOpen(true);
   };
@@ -81,10 +83,10 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     fetchData();
   };
   
-  const handleRowClick = (item: any) => {
+  const handleRowClick = (item: GenericItem) => {
     // This is a simplified navigation. It assumes a nested URL structure.
     // e.g., /representatives/[slug]/degrees/[degreeSlug]
-    router.push(`${window.location.pathname}/${itemType}s/${item.slug}`);
+    router.push(`${window.location.pathname}/${itemType}s/${String(item.slug)}`);
   }
 
   return (
@@ -110,13 +112,13 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
             {isLoading ? (
               <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Chargement...</TableCell></TableRow>
             ) : items.length > 0 ? (
-              items.map((item: any, index: number) => (
+              items.map((item, index: number) => (
                 <TableRow key={item.slug} onClick={() => handleRowClick(item)} className="cursor-pointer">
                   <TableCell onClick={(e) => e.stopPropagation()}><Checkbox /></TableCell>
                   <TableCell>{index + 1}</TableCell>
                   {columns.map(col => (
                     <TableCell key={col.key} className="font-medium">
-                      {col.render ? col.render(item) : item[col.key]}
+                      {col.render ? col.render(item) : String(item[col.key] ?? '')}
                     </TableCell>
                   ))}
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -149,7 +151,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
         isOpen={isDeleteAlertOpen}
         onOpenChange={setIsDeleteAlertOpen}
         onConfirm={confirmDelete}
-        itemName={selectedItem?.degree_name || selectedItem?.training_name || selectedItem?.job_title || ''}
+        itemName={String((selectedItem?.['degree_name'] ?? selectedItem?.['training_name'] ?? selectedItem?.['job_title'] ?? ''))}
       />
     </Card>
   );

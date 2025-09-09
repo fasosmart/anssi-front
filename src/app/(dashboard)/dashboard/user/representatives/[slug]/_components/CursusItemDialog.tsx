@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -39,6 +38,14 @@ export function CursusItemDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditMode = item && 'slug' in item && !!item.slug;
 
+  type FormDataShape = Record<string, unknown>;
+  const getValue = (data: FormDataShape, key: string): string => {
+    const raw = data[key];
+    if (raw == null) return '';
+    if (raw instanceof File) return '';
+    return String(raw);
+  };
+
   useEffect(() => {
     setFormData(item || {});
   }, [item, isOpen]);
@@ -60,15 +67,15 @@ export function CursusItemDialog({
     setIsSubmitting(true);
 
     const data = new FormData();
-    Object.keys(formData).forEach(key => {
-        const value = (formData as any)[key];
-        // Ne pas ajouter le champ de fichier s'il n'est pas une instance de Fichier (par exemple, si c'est une URL)
-        if (key === 'file' && !(value instanceof File)) {
-            return;
-        }
-        if (value !== null && value !== undefined) {
-             data.append(key, value);
-        }
+    Object.entries(formData as FormDataShape).forEach(([key, value]) => {
+      // Ne pas ajouter le champ de fichier s'il n'est pas une instance de Fichier (par exemple, si c'est une URL)
+      if (key === 'file' && value && !(value instanceof File)) {
+        return;
+      }
+      if (value !== null && value !== undefined) {
+        const appendValue: string | Blob = value instanceof File ? value : String(value);
+        data.append(key, appendValue);
+      }
     });
 
     try {
@@ -105,38 +112,42 @@ export function CursusItemDialog({
                 {/* Generic fields, adapt based on itemType */}
                 <div className="grid gap-2">
                     <Label htmlFor="name">Titre / Nom</Label>
-                    <Input id="name" name={itemType === 'degree' ? 'degree_name' : itemType === 'training' ? 'training_name' : 'job_title'} value={(formData as any)[itemType === 'degree' ? 'degree_name' : itemType === 'training' ? 'training_name' : 'job_title'] || ''} onChange={handleChange} required />
+                    <Input id="name" name={itemType === 'degree' ? 'degree_name' : itemType === 'training' ? 'training_name' : 'job_title'} value={getValue(formData as FormDataShape, itemType === 'degree' ? 'degree_name' : itemType === 'training' ? 'training_name' : 'job_title')} onChange={handleChange} required />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="institution">Institution / Entreprise</Label>
-                    <Input id="institution" name={itemType === 'experience' ? 'company' : 'institution'} value={(formData as any)[itemType === 'experience' ? 'company' : 'institution'] || ''} onChange={handleChange} required />
+                    <Input id="institution" name={itemType === 'experience' ? 'company' : 'institution'} value={getValue(formData as FormDataShape, itemType === 'experience' ? 'company' : 'institution')} onChange={handleChange} required />
                 </div>
                 {itemType !== 'experience' && (
                     <div className="grid gap-2">
-                        <Label htmlFor="year_obtained">Année d'obtention</Label>
-                        <Input id="year_obtained" name="year_obtained" type="number" value={(formData as any).year_obtained || ''} onChange={handleChange} required />
+                        <Label htmlFor="year_obtained">Année d&apos;obtention</Label>
+                        <Input id="year_obtained" name="year_obtained" type="number" value={getValue(formData as FormDataShape, 'year_obtained')} onChange={handleChange} required />
                     </div>
                 )}
                  {itemType === 'experience' && (
                     <>
                         <div className="grid gap-2">
                             <Label htmlFor="start_date">Date de début</Label>
-                            <Input id="start_date" name="start_date" type="date" value={(formData as any).start_date || ''} onChange={handleChange} required />
+                            <Input id="start_date" name="start_date" type="date" value={getValue(formData as FormDataShape, 'start_date')} onChange={handleChange} required />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="end_date">Date de fin</Label>
-                            <Input id="end_date" name="end_date" type="date" value={(formData as any).end_date || ''} onChange={handleChange} />
+                            <Input id="end_date" name="end_date" type="date" value={getValue(formData as FormDataShape, 'end_date')} onChange={handleChange} />
                         </div>
                     </>
                 )}
                 <div className="grid gap-2">
                     <Label htmlFor="file">Justificatif (PDF, PNG, JPG)</Label>
                     <Input id="file" name="file" type="file" onChange={handleFileChange} />
-                    {(item as any)?.file && (
+                    {(() => {
+                      const f = (formData as FormDataShape).file;
+                      const url = typeof f === 'string' ? f : undefined;
+                      return url ? (
                         <p className="text-sm text-gray-500 mt-2">
-                            Fichier actuel: <a href={(item as any).file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Voir le fichier</a>
+                          Fichier actuel: <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Voir le fichier</a>
                         </p>
-                    )}
+                      ) : null;
+                    })()}
                 </div>
             </div>
             <DialogFooter>

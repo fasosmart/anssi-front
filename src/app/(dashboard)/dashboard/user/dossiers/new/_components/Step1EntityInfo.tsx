@@ -92,11 +92,13 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
                     </SelectTrigger>
                     <SelectContent>
                         {representatives.length > 0 ? (
-                            representatives.map(rep => (
-                                <SelectItem key={rep.slug} value={rep.slug}>
+                            representatives
+                              .filter(rep => typeof rep.slug === 'string' && rep.slug.length > 0)
+                              .map(rep => (
+                                <SelectItem key={rep.slug} value={rep.slug as string}>
                                     {rep.first_name} {rep.last_name} ({rep.job_title})
                                 </SelectItem>
-                            ))
+                              ))
                         ) : (
                             <div className="p-4 text-sm text-center text-muted-foreground">
                                 Aucun représentant trouvé.

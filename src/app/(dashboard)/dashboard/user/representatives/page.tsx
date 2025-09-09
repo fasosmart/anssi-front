@@ -137,7 +137,7 @@ export default function RepresentativesPage() {
       <div className="space-y-6 text-center">
          <Card>
             <CardHeader>
-                <CardTitle>Veuillez d'abord créer votre structure</CardTitle>
+                <CardTitle>Veuillez d&apos;abord créer votre structure</CardTitle>
                 <CardDescription>
                 Vous devez enregistrer votre entreprise avant de pouvoir y ajouter des représentants.
                 </CardDescription>

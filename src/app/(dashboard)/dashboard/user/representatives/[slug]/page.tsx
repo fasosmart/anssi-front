@@ -140,8 +140,8 @@ export default function RepresentativeDetailPage() {
             itemType="degree"
             title="Diplômes et Titres Académiques"
             description="Gérez les diplômes et titres académiques du représentant."
-            listApiEndpoint={API.degrees.list(entity.slug, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entity.slug, slug, itemId) : API.degrees.create(entity.slug, slug)}
+            listApiEndpoint={API.degrees.list(entity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entity.slug!, slug, itemId) : API.degrees.create(entity.slug!, slug)}
             columns={degreeColumns}
           />
         </TabsContent>
@@ -150,8 +150,8 @@ export default function RepresentativeDetailPage() {
             itemType="training"
             title="Formations et Certifications"
             description="Gérez les formations et certifications professionnelles."
-            listApiEndpoint={API.trainings.list(entity.slug, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entity.slug, slug, itemId) : API.trainings.create(entity.slug, slug)}
+            listApiEndpoint={API.trainings.list(entity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entity.slug!, slug, itemId) : API.trainings.create(entity.slug!, slug)}
             columns={trainingColumns}
           />
         </TabsContent>
@@ -159,9 +159,9 @@ export default function RepresentativeDetailPage() {
            <CursusManager
             itemType="experience"
             title="Expériences Professionnelles"
-            description="Gérez l'historique professionnel du représentant."
-            listApiEndpoint={API.experiences.list(entity.slug, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entity.slug, slug, itemId) : API.experiences.create(entity.slug, slug)}
+            description="Gérez l&apos;historique professionnel du représentant."
+            listApiEndpoint={API.experiences.list(entity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entity.slug!, slug, itemId) : API.experiences.create(entity.slug!, slug)}
             columns={experienceColumns}
           />
         </TabsContent>
