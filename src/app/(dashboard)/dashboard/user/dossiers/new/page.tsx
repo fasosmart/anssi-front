@@ -20,7 +20,7 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { Entity, Representative, DossierFormData } from "@/types/api";
+import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
 import { toast } from "sonner";
 
@@ -31,7 +31,7 @@ export default function NewDossierPage() {
   const [entityLoading, setEntityLoading] = useState(true);
   const [userEntity, setUserEntity] = useState<Entity | null>(null);
   
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -63,10 +63,10 @@ export default function NewDossierPage() {
       }
     };
 
-    if (session) {
+    if (status === "authenticated") {
       fetchUserEntity();
     }
-  }, [session]);
+  }, [status, session]);
 
   const updateFormData = (fields: Partial<DossierFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));

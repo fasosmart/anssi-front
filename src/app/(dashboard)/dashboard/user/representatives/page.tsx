@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
 
 export default function RepresentativesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [userEntity, setUserEntity] = useState<Entity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +57,7 @@ export default function RepresentativesPage() {
 
   useEffect(() => {
     const fetchPrerequisites = async () => {
+      // We check for session existence inside the function now
       if (session?.accessToken) {
         setIsLoading(true);
         try {
@@ -77,10 +78,10 @@ export default function RepresentativesPage() {
       }
     };
 
-    if (session) {
+    if (status === "authenticated") {
       fetchPrerequisites();
     }
-  }, [session]);
+  }, [status, session]); // Keep session in case token needs to be re-evaluated on certain session changes
 
   const handleAdd = () => {
     setSelectedRepresentative(null);

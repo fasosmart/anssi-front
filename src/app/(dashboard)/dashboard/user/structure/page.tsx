@@ -23,8 +23,10 @@ import { AxiosError } from "axios";
 // Assume you have a toast library for notifications
 // e.g., import { toast } from 'sonner';
 
+const DRAFT_STORAGE_KEY = 'anssi-structure-draft';
+
 export default function StructurePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [entity, setEntity] = useState<Partial<Entity> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,10 +61,12 @@ export default function StructurePage() {
       }
     };
 
-    if (session) {
+    if (status === "authenticated") {
       fetchEntity();
+    } else if (status !== "loading") {
+      setIsLoading(false);
     }
-  }, [session]);
+  }, [status, session]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
