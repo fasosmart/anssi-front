@@ -33,6 +33,7 @@ import apiClient from "@/lib/apiClient";
 import { Representative, Entity } from "@/types/api";
 import { AddEditRepresentativeDialog } from "./_components/AddEditRepresentativeDialog";
 import { toast } from "sonner";
+import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
 
 export default function RepresentativesPage() {
   const { data: session } = useSession();
@@ -40,6 +41,8 @@ export default function RepresentativesPage() {
   const [userEntity, setUserEntity] = useState<Entity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedRepresentative, setSelectedRepresentative] = useState<Representative | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   const fetchRepresentatives = async (entitySlug: string) => {
      if (!session?.accessToken) return;
@@ -79,8 +82,39 @@ export default function RepresentativesPage() {
     }
   }, [session]);
 
+  const handleAdd = () => {
+    setSelectedRepresentative(null);
+    setIsDialogOpen(true);
+  }
+
+  const handleEdit = (representative: Representative) => {
+    setSelectedRepresentative(representative);
+    setIsDialogOpen(true);
+  }
+
+  const handleDelete = (representative: Representative) => {
+    setSelectedRepresentative(representative);
+    setIsDeleteAlertOpen(true);
+  }
+
+  const confirmDelete = async () => {
+    if (!userEntity?.slug || !selectedRepresentative?.slug) return;
+
+    try {
+        await apiClient.delete(API.representatives.delete(userEntity.slug, selectedRepresentative.slug));
+        toast.success("Le représentant a été supprimé avec succès.");
+        fetchRepresentatives(userEntity.slug);
+    } catch (error) {
+        toast.error("Erreur lors de la suppression du représentant.");
+    } finally {
+        setIsDeleteAlertOpen(false);
+        setSelectedRepresentative(null);
+    }
+  }
+
   const handleSuccess = () => {
     setIsDialogOpen(false);
+    setSelectedRepresentative(null);
     if(userEntity?.slug) {
         fetchRepresentatives(userEntity.slug);
     }
@@ -119,7 +153,7 @@ export default function RepresentativesPage() {
             Gérez les représentants légaux de votre organisation.
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={handleAdd}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Ajouter un représentant
         </Button>
@@ -163,8 +197,10 @@ export default function RepresentativesPage() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem>Modifier</DropdownMenuItem>
-                                            <DropdownMenuItem>Supprimer</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleEdit(rep)}>Modifier</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
+                                                Supprimer
+                                            </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -187,6 +223,14 @@ export default function RepresentativesPage() {
         setIsOpen={setIsDialogOpen}
         onSuccess={handleSuccess}
         entity={userEntity}
+        representative={selectedRepresentative}
+      />
+
+      <DeleteConfirmationDialog 
+        isOpen={isDeleteAlertOpen}
+        onOpenChange={setIsDeleteAlertOpen}
+        onConfirm={confirmDelete}
+        itemName={`${selectedRepresentative?.first_name} ${selectedRepresentative?.last_name}`}
       />
     </div>
   );

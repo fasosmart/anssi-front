@@ -63,6 +63,7 @@ export function AddEditRepresentativeDialog({
 
     try {
       await promise;
+      toast.success(`Représentant ${isEditMode ? 'mis à jour' : 'ajouté'} avec succès !`);
       onSuccess();
     } catch (error) {
       // console.error(error);
