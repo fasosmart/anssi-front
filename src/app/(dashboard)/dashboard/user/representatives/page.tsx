@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export default function RepresentativesPage() {
   const { data: session, status } = useSession();
@@ -46,6 +47,7 @@ export default function RepresentativesPage() {
   const [selectedRepresentative, setSelectedRepresentative] = useState<Representative | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const router = useRouter();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchRepresentatives = async (entitySlug: string) => {
      if (!session?.accessToken) return;
@@ -152,6 +154,78 @@ export default function RepresentativesPage() {
     )
   }
 
+  const RepresentativeRow = ({rep, index}: {rep: Representative, index: number}) => (
+    <TableRow key={rep.slug} onClick={() => handleRowClick(rep)} className="cursor-pointer">
+        <TableCell onClick={(e) => e.stopPropagation()}>
+            <Checkbox aria-label={`Select row ${index + 1}`} />
+        </TableCell>
+        <TableCell>{index + 1}</TableCell>
+        <TableCell className="font-medium">{rep.first_name} {rep.last_name}</TableCell>
+        <TableCell>{rep.job_title}</TableCell>
+        <TableCell>{rep.email}</TableCell>
+        <TableCell>{rep.mobile || rep.phone}</TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier les informations</DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/user/representatives/${rep.slug}`}>
+                            Gérer le cursus
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
+                        Supprimer
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </TableCell>
+    </TableRow>
+  );
+
+  const RepresentativeCard = ({rep, index}: {rep: Representative, index: number}) => (
+    <Card key={rep.slug} className="mb-4">
+        <CardHeader>
+            <div className="flex justify-between items-start">
+                <div className="font-bold text-lg">{rep.first_name} {rep.last_name}</div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleRowClick(rep)}>Voir les détails</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
+                            Supprimer
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <CardDescription>{rep.job_title}</CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2" onClick={() => handleRowClick(rep)}>
+            <div className="flex justify-between">
+                <span className="font-semibold text-muted-foreground">Email:</span>
+                <span>{rep.email}</span>
+            </div>
+            <div className="flex justify-between">
+                <span className="font-semibold text-muted-foreground">Téléphone:</span>
+                <span>{rep.mobile || rep.phone}</span>
+            </div>
+        </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -175,67 +249,50 @@ export default function RepresentativesPage() {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[40px]">
-                            <Checkbox aria-label="Select all" />
-                        </TableHead>
-                        <TableHead className="w-[50px]">#</TableHead>
-                        <TableHead>Nom complet</TableHead>
-                        <TableHead>Fonction</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Téléphone</TableHead>
-                        <TableHead>
-                            <span className="sr-only">Actions</span>
-                        </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
+            {isMobile ? (
+                 <div className="space-y-4">
                     {representatives.length > 0 ? (
                         representatives.map((rep, index) => (
-                            <TableRow key={rep.slug} onClick={() => handleRowClick(rep)} className="cursor-pointer">
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox aria-label={`Select row ${index + 1}`} />
-                                </TableCell>
-                                <TableCell>{index + 1}</TableCell>
-                                <TableCell className="font-medium">{rep.first_name} {rep.last_name}</TableCell>
-                                <TableCell>{rep.job_title}</TableCell>
-                                <TableCell>{rep.email}</TableCell>
-                                <TableCell>{rep.mobile || rep.phone}</TableCell>
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier les informations</DropdownMenuItem>
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/user/representatives/${rep.slug}`}>
-                                                    Gérer le cursus
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
-                                                Supprimer
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
+                           <RepresentativeCard key={rep.slug} rep={rep} index={index} />
                         ))
                     ) : (
-                        <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
-                                Aucun représentant trouvé.
-                            </TableCell>
-                        </TableRow>
+                         <div className="text-center text-muted-foreground py-8">
+                            Aucun représentant trouvé.
+                        </div>
                     )}
-                </TableBody>
-            </Table>
+                </div>
+            ) : (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[40px]">
+                                <Checkbox aria-label="Select all" />
+                            </TableHead>
+                            <TableHead className="w-[50px]">#</TableHead>
+                            <TableHead>Nom complet</TableHead>
+                            <TableHead>Fonction</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Téléphone</TableHead>
+                            <TableHead>
+                                <span className="sr-only">Actions</span>
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {representatives.length > 0 ? (
+                            representatives.map((rep, index) => (
+                                <RepresentativeRow key={rep.slug} rep={rep} index={index} />
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center">
+                                    Aucun représentant trouvé.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            )}
         </CardContent>
       </Card>
 

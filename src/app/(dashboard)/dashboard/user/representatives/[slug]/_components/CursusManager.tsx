@@ -12,6 +12,7 @@ import { CursusItemDialog } from "./CursusItemDialog";
 import { DeleteConfirmationDialog } from "../../_components/DeleteConfirmationDialog";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 type GenericItem = Record<string, unknown> & { slug?: string };
 
@@ -31,6 +32,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
   const [selectedItem, setSelectedItem] = useState<GenericItem | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const router = useRouter();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -89,6 +91,63 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     router.push(`${window.location.pathname}/${itemType}s/${String(item.slug)}`);
   }
 
+  const CursusRow = ({ item, index }: { item: GenericItem; index: number }) => (
+    <TableRow key={item.slug} onClick={() => handleRowClick(item)} className="cursor-pointer">
+      <TableCell onClick={(e) => e.stopPropagation()}><Checkbox /></TableCell>
+      <TableCell>{index + 1}</TableCell>
+      {columns.map(col => (
+        <TableCell key={col.key} className="font-medium">
+          {col.render ? col.render(item) : String(item[col.key] ?? '')}
+        </TableCell>
+      ))}
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Menu</span></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => handleEdit(item)}>Modifier</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleDelete(item)} className="text-red-600">Supprimer</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+
+  const CursusCard = ({ item }: { item: GenericItem }) => (
+     <Card key={item.slug} className="mb-4">
+        <CardHeader>
+            <div className="flex justify-between items-start">
+                 <CardTitle className="text-lg">{String(item[columns[0].key] ?? '')}</CardTitle>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleRowClick(item)}>Voir les détails</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleEdit(item)}>Modifier</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(item)} className="text-red-600">
+                            Supprimer
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <CardDescription>{String(item[columns[1].key] ?? '')}</CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2" onClick={() => handleRowClick(item)}>
+            {columns.slice(2).map(col => (
+                 <div className="flex justify-between" key={col.key}>
+                    <span className="font-semibold text-muted-foreground">{col.header}:</span>
+                    <span>{String(item[col.key] ?? '')}</span>
+                </div>
+            ))}
+        </CardContent>
+    </Card>
+  );
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -99,45 +158,41 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
         <Button onClick={handleAdd}><PlusCircle className="mr-2 h-4 w-4"/>Ajouter</Button>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40px]"><Checkbox /></TableHead>
-              <TableHead className="w-[50px]">#</TableHead>
-              {columns.map(col => <TableHead key={col.key}>{col.header}</TableHead>)}
-              <TableHead><span className="sr-only">Actions</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        {isMobile ? (
+          <div className="space-y-4 mt-4">
             {isLoading ? (
-              <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Chargement...</TableCell></TableRow>
+              <p>Chargement...</p>
             ) : items.length > 0 ? (
-              items.map((item, index: number) => (
-                <TableRow key={item.slug} onClick={() => handleRowClick(item)} className="cursor-pointer">
-                  <TableCell onClick={(e) => e.stopPropagation()}><Checkbox /></TableCell>
-                  <TableCell>{index + 1}</TableCell>
-                  {columns.map(col => (
-                    <TableCell key={col.key} className="font-medium">
-                      {col.render ? col.render(item) : String(item[col.key] ?? '')}
-                    </TableCell>
-                  ))}
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Menu</span></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleEdit(item)}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleDelete(item)} className="text-red-600">Supprimer</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+              items.map((item) => <CursusCard key={item.slug} item={item} />)
             ) : (
-              <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Aucun élément trouvé.</TableCell></TableRow>
+              <div className="text-center text-muted-foreground py-8">
+                Aucun élément trouvé.
+              </div>
             )}
-          </TableBody>
-        </Table>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]"><Checkbox /></TableHead>
+                <TableHead className="w-[50px]">#</TableHead>
+                {columns.map(col => <TableHead key={col.key}>{col.header}</TableHead>)}
+                <TableHead><span className="sr-only">Actions</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Chargement...</TableCell></TableRow>
+              ) : items.length > 0 ? (
+                items.map((item, index: number) => (
+                  <CursusRow key={item.slug} item={item} index={index} />
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={columns.length + 3} className="h-24 text-center">Aucun élément trouvé.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
       <CursusItemDialog 
         isOpen={isDialogOpen}

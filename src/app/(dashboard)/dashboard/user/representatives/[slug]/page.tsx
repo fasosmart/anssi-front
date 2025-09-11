@@ -11,6 +11,8 @@ import { CursusManager } from "./_components/CursusManager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AddEditRepresentativeDialog } from "../_components/AddEditRepresentativeDialog";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function RepresentativeDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +21,8 @@ export default function RepresentativeDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [entity, setEntity] = useState<Entity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchRepresentativeDetails = async (entitySlug: string) => {
     if (entitySlug && slug && session?.accessToken) {
@@ -86,9 +90,9 @@ export default function RepresentativeDetailPage() {
   ];
 
   const InfoField = ({ label, value, isLink }: { label: string; value?: string | null, isLink?: boolean }) => (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-4">
       <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="text-sm col-span-2">
+      <dd className="text-sm md:col-span-2">
         {isLink && value ? (
           <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
             Voir le fichier
@@ -113,38 +117,54 @@ export default function RepresentativeDetailPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">Informations Générales</TabsTrigger>
-          <TabsTrigger value="degrees">Diplômes</TabsTrigger>
-          <TabsTrigger value="trainings">Formations & Certifications</TabsTrigger>
-          <TabsTrigger value="experiences">Expériences Professionnelles</TabsTrigger>
-        </TabsList>
+      {isMobile ? (
+        <Select value={activeTab} onValueChange={setActiveTab}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner une section" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="general">Informations Générales</SelectItem>
+            <SelectItem value="degrees">Diplômes</SelectItem>
+            <SelectItem value="trainings">Formations & Certifications</SelectItem>
+            <SelectItem value="experiences">Expériences Professionnelles</SelectItem>
+          </SelectContent>
+        </Select>
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="general">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general">Informations Générales</TabsTrigger>
+            <TabsTrigger value="degrees">Diplômes</TabsTrigger>
+            <TabsTrigger value="trainings">Formations & Certifications</TabsTrigger>
+            <TabsTrigger value="experiences">Expériences Professionnelles</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
-        <TabsContent value="general">
-            <Card className="mt-4">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Détails du profil</CardTitle>
-                        <CardDescription>Informations personnelles et de contact.</CardDescription>
-                    </div>
-                    <Button onClick={() => setIsDialogOpen(true)}>Modifier</Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <InfoField label="Nom complet" value={`${representative.first_name} ${representative.last_name}`} />
-                    <InfoField label="Fonction" value={representative.job_title} />
-                    <InfoField label="Email" value={representative.email} />
-                    <InfoField label="Téléphone" value={representative.phone} />
-                    <InfoField label="Mobile" value={representative.mobile} />
-                    <InfoField label="N° Pièce d'identité" value={representative.idcard_number} />
-                    <InfoField label="Pièce d'identité" value={representative.idcard_file as string} isLink={true} />
-                    <InfoField label="Date de délivrance" value={representative.idcard_issued_at} />
-                    <InfoField label="Date d'expiration" value={representative.idcard_expires_at} />
-                </CardContent>
-            </Card>
-        </TabsContent>
-
-        <TabsContent value="degrees">
+      {activeTab === 'general' && (
+        <Card className="mt-4">
+          <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                  <CardTitle>Détails du profil</CardTitle>
+                  <CardDescription>Informations personnelles et de contact.</CardDescription>
+              </div>
+              <Button onClick={() => setIsDialogOpen(true)}>Modifier</Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              <InfoField label="Nom complet" value={`${representative.first_name} ${representative.last_name}`} />
+              <InfoField label="Fonction" value={representative.job_title} />
+              <InfoField label="Email" value={representative.email} />
+              <InfoField label="Téléphone" value={representative.phone} />
+              <InfoField label="Mobile" value={representative.mobile} />
+              <InfoField label="N° Pièce d'identité" value={representative.idcard_number} />
+              <InfoField label="Pièce d'identité" value={representative.idcard_file as string} isLink={true} />
+              <InfoField label="Date de délivrance" value={representative.idcard_issued_at} />
+              <InfoField label="Date d'expiration" value={representative.idcard_expires_at} />
+          </CardContent>
+        </Card>
+      )}
+      
+      {activeTab === 'degrees' && (
+        <div className="mt-4">
           <CursusManager
             itemType="degree"
             title="Diplômes et Titres Académiques"
@@ -153,9 +173,12 @@ export default function RepresentativeDetailPage() {
             itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entity.slug!, slug, itemId) : API.degrees.create(entity.slug!, slug)}
             columns={degreeColumns}
           />
-        </TabsContent>
-        <TabsContent value="trainings">
-           <CursusManager
+        </div>
+      )}
+
+      {activeTab === 'trainings' && (
+        <div className="mt-4">
+          <CursusManager
             itemType="training"
             title="Formations et Certifications"
             description="Gérez les formations et certifications professionnelles."
@@ -163,9 +186,12 @@ export default function RepresentativeDetailPage() {
             itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entity.slug!, slug, itemId) : API.trainings.create(entity.slug!, slug)}
             columns={trainingColumns}
           />
-        </TabsContent>
-        <TabsContent value="experiences">
-           <CursusManager
+        </div>
+      )}
+
+      {activeTab === 'experiences' && (
+        <div className="mt-4">
+          <CursusManager
             itemType="experience"
             title="Expériences Professionnelles"
             description="Gérez l&apos;historique professionnel du représentant."
@@ -173,9 +199,9 @@ export default function RepresentativeDetailPage() {
             itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entity.slug!, slug, itemId) : API.experiences.create(entity.slug!, slug)}
             columns={experienceColumns}
           />
-        </TabsContent>
-      </Tabs>
-
+        </div>
+      )}
+      
        <AddEditRepresentativeDialog 
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
