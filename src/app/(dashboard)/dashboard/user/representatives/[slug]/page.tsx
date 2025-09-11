@@ -85,10 +85,18 @@ export default function RepresentativeDetailPage() {
     { key: 'end_date', header: 'Fin' },
   ];
 
-  const InfoField = ({ label, value }: { label: string; value?: string | null }) => (
+  const InfoField = ({ label, value, isLink }: { label: string; value?: string | null, isLink?: boolean }) => (
     <div className="grid grid-cols-3 gap-4">
       <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="text-sm col-span-2">{value || "N/A"}</dd>
+      <dd className="text-sm col-span-2">
+        {isLink && value ? (
+          <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            Voir le fichier
+          </a>
+        ) : (
+          value || "N/A"
+        )}
+      </dd>
     </div>
   );
 
@@ -129,6 +137,7 @@ export default function RepresentativeDetailPage() {
                     <InfoField label="Téléphone" value={representative.phone} />
                     <InfoField label="Mobile" value={representative.mobile} />
                     <InfoField label="N° Pièce d'identité" value={representative.idcard_number} />
+                    <InfoField label="Pièce d'identité" value={representative.idcard_file} isLink={true} />
                     <InfoField label="Date de délivrance" value={representative.idcard_issued_at} />
                     <InfoField label="Date d'expiration" value={representative.idcard_expires_at} />
                 </CardContent>
