@@ -54,7 +54,7 @@ export default function RepresentativesPage() {
      try {
         const response = await apiClient.get(API.representatives.list(entitySlug));
         setRepresentatives(response.data.results || []);
-     } catch (error) {
+     } catch {
         // console.error("Error fetching representatives:", error);
         toast.error("Erreur lors de la récupération des représentants.");
      }
@@ -73,7 +73,7 @@ export default function RepresentativesPage() {
             setUserEntity(entity);
             await fetchRepresentatives(entity.slug);
           }
-        } catch (error) {
+        } catch {
           // console.error("Error fetching data:", error);
           // Handle error (e.g., show toast)
           toast.error("Erreur lors de la récupération des représentants.");
@@ -110,7 +110,7 @@ export default function RepresentativesPage() {
         await apiClient.delete(API.representatives.delete(userEntity.slug, selectedRepresentative.slug));
         toast.success("Le représentant a été supprimé avec succès.");
         fetchRepresentatives(userEntity.slug);
-    } catch (error) {
+    } catch {
         toast.error("Erreur lors de la suppression du représentant.");
     } finally {
         setIsDeleteAlertOpen(false);

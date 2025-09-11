@@ -167,7 +167,7 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
                 <TableRow>
                 <TableHead>Nom du document</TableHead>
                 <TableHead>Date de délivrance</TableHead>
-                <TableHead>Date d'expiration</TableHead>
+                <TableHead>Date d&apos;expiration</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>

@@ -54,7 +54,7 @@ export default function StructurePage() {
           setEntity({}); // No entity found, prepare for creation
           setDocuments([]);
         }
-      } catch (error) {
+      } catch {
         toast.error("Erreur lors de la récupération de votre structure.");
         setEntity({});
         setDocuments([]);
@@ -304,7 +304,7 @@ export default function StructurePage() {
                 />
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  Veuillez d'abord enregistrer les informations générales de la structure pour gérer les documents.
+                  Veuillez d&apos;abord enregistrer les informations générales de la structure pour gérer les documents.
                 </div>
               )}
             </CardContent>

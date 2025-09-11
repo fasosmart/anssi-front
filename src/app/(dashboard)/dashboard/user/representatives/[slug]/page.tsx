@@ -6,13 +6,14 @@ import apiClient from "@/lib/apiClient";
 import { Representative, Entity } from "@/types/api";
 import { API } from "@/lib/api";
 import { useSession } from "next-auth/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CursusManager } from "./_components/CursusManager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AddEditRepresentativeDialog } from "../_components/AddEditRepresentativeDialog";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export default function RepresentativeDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -30,8 +31,8 @@ export default function RepresentativeDetailPage() {
       try {
         const response = await apiClient.get(API.representatives.details(entitySlug, slug));
         setRepresentative(response.data);
-      } catch (error) {
-        console.error("Failed to fetch representative details", error);
+      } catch {
+        toast.error("Erreur lors de la récupération des détails du représentant.");
       } finally {
         setIsLoading(false);
       }

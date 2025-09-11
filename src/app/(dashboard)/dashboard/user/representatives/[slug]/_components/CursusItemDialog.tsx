@@ -85,7 +85,7 @@ export function CursusItemDialog({
       
       toast.success(`Élément ${isEditMode ? 'mis à jour' : 'ajouté'} avec succès !`);
       onSuccess();
-    } catch (error) {
+    } catch {
       toast.error("Une erreur est survenue.");
     } finally {
       setIsSubmitting(false);

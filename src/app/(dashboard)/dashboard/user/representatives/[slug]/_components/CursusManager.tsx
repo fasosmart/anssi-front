@@ -39,7 +39,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
     try {
       const response = await apiClient.get(listApiEndpoint);
       setItems(response.data.results || []);
-    } catch (error) {
+    } catch {
       toast.error(`Erreur lors de la récupération de la liste.`);
     } finally {
       setIsLoading(false);
@@ -71,7 +71,7 @@ export function CursusManager({ itemType, listApiEndpoint, itemApiEndpoint, colu
         await apiClient.delete(itemApiEndpoint(selectedItem.slug));
         toast.success("Élément supprimé avec succès.");
         fetchData();
-    } catch(error) {
+    } catch {
         toast.error("Erreur lors de la suppression.");
     } finally {
         setIsDeleteAlertOpen(false);

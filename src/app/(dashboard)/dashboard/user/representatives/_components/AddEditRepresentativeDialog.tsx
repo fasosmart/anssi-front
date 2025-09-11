@@ -86,7 +86,7 @@ export function AddEditRepresentativeDialog({
       await promise;
       toast.success(`Représentant ${isEditMode ? 'mis à jour' : 'ajouté'} avec succès !`);
       onSuccess();
-    } catch (error) {
+    } catch {
       // console.error(error);
       // Handle error (e.g., show toast)
       toast.error("Erreur lors de la création/mise à jour du représentant.");

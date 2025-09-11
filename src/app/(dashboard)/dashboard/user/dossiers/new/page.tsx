@@ -20,7 +20,7 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { Entity, Representative, Degree, Training, Experience, DossierFormData } from "@/types/api";
+import { Entity, Representative, DossierFormData } from "@/types/api";
 import apiClient, { setAuthToken } from "@/lib/apiClient";
 import { toast } from "sonner";
 
@@ -54,7 +54,7 @@ export default function NewDossierPage() {
             // Pré-remplir le formulaire avec les infos complètes de la structure
             updateFormData({ companyInfo: detailedEntity });
           }
-        } catch (error) {
+        } catch {
           // console.error("Error fetching user entity:", error);
           toast.error("Erreur lors de la récupération des informations de votre structure.");
         } finally {
@@ -184,7 +184,7 @@ export default function NewDossierPage() {
         toast.success("Votre dossier a été soumis avec succès !");
         router.push("/dashboard/user/dossiers");
 
-    } catch (error) {
+    } catch {
         // console.error("Failed to submit dossier:", error);
         toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {

@@ -137,7 +137,7 @@ export function AddEditDocumentDialog({
                     />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="expires_at">Date d'expiration (optionnel)</Label>
+                    <Label htmlFor="expires_at">Date d&apos;expiration (optionnel)</Label>
                     <Input
                         id="expires_at"
                         name="expires_at"
