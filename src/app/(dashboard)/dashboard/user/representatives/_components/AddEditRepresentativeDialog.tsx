@@ -51,15 +51,36 @@ export function AddEditRepresentativeDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target;
+    if (files && files.length > 0) {
+      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.accessToken || !entity?.slug) return;
 
     setIsSubmitting(true);
+
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      // Do not append slug for new representatives
+      if (key === 'slug' && !isEditMode) return;
+      
+      if (value) {
+        if (value instanceof File) {
+          data.append(key, value);
+        } else {
+          data.append(key, String(value));
+        }
+      }
+    });
     
     const promise = isEditMode
-      ? apiClient.put(API.representatives.update(entity.slug, representative.slug!), formData)
-      : apiClient.post(API.representatives.create(entity.slug), formData);
+      ? apiClient.patch(API.representatives.update(entity.slug, representative.slug!), data)
+      : apiClient.post(API.representatives.create(entity.slug), data);
 
     try {
       await promise;
@@ -112,6 +133,10 @@ export function AddEditRepresentativeDialog({
                 <div className="grid gap-2">
                     <Label htmlFor="idcard_number">N° de la pièce d&apos;identité</Label>
                     <Input id="idcard_number" name="idcard_number" value={formData.idcard_number || ''} onChange={handleChange} />
+                </div>
+                 <div className="grid gap-2">
+                    <Label htmlFor="idcard_file">Fichier de la pièce (PDF, PNG, JPG)</Label>
+                    <Input id="idcard_file" name="idcard_file" type="file" onChange={handleFileChange} />
                 </div>
                  <div className="grid gap-2">
                     <Label htmlFor="idcard_issued_at">Délivrée le</Label>

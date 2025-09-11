@@ -28,6 +28,7 @@ export interface Representative {
   idcard_number?: string | null;
   idcard_issued_at?: string | null; // This corresponds to idDeliveryDate
   idcard_expires_at?: string | null; // This corresponds to idExpirationDate
+  idcard_file?: string | File | null;
 }
 
 export interface Degree {
