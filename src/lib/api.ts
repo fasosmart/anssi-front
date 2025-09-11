@@ -14,6 +14,15 @@ export const API = {
     delete: (slug: string) => `${BASE_URL}/entities/${slug}/`,
   },
 
+  // Documents
+  documents: {
+    list: (entitySlug: string) => `${BASE_URL}/entities/${entitySlug}/documents/`,
+    create: (entitySlug: string) => `${BASE_URL}/entities/${entitySlug}/documents/`,
+    details: (entitySlug: string, docSlug: string) => `${BASE_URL}/entities/${entitySlug}/documents/${docSlug}/`,
+    update: (entitySlug: string, docSlug: string) => `${BASE_URL}/entities/${entitySlug}/documents/${docSlug}/`,
+    delete: (entitySlug: string, docSlug: string) => `${BASE_URL}/entities/${entitySlug}/documents/${docSlug}/`,
+  },
+
   // Representatives
   representatives: {
     list: (entitySlug: string) => `${BASE_URL}/${entitySlug}/representatives/`,

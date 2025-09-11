@@ -80,3 +80,12 @@ export interface DossierFormData {
   };
   declaration?: boolean;
 }
+
+export interface Document {
+  slug?: string;
+  created_at?: string;
+  name: string;
+  file: string | File;
+  issued_at: string;
+  expires_at?: string | null;
+}
