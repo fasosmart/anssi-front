@@ -137,7 +137,7 @@ export default function RepresentativeDetailPage() {
                     <InfoField label="Téléphone" value={representative.phone} />
                     <InfoField label="Mobile" value={representative.mobile} />
                     <InfoField label="N° Pièce d'identité" value={representative.idcard_number} />
-                    <InfoField label="Pièce d'identité" value={representative.idcard_file} isLink={true} />
+                    <InfoField label="Pièce d'identité" value={representative.idcard_file as string} isLink={true} />
                     <InfoField label="Date de délivrance" value={representative.idcard_issued_at} />
                     <InfoField label="Date d'expiration" value={representative.idcard_expires_at} />
                 </CardContent>
