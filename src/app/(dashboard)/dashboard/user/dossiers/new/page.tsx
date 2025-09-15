@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { 
   Card, 
@@ -20,53 +19,25 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { Entity, Representative, DossierFormData } from "@/types/api";
-import apiClient, { setAuthToken } from "@/lib/apiClient";
+import { Representative, DossierFormData, Entity } from "@/types/api";
+import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
+import { useEntity } from "@/contexts/EntityContext";
 
 export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<DossierFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [entityLoading, setEntityLoading] = useState(true);
-  const [userEntity, setUserEntity] = useState<Entity | null>(null);
   
-  const { data: session, status } = useSession();
+  const { activeEntity, isLoading: isEntityLoading } = useEntity();
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserEntity = async () => {
-      if (session?.accessToken) {
-        setAuthToken(session.accessToken);
-        try {
-          // Étape 1 : Récupérer la liste pour obtenir le slug de la structure
-          const listResponse = await apiClient.get(API.entities.list());
-
-          if (listResponse.data.results && listResponse.data.results.length > 0) {
-            const entitySlug = listResponse.data.results[0].slug;
-
-            // Étape 2 : Utiliser le slug pour récupérer les infos complètes de la structure
-            const detailsResponse = await apiClient.get(API.entities.details(entitySlug));
-            
-            const detailedEntity = detailsResponse.data;
-
-            setUserEntity(detailedEntity);
-            // Pré-remplir le formulaire avec les infos complètes de la structure
-            updateFormData({ companyInfo: detailedEntity });
-          }
-        } catch {
-          // console.error("Error fetching user entity:", error);
-          toast.error("Erreur lors de la récupération des informations de votre structure.");
-        } finally {
-          setEntityLoading(false);
-        }
-      }
-    };
-
-    if (status === "authenticated") {
-      fetchUserEntity();
+    if (activeEntity) {
+      // Pre-fill form with active entity info
+      updateFormData({ companyInfo: activeEntity as unknown as Partial<Entity> });
     }
-  }, [status, session]);
+  }, [activeEntity]);
 
   const updateFormData = (fields: Partial<DossierFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
@@ -74,30 +45,16 @@ export default function NewDossierPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    // Add toast notifications for user feedback
     
-    if (!session?.accessToken) {
-        // Handle not authenticated error
-        // console.error("User is not authenticated");
-        toast.error("Vous devez être connecté pour soumettre un dossier.");
-        setIsSubmitting(false);
-        return;
-    }
-    
-    setAuthToken(session.accessToken);
-    
-    if (!userEntity?.slug) {
-        // console.error("User entity is not available for submission.");
-        toast.error("Impossible de soumettre : les informations de la structure sont manquantes.");
+    if (!activeEntity?.slug) {
+        toast.error("Impossible de soumettre : aucune structure n'est sélectionnée.");
         setIsSubmitting(false);
         return;
     }
 
     try {
-        const entitySlug = userEntity.slug;
+        const entitySlug = activeEntity.slug;
 
-        // Step 1 is now skipped, as the entity already exists.
-        
         // Step 2: Create the Representative
         const representativePayload: Representative = { ...formData.legalRepresentative, first_name: formData.legalRepresentative?.first_name || "", last_name: formData.legalRepresentative?.last_name || "", job_title: formData.legalRepresentative?.job_title || "" };
 
@@ -185,7 +142,6 @@ export default function NewDossierPage() {
         router.push("/dashboard/user/dossiers");
 
     } catch {
-        // console.error("Failed to submit dossier:", error);
         toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {
         setIsSubmitting(false);
@@ -201,7 +157,6 @@ export default function NewDossierPage() {
   };
 
   const handleStepClick = (stepId: number) => {
-    // Allow navigation only to previous steps
     if (stepId < currentStep) {
         setCurrentStep(stepId);
     }
@@ -216,30 +171,27 @@ export default function NewDossierPage() {
 
   const activeStep = steps.find((step) => step.id === currentStep);
 
-  if (entityLoading) {
+  if (isEntityLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p>Chargement des informations de votre structure...</p>
+        <p>Chargement des informations...</p>
       </div>
     );
   }
 
-  if (!userEntity) {
+  if (!activeEntity) {
     return (
       <div className="space-y-6 text-center">
          <Card>
             <CardHeader>
-                <CardTitle>Aucune structure trouvée</CardTitle>
+                <CardTitle>Aucune structure sélectionnée</CardTitle>
                 <CardDescription>
-                Vous devez d&apos;abord enregistrer les informations de votre structure avant de pouvoir créer un dossier d&apos;accréditation.
+                Pour créer une nouvelle demande, veuillez d&apos;abord sélectionner la structure concernée.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
-                <p>Cliquez sur le bouton ci-dessous pour accéder à la page de gestion de votre structure.</p>
-            </CardContent>
             <CardFooter className="flex justify-center">
-                <Link href="/dashboard/user/structure">
-                    <Button>Gérer ma structure</Button>
+                <Link href="/dashboard/user/entities">
+                    <Button>Choisir une structure</Button>
                 </Link>
             </CardFooter>
         </Card>
@@ -262,7 +214,7 @@ export default function NewDossierPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Nouvelle demande d&apos;accréditation - Personne Morale</CardTitle>
+          <CardTitle>Nouvelle demande d&apos;accréditation pour {activeEntity.name}</CardTitle>
           <CardDescription>
             Étape {currentStep} sur {steps.length}: {activeStep?.title}
           </CardDescription>

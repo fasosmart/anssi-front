@@ -49,7 +49,7 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
         updateData({ legalRepresentative: selectedRep });
     }
   };
-
+console.log(data.companyInfo);
   return (
     <div className="space-y-8">
       {/* Section 1: Identité de la société */}

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import apiClient from '@/lib/apiClient';
 import { Entity } from '@/types/api';
 import { API } from '@/lib/api';
+import { toast } from 'sonner';
 
 type EntityList = Omit<Entity, "entity_type"> & { entity_type: string; is_active: boolean };
 
@@ -46,7 +47,8 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       setError("Impossible de charger les structures.");
-      console.error(err);
+      // console.error(err);
+      toast.error("Impossible de charger les structures.");
     } finally {
       setIsLoading(false);
     }

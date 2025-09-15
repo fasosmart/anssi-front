@@ -1,32 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { Representative, Entity } from "@/types/api";
 import { API } from "@/lib/api";
-import { useSession } from "next-auth/react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CursusManager } from "./_components/CursusManager";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AddEditRepresentativeDialog } from "../_components/AddEditRepresentativeDialog";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useEntity } from "@/contexts/EntityContext";
+import Link from "next/link";
 
 export default function RepresentativeDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { activeEntity, isLoading: isEntityLoading } = useEntity();
+  
   const [representative, setRepresentative] = useState<Representative | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [entity, setEntity] = useState<Entity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchRepresentativeDetails = async (entitySlug: string) => {
-    if (entitySlug && slug && session?.accessToken) {
+    if (entitySlug && slug) {
       setIsLoading(true);
       try {
         const response = await apiClient.get(API.representatives.details(entitySlug, slug));
@@ -40,36 +42,63 @@ export default function RepresentativeDetailPage() {
   };
 
   useEffect(() => {
-    const getEntity = async () => {
-        if (session?.accessToken) {
-            const response = await apiClient.get(API.entities.list());
-            if (response.data.results && response.data.results.length > 0) {
-                const fetchedEntity = response.data.results[0];
-                setEntity(fetchedEntity);
-                fetchRepresentativeDetails(fetchedEntity.slug);
-            }
-        }
-    };
-    if (status === "authenticated") {
-        getEntity();
+    if (!isEntityLoading) {
+      if (activeEntity?.slug) {
+        fetchRepresentativeDetails(activeEntity.slug);
+      } else {
+        setIsLoading(false); // No active entity, stop loading
+      }
     }
-  }, [status, session, slug]);
+  }, [isEntityLoading, activeEntity, slug]);
 
 
   const handleSuccess = () => {
     setIsDialogOpen(false);
-    if(entity?.slug) {
-        fetchRepresentativeDetails(entity.slug);
+    if(activeEntity?.slug) {
+        fetchRepresentativeDetails(activeEntity.slug);
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isEntityLoading) {
     return <div>Chargement du profil du représentant...</div>;
   }
 
-  if (!representative || !entity) {
-    return <div>Représentant non trouvé.</div>;
+  if (!activeEntity) {
+    return (
+        <Card className="text-center">
+            <CardHeader>
+                <CardTitle>Aucune structure sélectionnée</CardTitle>
+                <CardDescription>
+                    Veuillez sélectionner une structure pour voir ses représentants.
+                </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-center">
+                <Link href="/dashboard/user/entities">
+                    <Button>Choisir une structure</Button>
+                </Link>
+            </CardFooter>
+        </Card>
+    )
   }
+
+  if (!representative) {
+    return (
+        <Card className="text-center">
+            <CardHeader>
+                <CardTitle>Représentant non trouvé</CardTitle>
+                <CardDescription>
+                    Ce représentant n'a pas été trouvé pour la structure active.
+                </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-center">
+                <Link href="/dashboard/user/representatives">
+                    <Button>Retour à la liste</Button>
+                </Link>
+            </CardFooter>
+        </Card>
+    )
+  }
+
 
   const degreeColumns = [
     { key: 'degree_name', header: 'Diplôme' },
@@ -170,8 +199,8 @@ export default function RepresentativeDetailPage() {
             itemType="degree"
             title="Diplômes et Titres Académiques"
             description="Gérez les diplômes et titres académiques du représentant."
-            listApiEndpoint={API.degrees.list(entity.slug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(entity.slug!, slug, itemId) : API.degrees.create(entity.slug!, slug)}
+            listApiEndpoint={API.degrees.list(activeEntity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.degrees.details(activeEntity.slug!, slug, itemId) : API.degrees.create(activeEntity.slug!, slug)}
             columns={degreeColumns}
           />
         </div>
@@ -183,8 +212,8 @@ export default function RepresentativeDetailPage() {
             itemType="training"
             title="Formations et Certifications"
             description="Gérez les formations et certifications professionnelles."
-            listApiEndpoint={API.trainings.list(entity.slug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(entity.slug!, slug, itemId) : API.trainings.create(entity.slug!, slug)}
+            listApiEndpoint={API.trainings.list(activeEntity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.trainings.details(activeEntity.slug!, slug, itemId) : API.trainings.create(activeEntity.slug!, slug)}
             columns={trainingColumns}
           />
         </div>
@@ -196,8 +225,8 @@ export default function RepresentativeDetailPage() {
             itemType="experience"
             title="Expériences Professionnelles"
             description="Gérez l&apos;historique professionnel du représentant."
-            listApiEndpoint={API.experiences.list(entity.slug!, slug)}
-            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(entity.slug!, slug, itemId) : API.experiences.create(entity.slug!, slug)}
+            listApiEndpoint={API.experiences.list(activeEntity.slug!, slug)}
+            itemApiEndpoint={(itemId) => itemId ? API.experiences.details(activeEntity.slug!, slug, itemId) : API.experiences.create(activeEntity.slug!, slug)}
             columns={experienceColumns}
           />
         </div>
@@ -207,7 +236,7 @@ export default function RepresentativeDetailPage() {
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
         onSuccess={handleSuccess}
-        entity={entity}
+        entity={activeEntity as Entity}
         representative={representative}
       />
     </div>
