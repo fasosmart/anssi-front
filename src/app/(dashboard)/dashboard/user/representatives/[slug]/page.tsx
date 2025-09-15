@@ -87,7 +87,7 @@ export default function RepresentativeDetailPage() {
             <CardHeader>
                 <CardTitle>Représentant non trouvé</CardTitle>
                 <CardDescription>
-                    Ce représentant n'a pas été trouvé pour la structure active.
+                    Ce représentant n&apos;a pas été trouvé pour la structure active.
                 </CardDescription>
             </CardHeader>
             <CardFooter className="flex justify-center">

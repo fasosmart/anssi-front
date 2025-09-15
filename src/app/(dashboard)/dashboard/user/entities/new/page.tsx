@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { MultiStepTimeline } from "@/app/(dashboard)/dashboard/user/dossiers/new/_components/MultiStepTimeline";
-import { Entity, Document } from "@/types/api";
+import { Entity } from "@/types/api";
 import { Step1EntityForm } from "./_components/Step1EntityForm";
 import { Step2Documents } from "./_components/Step2Documents";
 import { Step3Review } from "./_components/Step3Review";
@@ -80,7 +80,7 @@ export default function NewEntityPage() {
 
     } catch (error) {
         toast.error("Erreur lors de la création de la structure.", { id: toastId });
-        console.error(error);
+        // console.error(error);
     } finally {
         setIsSubmitting(false);
     }

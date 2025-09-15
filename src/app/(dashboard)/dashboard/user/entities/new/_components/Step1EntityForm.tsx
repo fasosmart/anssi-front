@@ -23,7 +23,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
     <div className="grid gap-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="name">Nom de l'entreprise</Label>
+          <Label htmlFor="name">Nom de l&apos;entreprise</Label>
           <Input
             id="name"
             name="name"
@@ -46,7 +46,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
       </div>
       
       <div className="grid gap-2">
-        <Label htmlFor="business_sector">Secteur d'activité</Label>
+        <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
         <Input
           id="business_sector"
           name="business_sector"
@@ -93,7 +93,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="cybersecurity_experts">Nombre d'experts en cybersécurité</Label>
+          <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
           <Input
             id="cybersecurity_experts"
             name="cybersecurity_experts"
@@ -140,7 +140,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email de l'entreprise</Label>
+          <Label htmlFor="email">Email de l&apos;entreprise</Label>
           <Input
             id="email"
             name="email"

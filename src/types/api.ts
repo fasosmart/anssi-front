@@ -89,3 +89,10 @@ export interface Document {
   issued_at: string;
   expires_at?: string | null;
 }
+
+export interface Dossier {
+  id: string;
+  type: string;
+  submittedAt: string;
+  status: string;
+}

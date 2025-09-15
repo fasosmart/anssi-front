@@ -56,7 +56,7 @@ export const Step2Documents: React.FC<Step2Props> = ({ entitySlug, updateDocumen
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Documents de l'entreprise</CardTitle>
+        <CardTitle>Documents de l&apos;entreprise</CardTitle>
         <CardDescription>
           Ajoutez les documents administratifs et légaux requis.
         </CardDescription>

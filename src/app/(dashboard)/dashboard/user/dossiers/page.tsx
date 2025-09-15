@@ -22,8 +22,9 @@ import Link from "next/link";
 import { FilePlus2 } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useState, useEffect } from "react";
+import { Dossier } from "@/types/api";
 // Mock data, this will come from an API later
-const dossiers: any[] = [
+const dossiers: Dossier[] = [
   // {
   //   id: "DOS-001",
   //   type: "Accréditation de service",

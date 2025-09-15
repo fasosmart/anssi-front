@@ -58,7 +58,7 @@ export const Step3Review: React.FC<Step3Props> = ({ entityData, documentsData })
               ))}
             </ul>
           ) : (
-            <p className="text-center text-muted-foreground py-4">Aucun document n'a été ajouté.</p>
+            <p className="text-center text-muted-foreground py-4">Aucun document n&apos;a été ajouté.</p>
           )}
         </CardContent>
       </Card>
