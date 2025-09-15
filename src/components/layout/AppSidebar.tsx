@@ -35,7 +35,7 @@ const menuItems = [
   {
     href: "/dashboard/user/dossiers",
     icon: FileText,
-    label: "Mes Dossiers",
+    label: "Mes Demandes",
   },
   {
     href: "/dashboard/user/profile",

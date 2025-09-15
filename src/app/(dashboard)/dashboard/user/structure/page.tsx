@@ -21,6 +21,8 @@ import apiClient, { setAuthToken } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { DocumentManager } from "./_components/DocumentManager";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Assume you have a toast library for notifications
 // e.g., import { toast } from 'sonner';
@@ -114,9 +116,13 @@ export default function StructurePage() {
 
   return (
     <div className="grid gap-6">
+       <Link href="/dashboard/user/entities" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Retour à la liste des structures
+      </Link>
       <div className="flex items-center">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Ma Structure</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{entity?.name}</h1>
           <p className="text-muted-foreground">
             Gérez les informations de votre entreprise ou organisation.
           </p>
