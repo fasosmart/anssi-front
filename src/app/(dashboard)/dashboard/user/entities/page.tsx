@@ -1,55 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import apiClient from "@/lib/apiClient";
-import { Entity } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-type EntityList = Omit<Entity, "entity_type"> & { entity_type: string; is_active: boolean };
+import { useEntity } from "@/contexts/EntityContext";
 
 export default function EntitiesPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const [entities, setEntities] = useState<EntityList[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchEntities = async () => {
-      if (!session) return;
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await apiClient.get<{ results: EntityList[] }>("/api/entities/");
-        setEntities(response.data.results);
-      } catch (err) {
-        setError("Impossible de charger la liste des structures. Veuillez réessayer.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEntities();
-  }, [session]);
+  const { 
+    entities, 
+    isLoading, 
+    error, 
+    activeEntity, 
+    setActiveEntity 
+  } = useEntity();
 
   const handleCreateNew = () => {
     router.push("/dashboard/user/entities/new");
   };
 
-  const handleSelectEntity = (slug: string | undefined) => {
-    if (slug) {
-        // TODO: Set active entity in context
-        console.log("Selected entity:", slug)
-        router.push(`/dashboard/user/structure`);
-    }
+  const handleSelectEntity = (entity: typeof entities[0]) => {
+    setActiveEntity(entity);
+    router.push(`/dashboard/user/structure`);
   }
 
   return (
@@ -107,10 +82,20 @@ export default function EntitiesPage() {
       {!isLoading && !error && entities.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {entities.map((entity) => (
-            <Card key={entity.slug} className="flex flex-col">
+            <Card 
+                key={entity.slug} 
+                className={`flex flex-col transition-all ${activeEntity?.slug === entity.slug ? 'border-primary shadow-lg' : ''}`}
+            >
               <CardHeader>
-                <CardTitle>{entity.name}</CardTitle>
-                <CardDescription>{entity.acronym || "Pas d'acronyme"}</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>{entity.name}</CardTitle>
+                        <CardDescription>{entity.acronym || "Pas d'acronyme"}</CardDescription>
+                    </div>
+                    {activeEntity?.slug === entity.slug && (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                    )}
+                </div>
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="text-sm text-muted-foreground">
@@ -119,11 +104,11 @@ export default function EntitiesPage() {
               </CardContent>
               <div className="p-6 pt-0">
                 <Button 
-                    variant="outline"
+                    variant={activeEntity?.slug === entity.slug ? 'default' : 'outline'}
                     className="w-full"
-                    onClick={() => handleSelectEntity(entity.slug)}
+                    onClick={() => handleSelectEntity(entity)}
                 >
-                    Gérer la structure
+                    {activeEntity?.slug === entity.slug ? 'Structure active' : 'Gérer la structure'}
                 </Button>
               </div>
             </Card>

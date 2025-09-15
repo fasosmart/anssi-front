@@ -13,116 +13,111 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import { Entity, Document } from "@/types/api";
-import apiClient, { setAuthToken } from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { DocumentManager } from "./_components/DocumentManager";
+import { useEntity } from "@/contexts/EntityContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-// Assume you have a toast library for notifications
-// e.g., import { toast } from 'sonner';
-
-const DRAFT_STORAGE_KEY = 'anssi-structure-draft';
-
 export default function StructurePage() {
-  const { data: session, status } = useSession();
-  const [entity, setEntity] = useState<Partial<Entity> | null>(null);
+  const { activeEntity, isLoading: isEntityLoading, error: entityError } = useEntity();
+  const router = useRouter();
+
+  const [entityDetails, setEntityDetails] = useState<Partial<Entity> | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchEntityAndDocuments = async () => {
-    if (session?.accessToken) {
-      setAuthToken(session.accessToken);
-      setIsLoading(true);
-      try {
-        const listResponse = await apiClient.get(API.entities.list());
-        
-        if (listResponse.data.results && listResponse.data.results.length > 0) {
-          const entitySlug = listResponse.data.results[0].slug;
-          
-          const detailsResponse = await apiClient.get(API.entities.details(entitySlug));
-          setEntity(detailsResponse.data);
+  const fetchDetailsAndDocuments = async (slug: string) => {
+    setIsLoading(true);
+    try {
+      const detailsResponse = await apiClient.get(API.entities.details(slug));
+      setEntityDetails(detailsResponse.data);
 
-          const documentsResponse = await apiClient.get(API.documents.list(entitySlug));
-          setDocuments(documentsResponse.data.results || []);
-
-        } else {
-          setEntity({}); // No entity found, prepare for creation
-          setDocuments([]);
-        }
-      } catch {
-        toast.error("Erreur lors de la récupération de votre structure.");
-        setEntity({});
-        setDocuments([]);
-      } finally {
-        setIsLoading(false);
-      }
+      const documentsResponse = await apiClient.get(API.documents.list(slug));
+      setDocuments(documentsResponse.data.results || []);
+    } catch {
+      toast.error("Erreur lors de la récupération des détails de la structure.");
+      setEntityDetails(null);
+      setDocuments([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchEntityAndDocuments();
-    } else if (status !== "loading") {
-      setIsLoading(false);
+    if (!isEntityLoading) {
+      if (activeEntity?.slug) {
+        fetchDetailsAndDocuments(activeEntity.slug);
+      } else {
+        setIsLoading(false); // No active entity, stop loading
+      }
     }
-  }, [status, session]);
+  }, [activeEntity, isEntityLoading]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setEntity((prev) => (prev ? { ...prev, [name]: value } : { [name]: value }));
+    setEntityDetails((prev) => (prev ? { ...prev, [name]: value } : { [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session?.accessToken || !entity) return;
+    if (!entityDetails?.slug) return;
 
     setIsSubmitting(true);
-    setAuthToken(session.accessToken); // Ensure token is set for submission
-    const isUpdate = !!entity.slug;
-    const url = isUpdate ? API.entities.update(entity.slug!) : API.entities.create();
-    const method = isUpdate ? "put" : "post";
-    const data = { ...entity, entity_type: 'business' };
-
+    const url = API.entities.update(entityDetails.slug);
+    
     try {
-      const response = await apiClient({
-        url,
-        method,
-        data,
-      });
-
-      setEntity(response.data);
-      toast.success(`Structure ${isUpdate ? 'mise à jour' : 'créée'} avec succès !`);
+      const response = await apiClient.put(url, entityDetails);
+      setEntityDetails(response.data);
+      toast.success(`Structure mise à jour avec succès !`);
     } catch (error) {
       const axiosError = error as AxiosError<{ detail: string }>;
-      // console.error("Failed to save entity:", axiosError);
       toast.error(`Erreur: ${axiosError.response?.data?.detail || axiosError.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return <div>Chargement de votre structure...</div>; // Replace with a proper skeleton loader
+  if (isLoading || isEntityLoading) {
+    return <div>Chargement de la structure...</div>;
+  }
+
+  if (!activeEntity) {
+    return (
+        <Card className="text-center">
+            <CardHeader>
+                <CardTitle>Aucune structure sélectionnée</CardTitle>
+                <CardDescription>
+                    Veuillez sélectionner une structure à gérer depuis la page &quot;Mes Structures&quot;.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Button onClick={() => router.push('/dashboard/user/entities')}>
+                    Choisir une structure
+                </Button>
+            </CardContent>
+        </Card>
+    );
   }
 
   return (
     <div className="grid gap-6">
-       <Link href="/dashboard/user/entities" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+      <Link href="/dashboard/user/entities" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Retour à la liste des structures
       </Link>
       <div className="flex items-center">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">{entity?.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{entityDetails?.name || "Ma Structure"}</h1>
           <p className="text-muted-foreground">
             Gérez les informations de votre entreprise ou organisation.
           </p>
@@ -149,7 +144,7 @@ export default function StructurePage() {
                     <Input
                       id="name"
                       name="name"
-                      value={entity?.name || ""}
+                      value={entityDetails?.name || ""}
                       onChange={handleChange}
                       placeholder="Ex: FasoSmart"
                       required
@@ -160,7 +155,7 @@ export default function StructurePage() {
                     <Input
                       id="acronym"
                       name="acronym"
-                      value={entity?.acronym || ""}
+                      value={entityDetails?.acronym || ""}
                       onChange={handleChange}
                       placeholder="Ex: FS"
                     />
@@ -172,7 +167,7 @@ export default function StructurePage() {
                   <Input
                     id="business_sector"
                     name="business_sector"
-                    value={entity?.business_sector || ""}
+                    value={entityDetails?.business_sector || ""}
                     onChange={handleChange}
                     placeholder="Ex: Technologies de l'Information et de la Communication"
                   />
@@ -184,7 +179,7 @@ export default function StructurePage() {
                     <Input
                       id="tax_id"
                       name="tax_id"
-                      value={entity?.tax_id || ""}
+                      value={entityDetails?.tax_id || ""}
                       onChange={handleChange}
                       placeholder="Numéro IFU"
                     />
@@ -196,7 +191,7 @@ export default function StructurePage() {
                     <Input
                       id="commercial_register"
                       name="commercial_register"
-                      value={entity?.commercial_register || ""}
+                      value={entityDetails?.commercial_register || ""}
                       onChange={handleChange}
                       placeholder="RCCM..."
                     />
@@ -209,7 +204,7 @@ export default function StructurePage() {
                       id="total_staff"
                       name="total_staff"
                       type="number"
-                      value={entity?.total_staff || ""}
+                      value={entityDetails?.total_staff || ""}
                       onChange={handleChange}
                       placeholder="Ex: 10"
                     />
@@ -220,7 +215,7 @@ export default function StructurePage() {
                       id="cybersecurity_experts"
                       name="cybersecurity_experts"
                       type="number"
-                      value={entity?.cybersecurity_experts || ""}
+                      value={entityDetails?.cybersecurity_experts || ""}
                       onChange={handleChange}
                       placeholder="Ex: 3"
                     />
@@ -232,7 +227,7 @@ export default function StructurePage() {
                     <Textarea
                       id="address"
                       name="address"
-                      value={entity?.address || ""}
+                      value={entityDetails?.address || ""}
                       onChange={handleChange}
                       placeholder="Siège social, ville, pays"
                     />
@@ -244,7 +239,7 @@ export default function StructurePage() {
                     <Input
                       id="phone"
                       name="phone"
-                      value={entity?.phone || ""}
+                      value={entityDetails?.phone || ""}
                       onChange={handleChange}
                       placeholder="+224 XX XX XX XX"
                     />
@@ -254,7 +249,7 @@ export default function StructurePage() {
                     <Input
                       id="mobile"
                       name="mobile"
-                      value={entity?.mobile || ""}
+                      value={entityDetails?.mobile || ""}
                       onChange={handleChange}
                       placeholder="+224 XX XX XX XX"
                     />
@@ -267,7 +262,7 @@ export default function StructurePage() {
                       id="email"
                       name="email"
                       type="email"
-                      value={entity?.email || ""}
+                      value={entityDetails?.email || ""}
                       onChange={handleChange}
                       placeholder="contact@example.com"
                     />
@@ -278,7 +273,7 @@ export default function StructurePage() {
                       id="website"
                       name="website"
                       type="url"
-                      value={entity?.website || ""}
+                      value={entityDetails?.website || ""}
                       onChange={handleChange}
                       placeholder="https://www.example.com"
                     />
@@ -302,11 +297,11 @@ export default function StructurePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {entity?.slug ? (
+              {entityDetails?.slug ? (
                 <DocumentManager 
-                  entity={entity as Entity}
+                  entity={entityDetails as Entity}
                   initialDocuments={documents}
-                  onDocumentsUpdate={fetchEntityAndDocuments}
+                  onDocumentsUpdate={() => fetchDetailsAndDocuments(entityDetails.slug!)}
                 />
               ) : (
                 <div className="text-center text-muted-foreground py-8">
