@@ -23,9 +23,9 @@ const menuItems = [
     label: "Accueil",
   },
   {
-    href: "/dashboard/user/structure",
+    href: "/dashboard/user/entities",
     icon: Building,
-    label: "Ma Structure",
+    label: "Mes Structures",
   },
   {
     href: "/dashboard/user/representatives",
