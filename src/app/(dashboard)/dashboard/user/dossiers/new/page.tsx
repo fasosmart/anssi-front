@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Step1EntityInfo } from "./_components/Step1EntityInfo";
-import { Step2RepresentativeCursus } from "./_components/Step2RepresentativeCursus";
 import { Step3AccreditationRequest } from "./_components/Step3AccreditationRequest";
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
@@ -51,91 +50,31 @@ export default function NewDossierPage() {
         setIsSubmitting(false);
         return;
     }
+    if (!formData.legalRepresentative?.slug) {
+        toast.error("Impossible de soumettre : aucun représentant n'est sélectionné.");
+        setIsSubmitting(false);
+        return;
+    }
 
     try {
         const entitySlug = activeEntity.slug;
+        const repSlug = formData.legalRepresentative.slug;
 
-        // Step 2: Create the Representative
-        const representativePayload: Representative = { ...formData.legalRepresentative, first_name: formData.legalRepresentative?.first_name || "", last_name: formData.legalRepresentative?.last_name || "", job_title: formData.legalRepresentative?.job_title || "" };
-
-        const repResponse = await apiClient.post(API.representatives.create(entitySlug), representativePayload);
+        // TODO: Implement the actual dossier submission logic here.
+        // This will likely involve a new API endpoint to create a dossier
+        // associated with the entity and the selected representative.
+        // The payload should include accreditation types and uploaded documents.
         
-        const newRep = repResponse.data;
-        const repSlug = newRep.slug;
-        
-        // Helper function to append fields to FormData
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const appendToFd = (fd: globalThis. FormData, obj: Record<string, any>) => {
-            for (const key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key) && obj[key] !== null && obj[key] !== undefined) {
-                    const value = obj[key];
-                    if (value instanceof File) {
-                        fd.append(key, value);
-                    } else {
-                        fd.append(key, String(value));
-                    }
-                }
-            }
-        };
+        console.log("Submitting dossier for:", {
+            entitySlug,
+            repSlug,
+            accreditationTypes: formData.accreditationTypes,
+            uploadedDocuments: formData.uploadedDocuments,
+        });
 
-        // Step 3: Create Degrees, Trainings, Experiences with files
-        const cursusPromises = [];
+        // The following is a placeholder for the actual API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Degrees
-        if (formData.representativeDiplomas) {
-            for (const diploma of formData.representativeDiplomas) {
-                const fd = new FormData();
-                const { file, ...diplomaData } = diploma;
-                appendToFd(fd, diplomaData);
-                if (file) {
-                    fd.append('file', file);
-                }
-                
-                cursusPromises.push(
-                    apiClient.post(API.degrees.create(entitySlug, repSlug), fd, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                    })
-                );
-            }
-        }
-        
-        // Trainings
-        if (formData.representativeCertifications) {
-            for (const certification of formData.representativeCertifications) {
-                 const fd = new FormData();
-                 const { file, ...certData } = certification;
-                 appendToFd(fd, certData);
-                 if (file) {
-                    fd.append('file', file);
-                 }
-
-                cursusPromises.push(
-                    apiClient.post(API.trainings.create(entitySlug, repSlug), fd, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                    })
-                );
-            }
-        }
-
-        // Experiences
-        if (formData.representativeExperience) {
-            for (const experience of formData.representativeExperience) {
-                const fd = new FormData();
-                const { file, ...expData } = experience;
-                appendToFd(fd, expData);
-                if (file) {
-                    fd.append('file', file);
-                }
-
-                cursusPromises.push(
-                    apiClient.post(API.experiences.create(entitySlug, repSlug), fd, {
-                        headers: { 'Content-Type': 'multipart/form-data' },
-                    })
-                );
-            }
-        }
-
-        await Promise.all(cursusPromises);
 
         // On success
         toast.success("Votre dossier a été soumis avec succès !");
@@ -164,9 +103,8 @@ export default function NewDossierPage() {
 
   const steps = [
     { id: 1, title: "Renseignements", component: <Step1EntityInfo data={formData} updateData={updateFormData} /> },
-    { id: 2, title: "Cursus", component: <Step2RepresentativeCursus data={formData} updateData={updateFormData} /> },
-    { id: 3, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} /> },
-    { id: 4, title: "Soumission", component: <Step4ReviewSubmit data={formData} updateData={updateFormData} /> },
+    { id: 2, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} /> },
+    { id: 3, title: "Soumission", component: <Step4ReviewSubmit data={formData} updateData={updateFormData} /> },
   ];
 
   const activeStep = steps.find((step) => step.id === currentStep);
