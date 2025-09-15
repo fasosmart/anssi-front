@@ -26,22 +26,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import apiClient from "@/lib/apiClient";
-import { Representative, Entity } from "@/types/api";
+import { Entity, Representative } from "@/types/api";
 import { AddEditRepresentativeDialog } from "./_components/AddEditRepresentativeDialog";
 import { toast } from "sonner";
 import { DeleteConfirmationDialog } from "./_components/DeleteConfirmationDialog";
 import { useRouter } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useEntity } from "@/contexts/EntityContext";
 
 export default function RepresentativesPage() {
-  const { data: session, status } = useSession();
+  const { activeEntity, isLoading: isEntityLoading } = useEntity();
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
-  const [userEntity, setUserEntity] = useState<Entity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRepresentative, setSelectedRepresentative] = useState<Representative | null>(null);
@@ -50,43 +49,26 @@ export default function RepresentativesPage() {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const fetchRepresentatives = async (entitySlug: string) => {
-     if (!session?.accessToken) return;
+     setIsLoading(true);
      try {
         const response = await apiClient.get(API.representatives.list(entitySlug));
         setRepresentatives(response.data.results || []);
      } catch {
-        // console.error("Error fetching representatives:", error);
         toast.error("Erreur lors de la récupération des représentants.");
+     } finally {
+        setIsLoading(false);
      }
   }
 
   useEffect(() => {
-    const fetchPrerequisites = async () => {
-      // We check for session existence inside the function now
-      if (session?.accessToken) {
-        setIsLoading(true);
-        try {
-          const entityResponse = await apiClient.get(API.entities.list());
-          
-          if (entityResponse.data.results && entityResponse.data.results.length > 0) {
-            const entity = entityResponse.data.results[0];
-            setUserEntity(entity);
-            await fetchRepresentatives(entity.slug);
-          }
-        } catch {
-          // console.error("Error fetching data:", error);
-          // Handle error (e.g., show toast)
-          toast.error("Erreur lors de la récupération des représentants.");
-        } finally {
-          setIsLoading(false);
-        }
+    if (!isEntityLoading) {
+      if (activeEntity?.slug) {
+        fetchRepresentatives(activeEntity.slug);
+      } else {
+        setIsLoading(false);
       }
-    };
-
-    if (status === "authenticated") {
-      fetchPrerequisites();
     }
-  }, [status, session]); // Keep session in case token needs to be re-evaluated on certain session changes
+  }, [activeEntity, isEntityLoading]);
 
   const handleAdd = () => {
     setSelectedRepresentative(null);
@@ -104,12 +86,12 @@ export default function RepresentativesPage() {
   }
 
   const confirmDelete = async () => {
-    if (!userEntity?.slug || !selectedRepresentative?.slug) return;
+    if (!activeEntity?.slug || !selectedRepresentative?.slug) return;
 
     try {
-        await apiClient.delete(API.representatives.delete(userEntity.slug, selectedRepresentative.slug));
+        await apiClient.delete(API.representatives.delete(activeEntity.slug, selectedRepresentative.slug));
         toast.success("Le représentant a été supprimé avec succès.");
-        fetchRepresentatives(userEntity.slug);
+        fetchRepresentatives(activeEntity.slug);
     } catch {
         toast.error("Erreur lors de la suppression du représentant.");
     } finally {
@@ -121,8 +103,8 @@ export default function RepresentativesPage() {
   const handleSuccess = () => {
     setIsDialogOpen(false);
     setSelectedRepresentative(null);
-    if(userEntity?.slug) {
-        fetchRepresentatives(userEntity.slug);
+    if(activeEntity?.slug) {
+        fetchRepresentatives(activeEntity.slug);
     }
   }
 
@@ -130,27 +112,25 @@ export default function RepresentativesPage() {
     router.push(`/dashboard/user/representatives/${rep.slug}`);
   }
 
-  if (isLoading) {
-    return <div>Chargement...</div>; // Replace with a skeleton loader
+  if (isLoading || isEntityLoading) {
+    return <div>Chargement des représentants...</div>; // Replace with a skeleton loader
   }
   
-  if (!userEntity) {
+  if (!activeEntity) {
      return (
-      <div className="space-y-6 text-center">
-         <Card>
+        <Card className="text-center">
             <CardHeader>
-                <CardTitle>Veuillez d&apos;abord créer votre structure</CardTitle>
+                <CardTitle>Aucune structure sélectionnée</CardTitle>
                 <CardDescription>
-                Vous devez enregistrer votre entreprise avant de pouvoir y ajouter des représentants.
+                    Veuillez sélectionner une structure pour voir ses représentants.
                 </CardDescription>
             </CardHeader>
             <CardFooter className="flex justify-center">
-                <Link href="/dashboard/user/structure">
-                    <Button>Aller à la page Ma Structure</Button>
+                <Link href="/dashboard/user/entities">
+                    <Button>Choisir une structure</Button>
                 </Link>
             </CardFooter>
         </Card>
-      </div>
     )
   }
 
@@ -232,7 +212,7 @@ export default function RepresentativesPage() {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Mes Représentants</h1>
           <p className="text-muted-foreground">
-            Gérez les représentants légaux de votre organisation.
+            Gérez les représentants pour la structure : <span className="font-semibold text-primary">{activeEntity.name}</span>
           </p>
         </div>
         <Button onClick={handleAdd}>
@@ -300,7 +280,7 @@ export default function RepresentativesPage() {
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
         onSuccess={handleSuccess}
-        entity={userEntity}
+        entity={activeEntity as Entity}
         representative={selectedRepresentative}
       />
 

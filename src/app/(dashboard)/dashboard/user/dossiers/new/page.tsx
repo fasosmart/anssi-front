@@ -251,7 +251,7 @@ export default function NewDossierPage() {
     <div className="space-y-6">
        <Link href="/dashboard/user/dossiers" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Retour à la liste des dossiers
+        Retour à la liste des demandes
       </Link>
 
       <MultiStepTimeline 
