@@ -1,6 +1,47 @@
 import NextAuth from "next-auth"
 import type { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { jwtDecode } from "jwt-decode";
+
+// Helper to decode token and get expiry
+const isTokenExpired = (token: string) => {
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    return (decoded.exp ?? 0) < currentTime;
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return true; // Assume expired if decoding fails
+  }
+};
+
+// Function to refresh the access token
+async function refreshAccessToken(refreshToken: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/jwt/refresh/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh: refreshToken }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to refresh access token');
+    }
+
+    const newTokens = await response.json();
+    return {
+      accessToken: newTokens.access,
+    };
+  } catch (error) {
+    console.error('RefreshAccessTokenError', error);
+    return {
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 
 export const {
   handlers: { GET, POST },
@@ -89,7 +130,23 @@ export const {
         token.user = { ...token.user, ...session.user };
       }
 
-      return token;
+      // If the access token is not expired, return it.
+      if (!isTokenExpired(token.accessToken as string)) {
+        return token;
+      }
+
+      // If the access token is expired, try to refresh it.
+      const refreshed = await refreshAccessToken(token.refreshToken as string);
+      
+      if (refreshed && !refreshed.error) {
+        return {
+          ...token,
+          accessToken: refreshed.accessToken,
+        };
+      }
+      
+      // If refresh fails, invalidate the session by returning an error property
+      return { ...token, error: "RefreshAccessTokenError" };
     },
     async session({ session, token }) {
       // Pass the user data and tokens to the session object
@@ -101,6 +158,12 @@ export const {
       }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
+      
+      // Handle session invalidation if refresh failed
+      if (token.error === "RefreshAccessTokenError") {
+        // This is a custom property. The client needs to handle this.
+        session.error = "RefreshAccessTokenError"; 
+      }
       
       return session;
     }

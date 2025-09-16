@@ -20,6 +20,7 @@ declare module "next-auth" {
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
+    error?: "RefreshAccessTokenError";
     accessToken?: string;
     refreshToken?: string;
     user: {
@@ -37,6 +38,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
   interface JWT {
+    error?: "RefreshAccessTokenError";
     accessToken?: string;
     refreshToken?: string;
     user?: {
