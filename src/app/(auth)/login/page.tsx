@@ -29,6 +29,7 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError("Les identifiants sont incorrects ou le compte n'est pas activé. Veuillez réessayer.");
+        console.error(result?.error);
       } else {
         router.push("/dashboard/user");
       }

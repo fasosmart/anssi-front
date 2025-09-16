@@ -3,6 +3,7 @@ const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 export const API = {
   // Authentication
   login: () => `${BASE_URL}/auth/jwt/create/`,
+  refresh: () => `${BASE_URL}/auth/jwt/refresh/`,
   me: () => `${BASE_URL}/users/me/`,
 
   // Entities

@@ -2,6 +2,8 @@ import NextAuth from "next-auth"
 import type { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
+import apiClient from "@/lib/apiClient";
+import { API } from "@/lib/api";
 
 // Helper to decode token and get expiry
 const isTokenExpired = (token: string) => {
@@ -18,19 +20,11 @@ const isTokenExpired = (token: string) => {
 // Function to refresh the access token
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/jwt/refresh/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refresh: refreshToken }),
+    const response = await apiClient.post(API.refresh(), {
+      refresh: refreshToken,
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to refresh access token');
-    }
-
-    const newTokens = await response.json();
+    const newTokens = response.data;
     return {
       accessToken: newTokens.access,
     };
@@ -61,39 +55,32 @@ export const {
 
         try {
             // 1. Get tokens from the API
-            const tokenResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/jwt/create/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: credentials.email,
-                    password: credentials.password,
-                }),
+            const tokenResponse = await apiClient.post(API.login(), {
+                email: credentials.email,
+                password: credentials.password,
             });
 
-            if (!tokenResponse.ok) {
-                // You can inspect tokenResponse.status and the body for more details
-                console.error("Failed to fetch token:", await tokenResponse.text());
+            if (tokenResponse.status !== 200) {
+                console.error("Failed to fetch token:", tokenResponse.data);
                 return null;
             }
 
-            const tokens = await tokenResponse.json();
+            const tokens = tokenResponse.data;
             const { access, refresh } = tokens;
             
             // 2. Use access token to get user details
-            const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me/`, {
+            const userResponse = await apiClient.get(API.me(), {
                 headers: {
                     'Authorization': `Bearer ${access}`,
                 },
             });
 
-            if (!userResponse.ok) {
-                console.error("Failed to fetch user:", await userResponse.text());
+            if (userResponse.status !== 200) {
+                console.error("Failed to fetch user:", userResponse.data);
                 return null;
             }
 
-            const user: User = await userResponse.json();
+            const user: User = userResponse.data;
 
             // 3. Return a user object with tokens for the JWT callback
             return { 
