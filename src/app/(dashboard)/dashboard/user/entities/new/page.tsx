@@ -78,7 +78,7 @@ export default function NewEntityPage() {
 
         router.push("/dashboard/user/entities");
 
-    } catch (error) {
+    } catch {
         toast.error("Erreur lors de la création de la structure.", { id: toastId });
         // console.error(error);
     } finally {

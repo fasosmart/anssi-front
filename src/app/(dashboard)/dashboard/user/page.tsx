@@ -58,7 +58,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/user/dossiers/new">Nouvelle demande d'accréditation</Link>
+          <Link href="/dashboard/user/dossiers/new">Nouvelle demande d&apos;accréditation</Link>
         </Button>
       </div>
 
@@ -99,7 +99,7 @@ export default function DashboardPage() {
       {/* Recent Dossiers Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Demandes d'accréditation récentes</CardTitle>
+          <CardTitle>Demandes d&apos;accréditation récentes</CardTitle>
           <CardDescription>
             Voici la liste de vos dernières demandes soumises.
           </CardDescription>
