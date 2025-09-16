@@ -12,7 +12,7 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { Home, Building, FileText, User, Users } from "lucide-react";
+import { Home, Building, FileText, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,9 +23,9 @@ const menuItems = [
     label: "Accueil",
   },
   {
-    href: "/dashboard/user/entities",
+    href: "/dashboard/user/structure",
     icon: Building,
-    label: "Mes Structures",
+    label: "Ma Structure",
   },
   {
     href: "/dashboard/user/representatives",
@@ -36,11 +36,6 @@ const menuItems = [
     href: "/dashboard/user/dossiers",
     icon: FileText,
     label: "Mes Demandes",
-  },
-  {
-    href: "/dashboard/user/profile",
-    icon: User,
-    label: "Mon Profil",
   },
 ];
 
