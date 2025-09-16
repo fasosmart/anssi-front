@@ -82,9 +82,9 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/user/profile">
+          <Link href="/dashboard/user">
             <User className="mr-2 h-4 w-4" />
-            <span>Mon Profil</span>
+            <span>Mon Espace</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
