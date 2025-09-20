@@ -17,9 +17,9 @@ import { Step1EntityInfo } from "./_components/Step1EntityInfo";
 import { Step3AccreditationRequest } from "./_components/Step3AccreditationRequest";
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
-import { API } from "@/lib/api";
-import { Representative, DossierFormData, Entity } from "@/types/api";
-import apiClient from "@/lib/apiClient";
+// import { API } from "@/lib/api";
+import { DossierFormData, Entity } from "@/types/api";
+// import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useEntity } from "@/contexts/EntityContext";
 
