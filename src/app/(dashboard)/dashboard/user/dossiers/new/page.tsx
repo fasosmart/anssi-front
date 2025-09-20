@@ -17,9 +17,9 @@ import { Step1EntityInfo } from "./_components/Step1EntityInfo";
 import { Step3AccreditationRequest } from "./_components/Step3AccreditationRequest";
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
-// import { API } from "@/lib/api";
+import { API } from "@/lib/api";
 import { DossierFormData, Entity } from "@/types/api";
-// import apiClient from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useEntity } from "@/contexts/EntityContext";
 
@@ -32,9 +32,20 @@ export default function NewDossierPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (activeEntity) {
-      // Pre-fill form with active entity info
-      updateFormData({ companyInfo: activeEntity as unknown as Partial<Entity> });
+    const fetchEntityDetails = async (slug: string) => {
+      try {
+        const response = await apiClient.get(API.entities.details(slug));
+        updateFormData({ companyInfo: response.data });
+      } catch (error) {
+        toast.error("Impossible de charger les détails de la structure.");
+        console.error("Failed to fetch entity details:", error);
+        // Fallback to activeEntity from context if details fetch fails
+        updateFormData({ companyInfo: activeEntity as Partial<Entity> });
+      }
+    };
+
+    if (activeEntity?.slug) {
+      fetchEntityDetails(activeEntity.slug);
     }
   }, [activeEntity]);
 
