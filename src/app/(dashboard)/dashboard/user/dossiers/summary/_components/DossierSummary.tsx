@@ -167,7 +167,7 @@ export const DossierSummary: React.FC = () => {
 
             {/* Accréditation Sollicitée */}
             <section className="space-y-4 mt-8">
-                <h4 className="font-bold bg-primary p-2 text-lg">Préciser l'accréditation sollicitée (plusieurs peuvent être sollicitées)</h4>
+                <h4 className="font-bold bg-primary p-2 text-lg">Préciser l&apos;accréditation sollicitée (plusieurs peuvent être sollicitées)</h4>
                 <div className='p-4'>
                     <ul className="list-disc list-inside">
                         {selectedAccreditations.map(acc => <li key={acc}>{acc}</li>)}
