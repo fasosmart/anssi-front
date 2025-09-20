@@ -5,11 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Entity } from "@/types/api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Step1Props {
   data: Partial<Entity>;
   updateData: (fields: Partial<Entity>) => void;
 }
+
+const entityTypeOptions = [
+    { value: 'business', label: 'Entreprise / Société' },
+    { value: 'ngo', label: 'ONG / Association' },
+    { value: 'personal', label: 'Particulier / Personne Physique' },
+]
 
 export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
   const handleChange = (
@@ -19,11 +26,15 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
     updateData({ [name]: value });
   };
 
+  const handleSelectChange = (value: 'personal' | 'business' | 'ngo') => {
+    updateData({ entity_type: value });
+  };
+
   return (
     <div className="grid gap-6">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="name">Nom de l&apos;entreprise</Label>
+          <Label htmlFor="name">Nom de l'entreprise</Label>
           <Input
             id="name"
             name="name"
@@ -34,6 +45,23 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           />
         </div>
         <div className="grid gap-2">
+            <Label htmlFor="entity_type">Type de structure</Label>
+            <Select onValueChange={handleSelectChange} value={data.entity_type} required>
+                <SelectTrigger id="entity_type">
+                    <SelectValue placeholder="Sélectionnez un type..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {entityTypeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid gap-2">
           <Label htmlFor="acronym">Sigle</Label>
           <Input
             id="acronym"
@@ -43,17 +71,16 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
             placeholder="Ex: FS"
           />
         </div>
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
-        <Input
-          id="business_sector"
-          name="business_sector"
-          value={data.business_sector || ""}
-          onChange={handleChange}
-          placeholder="Ex: Technologies de l'Information et de la Communication"
-        />
+        <div className="grid gap-2">
+            <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
+            <Input
+            id="business_sector"
+            name="business_sector"
+            value={data.business_sector || ""}
+            onChange={handleChange}
+            placeholder="Ex: Technologies de l'Information"
+            />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -93,7 +120,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
+          <Label htmlFor="cybersecurity_experts">Nombre d'experts en cybersécurité</Label>
           <Input
             id="cybersecurity_experts"
             name="cybersecurity_experts"
@@ -140,7 +167,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email de l&apos;entreprise</Label>
+          <Label htmlFor="email">Email de l'entreprise</Label>
           <Input
             id="email"
             name="email"

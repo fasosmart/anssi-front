@@ -54,7 +54,12 @@ export default function NewEntityPage() {
 
     try {
         // Step 1: Create the entity
-        const entityPayload = { ...entityData, entity_type: 'business' }; // Assuming business type for now
+        if (!entityData.entity_type) {
+            toast.error("Veuillez sélectionner un type de structure.");
+            setIsSubmitting(false);
+            return;
+        }
+        const entityPayload = { ...entityData };
         const entityResponse = await apiClient.post(API.entities.create(), entityPayload);
         const newEntity = entityResponse.data;
         setCreatedEntitySlug(newEntity.slug);

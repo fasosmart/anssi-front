@@ -8,6 +8,12 @@ import { PlusCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEntity } from "@/contexts/EntityContext";
 
+const entityTypeLabels: { [key: string]: string } = {
+    business: "Entreprise / Société",
+    ngo: "ONG / Association",
+    personal: "Particulier",
+}
+
 export default function EntitiesPage() {
   const router = useRouter();
   const { 
@@ -90,7 +96,7 @@ export default function EntitiesPage() {
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>{entity.name}</CardTitle>
-                        <CardDescription>{entity.acronym || "Pas d'acronyme"}</CardDescription>
+                        <CardDescription>{entityTypeLabels[entity.entity_type] || entity.entity_type}</CardDescription>
                     </div>
                     {activeEntity?.slug === entity.slug && (
                         <CheckCircle className="h-5 w-5 text-green-500" />
@@ -100,6 +106,9 @@ export default function EntitiesPage() {
               <CardContent className="flex-grow">
                 <p className="text-sm text-muted-foreground">
                     Secteur: {entity.business_sector || 'Non spécifié'}
+                </p>
+                 <p className="text-sm text-muted-foreground mt-2">
+                    Sigle: {entity.acronym || "N/A"}
                 </p>
               </CardContent>
               <div className="p-6 pt-0">
