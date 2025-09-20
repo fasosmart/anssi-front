@@ -3,7 +3,6 @@
 import { SessionProvider, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { setAuthToken } from "@/lib/apiClient";
 
 const SessionManager = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession();
@@ -15,16 +14,6 @@ const SessionManager = ({ children }: { children: React.ReactNode }) => {
       signOut({ callbackUrl: "/login" });
     }
   }, [session, status]);
-
-  // Effect to set the auth token for the API client
-  useEffect(() => {
-    if (session?.accessToken) {
-      setAuthToken(session.accessToken);
-    } else {
-      setAuthToken(null);
-    }
-  }, [session]);
-
 
   return <>{children}</>;
 };

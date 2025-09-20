@@ -55,8 +55,11 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    fetchEntities();
-  }, [session, status]);
+    if (status === 'authenticated') {
+      fetchEntities();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
   
   const setActiveEntity = (entity: EntityList | null) => {
     setActiveEntityState(entity);
