@@ -1,0 +1,36 @@
+@media print {
+  /* Hide everything in the body by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Make the printable area and its children visible */
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+
+  /* Position the printable area to fill the page */
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide elements that should not be printed */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure page breaks are handled correctly if content spans multiple pages */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Remove default browser margins */
+  @page {
+    margin: 1cm;
+  }
+}

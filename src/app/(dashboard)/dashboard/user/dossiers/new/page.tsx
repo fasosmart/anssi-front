@@ -84,13 +84,13 @@ export default function NewDossierPage() {
         });
 
         // The following is a placeholder for the actual API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // On success
         toast.success("Votre dossier a été soumis avec succès !");
-        router.push("/dashboard/user/dossiers");
-
+        // Save form data to session storage to pass it to the summary page
+        sessionStorage.setItem("dossierFormData", JSON.stringify(formData));
+        router.push("/dashboard/user/dossiers/summary");
     } catch {
         toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {
