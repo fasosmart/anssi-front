@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { DossierFormData } from '@/types/api';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { DossierPDFDocument } from './DossierPDFDocument';
 import '../print.css';
 
 // --- Re-styled components for faithful representation ---
@@ -54,8 +56,10 @@ const Table = ({ headers, data }: { headers: string[]; data: (string | number | 
 
 export const DossierSummary: React.FC = () => {
   const [dossierData, setDossierData] = useState<Partial<DossierFormData> | null>(null);
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     const data = sessionStorage.getItem('dossierFormData');
     if (data) {
       setDossierData(JSON.parse(data));
@@ -98,11 +102,28 @@ export const DossierSummary: React.FC = () => {
 
   return (
     <div className="container mx-auto">
-        <div className="flex justify-end mb-4 no-print">
-            <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimer la fiche
+        <div className="flex justify-end mb-4 no-print space-x-2">
+            <Button onClick={handlePrint} variant="outline">
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimer la fiche
             </Button>
+            {isClient && dossierData && (
+              <PDFDownloadLink
+                document={<DossierPDFDocument data={dossierData} />}
+                fileName={`formulaire-accreditation-ansi-guinee-${dossierData?.companyInfo?.name || 'dossier'}.pdf`}
+              >
+                {({ loading }) =>
+                  loading ? (
+                    <Button disabled>Génération PDF...</Button>
+                  ) : (
+                    <Button>
+                        <Download className="mr-2 h-4 w-4" />
+                        Télécharger en PDF
+                    </Button>
+                  )
+                }
+              </PDFDownloadLink>
+            )}
         </div>
 
         <div id="printable-area" className="p-8 border rounded-md bg-white text-black font-serif">
