@@ -41,9 +41,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
-    border: '2px solid black',
+    border: '2px solid #002060',
     padding: 5,
     alignSelf: 'center',
+    backgroundColor: '#002060',
+    color: '#fff',
+    width: "100%",
   },
   sectionTitle: {
     fontWeight: 'bold',
@@ -53,6 +56,13 @@ const styles = StyleSheet.create({
     padding: 5,
     marginTop: 15,
     marginBottom: 5,
+  },
+  instructionText: {
+    fontSize: 8,
+    fontStyle: 'italic',
+    color: '#555',
+    marginTop: 5,
+    paddingHorizontal: 10,
   },
   subHeader: {
     fontWeight: 'bold',
@@ -211,29 +221,37 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
             </View>
             <FormField label="Site Web" value={companyInfo?.website} />
         
-            <View style={styles.pageBreak} break>
-                <Text style={styles.sectionTitle}>2. Diplômes du Représentant juridique</Text>
-                <View style={styles.table}>
-                    <View style={[styles.tableRow, styles.tableHeader]}>
-                        <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Diplôme</Text></View>
-                        <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Institution</Text></View>
-                        <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Spécialité / Année</Text></View>
-                        <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Références*</Text></View>
-                    </View>
-                    {(representativeDiplomas || []).map((d, i) => (
-                        <View key={i} style={styles.tableRow}>
-                            <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCell}>{d.degree_name}</Text></View>
-                            <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCell}>{d.institution}</Text></View>
-                            <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCell}>{d.year_obtained}</Text></View>
-                            <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCell}>{d.file ? 'Fichier joint' : 'N/A'}</Text></View>
-                        </View>
-                    ))}
+            <Text style={styles.sectionTitle}>2. Diplômes du Représentant juridique</Text>
+            <View style={styles.table}>
+                <View style={[styles.tableRow, styles.tableHeader]}>
+                    <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Diplôme</Text></View>
+                    <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Institution</Text></View>
+                    <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Spécialité / Année</Text></View>
+                    <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Références*</Text></View>
                 </View>
-
-                <Text style={styles.sectionTitle}>3. Cycles de formations du Représentant juridique</Text>
-                <View style={styles.table}>
-                     <View style={[styles.tableRow, styles.tableHeader]}>
-                        <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Formation / Certification</Text></View>
+                {(representativeDiplomas || []).map((d, i) => (
+                    <View key={i} style={styles.tableRow}>
+                        <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCell}>{d.degree_name}</Text></View>
+                        <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCell}>{d.institution}</Text></View>
+                        <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCell}>{d.year_obtained}</Text></View>
+                        <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCell}>{d.file ? 'Fichier joint' : 'N/A'}</Text></View>
+                    </View>
+                ))}
+            </View>
+            <Text style={styles.instructionText}>
+                [
+                  Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l'extrait
+                  du registre national des entreprises, le statut accompagné d’un justificatif de son publication au Journal
+                  Officiel de la République Guinéenne ou au Journal Officiel du Registre National des Entreprises, un certificat
+                  de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
+                ]
+            </Text>
+        </Page>
+        <Page size="A4" style={styles.page}>
+            <Text style={styles.sectionTitle}>3. Cycles de formations du Représentant juridique</Text>
+            <View style={styles.table}>
+                    <View style={[styles.tableRow, styles.tableHeader]}>
+                    <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Formation / Certification</Text></View>
                         <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Institut / Organisme</Text></View>
                         <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Promotion / Année</Text></View>
                         <View style={[styles.tableCol, {width: '20%'}]}><Text style={styles.tableCellHeader}>Références*</Text></View>
@@ -249,43 +267,46 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 </View>
 
                 <Text style={styles.sectionTitle}>4. Cursus professionnel du Représentant juridique</Text>
-                 <View style={styles.table}>
-                     <View style={[styles.tableRow, styles.tableHeader]}>
-                        <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Organisme</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Forme de recrutement</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Fonctions Exercées</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Durée Du Au</Text></View>
-                    </View>
-                    {(representativeExperience || []).map((e, i) => (
-                         <View key={i} style={styles.tableRow}>
-                            <View style={styles.tableCol}><Text style={styles.tableCell}>{e.company}</Text></View>
-                            <View style={styles.tableCol}><Text style={styles.tableCell}>Non renseigné</Text></View>
-                            <View style={styles.tableCol}><Text style={styles.tableCell}>{e.job_title}</Text></View>
-                            <View style={styles.tableCol}><Text style={styles.tableCell}>{`${e.start_date} - ${e.end_date || 'Présent'}`}</Text></View>
-                        </View>
-                    ))}
+                <View style={styles.table}>
+                    <View style={[styles.tableRow, styles.tableHeader]}>
+                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Organisme</Text></View>
+                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Forme de recrutement</Text></View>
+                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Fonctions Exercées</Text></View>
+                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Durée Du Au</Text></View>
                 </View>
+                {(representativeExperience || []).map((e, i) => (
+                     <View key={i} style={styles.tableRow}>
+                        <View style={styles.tableCol}><Text style={styles.tableCell}>{e.company}</Text></View>
+                        <View style={styles.tableCol}><Text style={styles.tableCell}>Non renseigné</Text></View>
+                        <View style={styles.tableCol}><Text style={styles.tableCell}>{e.job_title}</Text></View>
+                        <View style={styles.tableCol}><Text style={styles.tableCell}>{`${e.start_date} - ${e.end_date || 'Présent'}`}</Text></View>
+                    </View>
+                ))}
+            </View>
+            <Text style={styles.instructionText}>
+                [Joindre l'attestation de travail ainsi pièces justificatives de chaque expérience professionnelle mentionnée dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
+            </Text>
+
+            <Text style={styles.sectionTitle}>Préciser l&apos;accréditation sollicitée</Text>
+            <View style={{ border: '1px solid black', padding: 10, marginTop: 5 }}>
+                {selectedAccreditations.length > 0 ? 
+                    selectedAccreditations.map((acc, i) => <Text key={i}>- {acc}</Text>) :
+                    <Text>Aucune accréditation sélectionnée</Text>
+                }
             </View>
 
-            <View style={styles.pageBreak} break>
-                <Text style={styles.sectionTitle}>Préciser l&apos;accréditation sollicitée</Text>
-                <View style={{ border: '1px solid black', padding: 10 }}>
-                    {selectedAccreditations.map((acc, i) => <Text key={i}>- {acc}</Text>)}
-                </View>
-
-                <Text style={styles.sectionTitle}>Engagement et déclaration sur l&apos;honneur</Text>
-                <View style={styles.engagementSection}>
-                    <Text>Je soussigné,</Text>
-                    <Text>- m&apos;engage à respecter les dispositions du cahier des charges, et j&apos;assume mes responsabilités face à toute infraction;</Text>
-                    <Text>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSI Guinée pour traiter mes données à caractère;</Text>
-                    <Text>- déclare sur l&apos;honneur l&apos;exactitude des renseignements contenus dans la présente fiche;</Text>
-                    <Text>- m&apos;engage à informer l&apos;ANSI Guinée de chaque modification qui survient sur les données déclarées.</Text>
-                </View>
-                
-                <View style={styles.signatureSection}>
-                    <Text style={{fontWeight: 'bold'}}>Signature et cachet</Text>
-                    <Text>................., le ..... / ..... / 20.....</Text>
-                </View>
+            <Text style={styles.sectionTitle}>Engagement et déclaration sur l&apos;honneur</Text>
+            <View style={styles.engagementSection}>
+                <Text>Je soussigné,</Text>
+                <Text>- m&apos;engage à respecter les dispositions du cahier des charges, et j&apos;assume mes responsabilités face à toute infraction;</Text>
+                <Text>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSI Guinée pour traiter mes données à caractère;</Text>
+                <Text>- déclare sur l&apos;honneur l&apos;exactitude des renseignements contenus dans la présente fiche;</Text>
+                <Text>- m&apos;engage à informer l&apos;ANSI Guinée de chaque modification qui survient sur les données déclarées.</Text>
+            </View>
+            
+            <View style={styles.signatureSection}>
+                <Text style={{fontWeight: 'bold'}}>Signature et cachet</Text>
+                <Text>................., le ..... / ..... / 20.....</Text>
             </View>
         </Page>
         </Document>
