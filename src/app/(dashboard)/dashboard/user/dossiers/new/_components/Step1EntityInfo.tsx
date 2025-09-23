@@ -27,28 +27,28 @@ const InfoField = ({
   label: string;
   value?: string | null;
 }) => (
-  <div className="text-sm">
-    <p className="font-medium text-muted-foreground">{label}</p>
-    <p>{value || "N/A"}</p>
-  </div>
+    <div className="text-sm">
+      <p className="font-medium text-muted-foreground">{label}</p>
+      <p>{value || "N/A"}</p>
+    </div>
 );
 
 export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [isRepDetailsLoading, setIsRepDetailsLoading] = useState(false);
-
+  
   useEffect(() => {
     const fetchRepresentatives = async () => {
       if (data.companyInfo?.slug) {
-        try {
+            try {
           const response = await apiClient.get(
             API.representatives.list(data.companyInfo.slug)
           );
-          setRepresentatives(response.data.results || []);
-        } catch (error) {
-          console.error("Failed to fetch representatives for selection", error);
+                setRepresentatives(response.data.results || []);
+            } catch (error) {
+                console.error("Failed to fetch representatives for selection", error);
+            }
         }
-      }
     };
     fetchRepresentatives();
   }, [data.companyInfo]);
@@ -140,46 +140,46 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Sélection du représentant juridique</h3>
         <div className="grid gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="representative">Choisissez un représentant</Label>
+            <div className="space-y-2">
+                <Label htmlFor="representative">Choisissez un représentant</Label>
             <Select
               onValueChange={handleRepresentativeSelect}
               value={data.legalRepresentative?.slug}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez une personne..." />
-              </SelectTrigger>
-              <SelectContent>
-                {representatives.length > 0 ? (
-                  representatives
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez une personne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {representatives.length > 0 ? (
+                            representatives
                     .filter((rep) => typeof rep.slug === "string" && rep.slug.length > 0)
                     .map((rep) => (
-                      <SelectItem key={rep.slug} value={rep.slug as string}>
-                        {rep.first_name} {rep.last_name} ({rep.job_title})
-                      </SelectItem>
-                    ))
-                ) : (
-                  <div className="p-4 text-sm text-center text-muted-foreground">
-                    Aucun représentant trouvé.
-                    <Link href="/dashboard/user/representatives">
+                                <SelectItem key={rep.slug} value={rep.slug as string}>
+                                    {rep.first_name} {rep.last_name} ({rep.job_title})
+                                </SelectItem>
+                              ))
+                        ) : (
+                            <div className="p-4 text-sm text-center text-muted-foreground">
+                                Aucun représentant trouvé.
+                                <Link href="/dashboard/user/representatives">
                       <Button variant="link" className="p-1 h-auto">
                         En ajouter un
                       </Button>
-                    </Link>
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                                </Link>
+                            </div>
+                        )}
+                    </SelectContent>
+                </Select>
+            </div>
 
-          {data.legalRepresentative && (
-            <Card className="bg-muted/30">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+            {data.legalRepresentative && (
+                <Card className="bg-muted/30">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5" />
-                  Profil du représentant sélectionné
-                </CardTitle>
-              </CardHeader>
+                            Profil du représentant sélectionné
+                        </CardTitle>
+                    </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-6 relative">
                 {isRepDetailsLoading && (
                     <div className="absolute inset-0 bg-white/70 dark:bg-black/70 flex items-center justify-center rounded-md">
@@ -205,9 +205,9 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
                     data.legalRepresentative.phone
                   }
                 />
-              </CardContent>
-            </Card>
-          )}
+                    </CardContent>
+                </Card>
+            )}
         </div>
       </div>
     </div>

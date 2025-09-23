@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 8,
     marginBottom: 4,
+    textDecoration: 'underline',
   },
   fieldContainer: {
     display: 'flex',
@@ -85,6 +86,9 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     fontWeight: 'bold',
     marginLeft: 4,
+  },
+  fieldsGroup: {
+    paddingLeft: 15,
   },
   grid: {
     display: 'flex',
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
 
 const FormField = ({ label, value }: { label: string, value?: string | number | null }) => (
     <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>{label}:</Text>
+        <Text style={styles.fieldLabel}>- {label}:</Text>
         <Text style={styles.fieldValue}>{value || '.........................'}</Text>
     </View>
 );
@@ -181,47 +185,63 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
             <Text style={styles.sectionTitle}>Renseignements généraux</Text>
 
             <Text style={styles.subHeader}>Identité de la société</Text>
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Nom" value={companyInfo?.name} /></View>
-                <View style={styles.gridItem}><FormField label="Sigle" value={companyInfo?.acronym} /></View>
+            <View style={styles.fieldsGroup}>
+              <View style={styles.grid}>
+                  <View style={styles.gridItem}><FormField label="Nom" value={companyInfo?.name} /></View>
+                  <View style={styles.gridItem}><FormField label="Sigle" value={companyInfo?.acronym} /></View>
+              </View>
+              <FormField label="Secteur d'activité" value={companyInfo?.business_sector} />
+              <FormField label="Identifiant fiscal N°" value={companyInfo?.tax_id} />
+              <FormField label="Registre du commerce" value={companyInfo?.commercial_register} />
+              <View style={styles.grid}>
+                  <View style={styles.gridItem}><FormField label="Nombre du personnel" value={companyInfo?.total_staff} /></View>
+                  <View style={styles.gridItem}><FormField label="Dont... Experts en sécurité informatique" value={companyInfo?.cybersecurity_experts} /></View>
+              </View>
             </View>
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Secteur d'activité" value={companyInfo?.business_sector} /></View>
-                <View style={styles.gridItem}><FormField label="Identifiant fiscal N°" value={companyInfo?.tax_id} /></View>
-            </View>
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Registre du commerce" value={companyInfo?.commercial_register} /></View>
-                <View style={styles.gridItem}><FormField label="Nombre du personnel" value={companyInfo?.total_staff} /></View>
-            </View>
-            <FormField label="Dont... Experts en sécurité informatique" value={companyInfo?.cybersecurity_experts} />
 
             <Text style={styles.subHeader}>Identité du représentant juridique</Text>
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Nom et Prénom" value={`${legalRepresentative?.first_name} ${legalRepresentative?.last_name}`} /></View>
-                <View style={styles.gridItem}><FormField label="Nationalité" value={"Non renseigné"} /></View>
+            <View style={styles.fieldsGroup}>
+              <View style={styles.grid}>
+                  <View style={styles.gridItem}><FormField label="Nom et Prénom" value={`${legalRepresentative?.first_name} ${legalRepresentative?.last_name}`} /></View>
+                  <View style={styles.gridItem}><FormField label="Nationalité" value={"Non renseigné"} /></View>
+              </View>
+              <FormField label="Fonction" value={legalRepresentative?.job_title} />
+              <View style={styles.grid}>
+                  <View style={styles.gridItemThird}><FormField label="Pièce d'identité N°" value={legalRepresentative?.idcard_number} /></View>
+                  <View style={styles.gridItemThird}><FormField label="délivrée le" value={legalRepresentative?.idcard_issued_at} /></View>
+                  <View style={styles.gridItemThird}><FormField label="expire le" value={legalRepresentative?.idcard_expires_at} /></View>
+              </View>
+              <FormField label="Adresse" value={"Non renseigné"} />
+              <View style={styles.grid}>
+                  <View style={styles.gridItem}><FormField label="Tél" value={legalRepresentative?.phone} /></View>
+                  <View style={styles.gridItem}><FormField label="Tél. Portable" value={legalRepresentative?.mobile} /></View>
+              </View>
+              <FormField label="E-mail" value={legalRepresentative?.email} />
             </View>
-            <FormField label="Fonction" value={legalRepresentative?.job_title} />
-            <View style={styles.grid}>
-                <View style={styles.gridItemThird}><FormField label="Pièce d'identité N°" value={legalRepresentative?.idcard_number} /></View>
-                <View style={styles.gridItemThird}><FormField label="délivrée le" value={legalRepresentative?.idcard_issued_at} /></View>
-                <View style={styles.gridItemThird}><FormField label="expire le" value={legalRepresentative?.idcard_expires_at} /></View>
-            </View>
-            <FormField label="Adresse" value={"Non renseigné"} />
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Tél" value={legalRepresentative?.phone} /></View>
-                <View style={styles.gridItem}><FormField label="Tél. Portable" value={legalRepresentative?.mobile} /></View>
-            </View>
-            <FormField label="E-mail" value={legalRepresentative?.email} />
 
             <Text style={styles.subHeader}>Coordonnées de la société</Text>
-            <FormField label="Adresse" value={companyInfo?.address} />
-            <View style={styles.grid}>
-                <View style={styles.gridItem}><FormField label="Tél" value={companyInfo?.phone} /></View>
-                <View style={styles.gridItem}><FormField label="Tél. Portable" value={companyInfo?.mobile} /></View>
+            <View style={styles.fieldsGroup}>
+              <FormField label="Adresse" value={companyInfo?.address} />
+              <View style={styles.grid}>
+                  <View style={styles.gridItem}><FormField label="Tél" value={companyInfo?.phone} /></View>
+                  <View style={styles.gridItem}><FormField label="Tél. Portable" value={companyInfo?.mobile} /></View>
+              </View>
+              <View style={styles.grid}>
+                <View style={styles.gridItem}><FormField label="E-mail" value={companyInfo?.email} /></View>
+                <View style={styles.gridItem}><FormField label="Site Web" value={companyInfo?.website} /></View>
+              </View>
             </View>
-            <FormField label="Site Web" value={companyInfo?.website} />
-        
-            <Text style={styles.sectionTitle}>2. Diplômes du Représentant juridique</Text>
+            <Text style={styles.instructionText}>
+                [
+                  Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l'extrait
+                  du registre national des entreprises, le statut accompagné d’un justificatif de son publication au Journal
+                  Officiel de la République Guinéenne ou au Journal Officiel du Registre National des Entreprises, un certificat
+                  de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
+                ]
+            </Text>
+        </Page>
+        <Page size="A4" style={styles.page}>
+            <Text style={styles.sectionTitle}>3. Diplômes du Représentant juridique</Text>
             <View style={styles.table}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                     <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Diplôme</Text></View>
@@ -239,16 +259,10 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 ))}
             </View>
             <Text style={styles.instructionText}>
-                [
-                  Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l'extrait
-                  du registre national des entreprises, le statut accompagné d’un justificatif de son publication au Journal
-                  Officiel de la République Guinéenne ou au Journal Officiel du Registre National des Entreprises, un certificat
-                  de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
-                ]
+                [Joindre les diplômes universitaires et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
             </Text>
-        </Page>
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.sectionTitle}>3. Cycles de formations du Représentant juridique</Text>
+
+            <Text style={styles.sectionTitle}>4. Cycles de formations du Représentant juridique</Text>
             <View style={styles.table}>
                     <View style={[styles.tableRow, styles.tableHeader]}>
                     <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Formation / Certification</Text></View>
@@ -265,6 +279,9 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                         </View>
                     ))}
                 </View>
+                <Text style={styles.instructionText}>
+                    [Joindre l’attestation de réussite ou le certificat pour chaque cycle de formation mentionné dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
+                </Text>
 
                 <Text style={styles.sectionTitle}>4. Cursus professionnel du Représentant juridique</Text>
                 <View style={styles.table}>
