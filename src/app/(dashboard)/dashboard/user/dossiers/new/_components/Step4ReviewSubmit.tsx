@@ -111,7 +111,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                 {isClient && (
                 <PDFDownloadLink
                     document={<DossierPDFDocument data={data} />}
-                    fileName={`formulaire-accreditation-ansi-guinee-${data.companyInfo?.name || 'dossier'}.pdf`}
+                    fileName={`formulaire-accreditation-anssi-guinee-${data.companyInfo?.name || 'dossier'}.pdf`}
                 >
                     {({ loading }) =>
                     loading ? (
@@ -138,12 +138,12 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                 </div>
             </div>
             <div className="text-center my-4">
-                <h3 className="text-2xl font-bold inline-block px-4 py-2 border-2 border-black bg-primary text-primary-foreground">Fiche de renseignements</h3>
+                <h3 className="font-bold px-4 py-2 border-2 border-black bg-primary text-primary-foreground">FICHE DE RENSEIGNEMENTS</h3>
             </div>
             
             {/* Renseignements Généraux */}
             <div className='space-y-4'>
-                <SectionTitle title="Renseignements généraux" />
+                <SectionTitle title="1. Renseignements généraux" />
 
                 <h5 className="font-normal underline text-md mt-4">Identité de la société</h5>
                 <div className="pl-4">
@@ -247,9 +247,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                  <div className='p-4 space-y-2 text-sm'>
                     <p>Je soussigné,</p>
                     <p>- m&apos;engage à respecter les dispositions du cahier des charges, et j&apos;assume mes responsabilités face à toute infraction;</p>
-                    <p>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSI Guinée pour traiter mes données à caractère;</p>
+                    <p>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSSI Guinée pour traiter mes données à caractère;</p>
                     <p>- déclare sur l&apos;honneur l&apos;exactitude des renseignements contenus dans la présente fiche;</p>
-                    <p>- m&apos;engage à informer l&apos;ANSI Guinée de chaque modification qui survient sur les données déclarées.</p>
+                    <p>- m&apos;engage à informer l&apos;ANSSI Guinée de chaque modification qui survient sur les données déclarées.</p>
                  </div>
             </section>
 

@@ -374,9 +374,9 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
             <View style={styles.engagementSection}>
                 <Text>Je soussigné,</Text>
                 <Text>- m&apos;engage à respecter les dispositions du cahier des charges, et j&apos;assume mes responsabilités face à toute infraction;</Text>
-                <Text>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSI Guinée pour traiter mes données à caractère;</Text>
+                <Text>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSSI Guinée pour traiter mes données à caractère;</Text>
                 <Text>- déclare sur l&apos;honneur l&apos;exactitude des renseignements contenus dans la présente fiche;</Text>
-                <Text>- m&apos;engage à informer l&apos;ANSI Guinée de chaque modification qui survient sur les données déclarées.</Text>
+                <Text>- m&apos;engage à informer l&apos;ANSSI Guinée de chaque modification qui survient sur les données déclarées.</Text>
             </View>
             
             <View style={styles.signatureSection}>
