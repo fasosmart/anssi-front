@@ -169,12 +169,14 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                 <h5 className="font-normal underline text-md mt-6">Coordonnées de la société</h5>
                 <div className="pl-4">
                   <FormField label="Adresse" value={companyInfo?.address} />
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                     <FormField label="Tél" value={companyInfo?.phone} />
                     <FormField label="Tél. Portable" value={companyInfo?.mobile} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    <FormField label="E-mail" value={companyInfo?.email} />
                     <FormField label="Site Web" value={companyInfo?.website} />
                   </div>
-                  <FormField label="E-mail" value={companyInfo?.email} />
                 </div>
             </div>
             
