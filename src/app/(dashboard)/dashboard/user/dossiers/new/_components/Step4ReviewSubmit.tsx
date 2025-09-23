@@ -24,14 +24,14 @@ const SectionTitle = ({ title, number }: { title: string; number?: number }) => 
 
 const FormField = ({ label, value }: { label: string, value: React.ReactNode }) => (
   <div className={`flex items-end border-b border-gray-300 py-1`}>
-    <span className="text-sm font-medium text-gray-600 mr-2">{label}:</span>
+    <span className="text-sm font-medium text-gray-600 mr-2">- {label}:</span>
     <span className="text-sm flex-1 text-left font-semibold text-black">{value || '.........................'}</span>
   </div>
 );
 
 const Table = ({ headers, data }: { headers: string[]; data: (string | number | null | undefined)[][] }) => (
   <div className="overflow-x-auto border border-black">
-    <table className="w-full text-sm">
+    <table className="w-full text-sm border-collapse">
       <thead>
         <tr className="bg-primary text-primary-foreground">
           {headers.map((h, i) => (
@@ -43,7 +43,7 @@ const Table = ({ headers, data }: { headers: string[]; data: (string | number | 
         {data.length > 0 ? data.map((row, i) => (
           <tr key={i}>
             {row.map((cell, j) => (
-              <td key={j} className="p-2 border-black border-t">{cell || 'N/A'}</td>
+              <td key={j} className="p-2 border-black border">{cell || 'N/A'}</td>
             ))}
           </tr>
         )) : (
@@ -66,7 +66,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
   }, []);
 
   const handleDeclarationChange = (checked: boolean) => {
-    updateData({ declaration: checked });
+      updateData({ declaration: checked });
   };
   
   const accreditationMap: Record<string, string> = {
@@ -84,15 +84,15 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
   : [];
   
   const { companyInfo, legalRepresentative, representativeDiplomas, representativeCertifications, representativeExperience } = data;
-
+  
   return (
     <div className="space-y-8">
        {/* Section Récapitulatif & Preview */}
        <div>
         <div className="flex justify-between items-center mb-4">
-            <div>
+        <div>
                 <h3 className="text-lg font-medium">Prévisualisation de la Fiche de Renseignements</h3>
-                <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
                     Vérifiez le document qui sera joint à votre soumission. Vous pouvez le télécharger ou l'imprimer.
                 </p>
             </div>
@@ -133,44 +133,49 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
             <div className='space-y-4'>
                 <SectionTitle title="Renseignements généraux" />
 
-                <h5 className="font-semibold text-md mt-4">Identité de la société</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                  <FormField label="Nom" value={companyInfo?.name} />
-                  <FormField label="Sigle" value={companyInfo?.acronym} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                <h5 className="font-normal underline text-md mt-4">Identité de la société</h5>
+                <div className="pl-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    <FormField label="Nom" value={companyInfo?.name} />
+                    <FormField label="Sigle" value={companyInfo?.acronym} />
+                  </div>
                   <FormField label="Secteur d'activité" value={companyInfo?.business_sector} />
                   <FormField label="Identifiant fiscal N°" value={companyInfo?.tax_id} />
                   <FormField label="Registre du commerce" value={companyInfo?.commercial_register} />
-                  <FormField label="Nombre du personnel" value={companyInfo?.total_staff} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    <FormField label="Nombre du personnel" value={companyInfo?.total_staff} />
+                    <FormField label="Dont... Experts en sécurité informatique" value={companyInfo?.cybersecurity_experts} />
+                  </div>
                 </div>
-                <FormField label="Dont... Experts en sécurité informatique" value={companyInfo?.cybersecurity_experts} />
                 
-                <h5 className="font-semibold text-md mt-6">Identité du représentant juridique</h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                <h5 className="font-normal underline text-md mt-6">Identité du représentant juridique</h5>
+                <div className="pl-4">
                   <FormField label="Nom et Prénom" value={`${legalRepresentative?.first_name} ${legalRepresentative?.last_name}`} />
                   <FormField label="Nationalité" value={"Non renseigné"} />
+                  <FormField label="Fonction" value={legalRepresentative?.job_title} />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
+                    <FormField label="Pièce d'identité N°" value={legalRepresentative?.idcard_number} />
+                    <FormField label="délivrée le" value={legalRepresentative?.idcard_issued_at} />
+                    <FormField label="expire le" value={legalRepresentative?.idcard_expires_at} />
+                  </div>
+                  <FormField label="Adresse" value={"Non renseigné"} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    <FormField label="Tél" value={legalRepresentative?.phone} />
+                    <FormField label="Tél. Portable" value={legalRepresentative?.mobile} />
+                  </div>
+                  <FormField label="E-mail" value={legalRepresentative?.email} />
                 </div>
-                <FormField label="Fonction" value={legalRepresentative?.job_title} />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
-                  <FormField label="Pièce d'identité N°" value={legalRepresentative?.idcard_number} />
-                  <FormField label="délivrée le" value={legalRepresentative?.idcard_issued_at} />
-                  <FormField label="expire le" value={legalRepresentative?.idcard_expires_at} />
-                </div>
-                <FormField label="Adresse" value={"Non renseigné"} />
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                  <FormField label="Tél" value={legalRepresentative?.phone} />
-                  <FormField label="Tél. Portable" value={legalRepresentative?.mobile} />
-                </div>
-                <FormField label="E-mail" value={legalRepresentative?.email} />
 
-                <h5 className="font-semibold text-md mt-6">Coordonnées de la société</h5>
-                <FormField label="Adresse" value={companyInfo?.address} />
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                  <FormField label="Tél" value={companyInfo?.phone} />
-                  <FormField label="Tél. Portable" value={companyInfo?.mobile} />
+                <h5 className="font-normal underline text-md mt-6">Coordonnées de la société</h5>
+                <div className="pl-4">
+                  <FormField label="Adresse" value={companyInfo?.address} />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
+                    <FormField label="Tél" value={companyInfo?.phone} />
+                    <FormField label="Tél. Portable" value={companyInfo?.mobile} />
+                    <FormField label="Site Web" value={companyInfo?.website} />
+                  </div>
+                  <FormField label="E-mail" value={companyInfo?.email} />
                 </div>
-                <FormField label="Site Web" value={companyInfo?.website} />
             </div>
             
             {/* Diplômes */}
@@ -206,7 +211,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                 <div className='p-4 border border-black'>
                     <ul className="list-disc list-inside">
                         {selectedAccreditations.length > 0 ? selectedAccreditations.map(acc => <li key={acc}>{acc}</li>) : <li>Aucune accréditation sélectionnée</li>}
-                    </ul>
+                </ul>
                 </div>
             </section>
 
