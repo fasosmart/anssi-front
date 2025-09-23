@@ -58,6 +58,12 @@ const Table = ({ headers, data }: { headers: string[]; data: (string | number | 
   </div>
 );
 
+const InstructionText = ({ children }: { children: React.ReactNode }) => (
+    <p className="text-xs italic text-gray-600 mt-2 px-4">
+        [{children}]
+    </p>
+);
+
 export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => {
   const [isClient, setIsClient] = useState(false);
 
@@ -178,6 +184,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                     <FormField label="Site Web" value={companyInfo?.website} />
                   </div>
                 </div>
+                <InstructionText>
+                    Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l&apos;extrait du registre national des entreprises, le statut accompagné d’un justificatif de son publication au Journal Officiel de la République Guinéenne ou au Journal Officiel du Registre National des Entreprises, un certificat de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
+                </InstructionText>
             </div>
             
             {/* Diplômes */}
@@ -187,6 +196,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                     headers={['Diplôme', 'Institution', 'Spécialité / Année', 'Références de la pièce justificative*']}
                     data={(representativeDiplomas || []).map(d => [d.degree_name, d.institution, `${d.specialty || ''} / ${d.year_obtained}`, d.file ? 'Fichier joint' : 'N/A'])}
                 />
+                <InstructionText>
+                    Joindre les diplômes universitaires et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée
+                </InstructionText>
             </section>
             
             {/* Formations */}
@@ -196,6 +208,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                     headers={['Formation / Certification', 'Institut / Organisme délivrant la certification', 'Promotion / Année', 'Références de la pièce justificative*']}
                     data={(representativeCertifications || []).map(t => [t.training_name, t.institution, t.year_obtained, t.file ? 'Fichier joint' : 'N/A'])}
                 />
+                <InstructionText>
+                    Joindre l’attestation de réussite ou le certificat pour chaque cycle de formation mentionné dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée
+                </InstructionText>
             </section>
             
             {/* Cursus Professionnel */}
@@ -205,6 +220,9 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                     headers={['Organisme', 'Forme de recrutement (SIVP, Contractuel ...)', 'Fonctions Exercées', 'Durée Du Au', 'Numéro de la pièce justificative*']}
                     data={(representativeExperience || []).map(e => [e.company, 'Non renseigné', e.job_title, `${e.start_date} - ${e.end_date || 'Présent'}`, e.file ? 'Fichier joint' : 'N/A'])}
                 />
+                <InstructionText>
+                    Joindre l’attestation de travail ainsi pièces justificatives de chaque expérience professionnelle mentionnée dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée
+                </InstructionText>
             </section>
 
             {/* Accréditation Sollicitée */}
