@@ -172,8 +172,67 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
                 </div>
                 <FormField label="Site Web" value={companyInfo?.website} />
             </div>
+            
+            {/* Diplômes */}
+            <section className="mt-8">
+                <SectionTitle number={2} title="Diplômes du Représentant juridique" />
+                <Table 
+                    headers={['Diplôme', 'Institution', 'Spécialité / Année', 'Références de la pièce justificative*']}
+                    data={(representativeDiplomas || []).map(d => [d.degree_name, d.institution, `${d.specialty || ''} / ${d.year_obtained}`, d.file ? 'Fichier joint' : 'N/A'])}
+                />
+            </section>
+            
+            {/* Formations */}
+            <section className="mt-8">
+                <SectionTitle number={3} title="Cycles de formations du Représentant juridique" />
+                <Table 
+                    headers={['Formation / Certification', 'Institut / Organisme délivrant la certification', 'Promotion / Année', 'Références de la pièce justificative*']}
+                    data={(representativeCertifications || []).map(t => [t.training_name, t.institution, t.year_obtained, t.file ? 'Fichier joint' : 'N/A'])}
+                />
+            </section>
+            
+            {/* Cursus Professionnel */}
+            <section className="mt-8">
+                <SectionTitle number={4} title="Cursus professionnel du Représentant juridique" />
+                <Table 
+                    headers={['Organisme', 'Forme de recrutement (SIVP, Contractuel ...)', 'Fonctions Exercées', 'Durée Du Au', 'Numéro de la pièce justificative*']}
+                    data={(representativeExperience || []).map(e => [e.company, 'Non renseigné', e.job_title, `${e.start_date} - ${e.end_date || 'Présent'}`, e.file ? 'Fichier joint' : 'N/A'])}
+                />
+            </section>
+
+            {/* Accréditation Sollicitée */}
+            <section className="mt-8">
+                <SectionTitle title="Préciser l'accréditation sollicitée (plusieurs peuvent être sollicitées)" />
+                <div className='p-4 border border-black'>
+                    <ul className="list-disc list-inside">
+                        {selectedAccreditations.length > 0 ? selectedAccreditations.map(acc => <li key={acc}>{acc}</li>) : <li>Aucune accréditation sélectionnée</li>}
+                    </ul>
+                </div>
+            </section>
+
+            {/* Engagement from original PDF */}
+            <section className="mt-8">
+                 <SectionTitle title="Engagement et déclaration sur l'honneur" />
+                 <div className='p-4 space-y-2 text-sm'>
+                    <p>Je soussigné,</p>
+                    <p>- m&apos;engage à respecter les dispositions du cahier des charges, et j&apos;assume mes responsabilités face à toute infraction;</p>
+                    <p>- désigne mon correspondant déclaré à l&apos;unique à l&apos;ANSI Guinée pour traiter mes données à caractère;</p>
+                    <p>- déclare sur l&apos;honneur l&apos;exactitude des renseignements contenus dans la présente fiche;</p>
+                    <p>- m&apos;engage à informer l&apos;ANSI Guinée de chaque modification qui survient sur les données déclarées.</p>
+                 </div>
+            </section>
+
+            {/* Signature */}
+            <div className="mt-16 flex justify-between items-end">
+                <div>
+                    <p className='font-bold'>Signature et cachet</p>
+                </div>
+                <div>
+                    <p>................., le ..... / ..... / 20.....</p>
+                </div>
+            </div>
         </div>
-       </div>
+      </div>
 
       <Separator />
 
