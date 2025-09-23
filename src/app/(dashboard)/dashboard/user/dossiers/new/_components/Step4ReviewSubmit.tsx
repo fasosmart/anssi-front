@@ -100,7 +100,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
         <div>
                 <h3 className="text-lg font-medium">Prévisualisation de la Fiche de Renseignements</h3>
           <p className="text-sm text-muted-foreground">
-                    Vérifiez le document qui sera joint à votre soumission. Vous pouvez le télécharger ou l'imprimer.
+                    Vérifiez le document qui sera joint à votre soumission. Vous pouvez le télécharger ou l&apos;imprimer.
                 </p>
             </div>
             <div className="flex items-center space-x-2 no-print">
@@ -272,7 +272,7 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
         <h3 className="text-lg font-medium">Engagement et déclaration sur l&apos;honneur</h3>
         <div className="mt-4 space-y-4 rounded-md border p-4">
           <p className="text-sm">
-            Je déclare sur l’honneur l’exactitude des renseignements contenus dans la présente fiche et m'engage à informer l’ANSSI Guinée de chaque modification qui survient sur les données déclarées.
+            Je déclare sur l’honneur l’exactitude des renseignements contenus dans la présente fiche et m&apos;engage à informer l’ANSSI Guinée de chaque modification qui survient sur les données déclarées.
           </p>
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox 

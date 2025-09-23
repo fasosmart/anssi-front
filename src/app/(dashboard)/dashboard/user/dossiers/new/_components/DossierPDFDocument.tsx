@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#002060',
     color: '#fff',
     padding: 5,
-    display: 'inline-block',
+    // display: 'inline-block',
   },
   header: {
     textAlign: 'center',
@@ -290,7 +290,7 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
             </View>
             <Text style={styles.instructionText}>
                 [
-                  Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l'extrait
+                  Joindre une copie de la Pièce d’Identité, le bulletin N°3 datant de moins de 3 mois, une copie de l&apos;extrait
                   du registre national des entreprises, le statut accompagné d’un justificatif de son publication au Journal
                   Officiel de la République Guinéenne ou au Journal Officiel du Registre National des Entreprises, un certificat
                   de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
@@ -359,7 +359,7 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 ))}
             </View>
             <Text style={styles.instructionText}>
-                [Joindre l'attestation de travail ainsi pièces justificatives de chaque expérience professionnelle mentionnée dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
+                [Joindre l&apos;attestation de travail ainsi pièces justificatives de chaque expérience professionnelle mentionnée dans le tableau ci-dessus et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
             </Text>
 
             <Text style={styles.sectionTitle}>Préciser l&apos;accréditation sollicitée</Text>
