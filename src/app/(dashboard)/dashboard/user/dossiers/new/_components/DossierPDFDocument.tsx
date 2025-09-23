@@ -5,13 +5,17 @@ import { DossierFormData } from '@/types/api';
 // Register fonts
 // Note: You might need to host these fonts locally in your /public folder
 Font.register({
-  family: 'Times-Roman',
-  src: `https://fonts.gstatic.com/s/timesnewroman/v1/times-new-roman.ttf`,
-});
-Font.register({
-  family: 'Times-Bold',
-  src: `https://fonts.gstatic.com/s/timesnewroman/v1/times-new-roman-bold.ttf`,
-  fontWeight: 'bold',
+  family: 'Poppins',
+  fonts: [
+    {
+      src: 'https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJbecmNE.ttf',
+      fontWeight: 'normal',
+    },
+    {
+      src: 'https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFQ.ttf',
+      fontWeight: 'bold',
+    },
+  ],
 });
 
 
@@ -52,7 +56,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 11,
     backgroundColor: '#002060', // gray background
-    color: '#000', // black text
+    color: '#fff', // black text
     padding: 5,
     marginTop: 15,
     marginBottom: 5,
@@ -189,7 +193,7 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 <Text style={styles.h3}>Fiche de renseignements</Text>
             </View>
 
-            <Text style={styles.sectionTitle}>Renseignements généraux</Text>
+            <Text style={styles.sectionTitle}>1. Renseignements généraux</Text>
 
             <Text style={styles.subHeader}>Identité de la société</Text>
             <View style={styles.fieldsGroup}>
