@@ -51,11 +51,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     fontSize: 11,
-    backgroundColor: '#002060', // primary blue
-    color: '#fff',
+    backgroundColor: '#002060', // gray background
+    color: '#000', // black text
     padding: 5,
     marginTop: 15,
     marginBottom: 5,
+    border: '1.5px solid #000',
   },
   instructionText: {
     fontSize: 8,
@@ -119,6 +120,12 @@ const styles = StyleSheet.create({
   },
   tableCol: {
     width: "25%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  tableCol20: {
+    width: "20%",
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: '#000',
@@ -239,9 +246,8 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                   de non faillite, l’attestation d’affiliation à la CNSS, la dernière déclaration des salaires et des salariés.
                 ]
             </Text>
-        </Page>
-        <Page size="A4" style={styles.page}>
-            <Text style={styles.sectionTitle}>3. Diplômes du Représentant juridique</Text>
+            
+            <Text style={styles.sectionTitle}>2. Diplômes du Représentant juridique</Text>
             <View style={styles.table}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                     <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Diplôme</Text></View>
@@ -262,7 +268,7 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 [Joindre les diplômes universitaires et indiquer la référence du dossier renfermant ces pièces justificatives dans la colonne appropriée]
             </Text>
 
-            <Text style={styles.sectionTitle}>4. Cycles de formations du Représentant juridique</Text>
+            <Text style={styles.sectionTitle}>3. Cycles de formations du Représentant juridique</Text>
             <View style={styles.table}>
                     <View style={[styles.tableRow, styles.tableHeader]}>
                     <View style={[styles.tableCol, {width: '30%'}]}><Text style={styles.tableCellHeader}>Formation / Certification</Text></View>
@@ -286,17 +292,19 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
                 <Text style={styles.sectionTitle}>4. Cursus professionnel du Représentant juridique</Text>
                 <View style={styles.table}>
                     <View style={[styles.tableRow, styles.tableHeader]}>
-                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Organisme</Text></View>
-                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Forme de recrutement</Text></View>
-                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Fonctions Exercées</Text></View>
-                    <View style={styles.tableCol}><Text style={styles.tableCellHeader}>Durée Du Au</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCellHeader}>Organisme</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCellHeader}>Forme de recrutement</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCellHeader}>Fonctions Exercées</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCellHeader}>Durée Du Au</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCellHeader}>Pièces justificatives*</Text></View>
                 </View>
                 {(representativeExperience || []).map((e, i) => (
                      <View key={i} style={styles.tableRow}>
-                        <View style={styles.tableCol}><Text style={styles.tableCell}>{e.company}</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCell}>Non renseigné</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCell}>{e.job_title}</Text></View>
-                        <View style={styles.tableCol}><Text style={styles.tableCell}>{`${e.start_date} - ${e.end_date || 'Présent'}`}</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCell}>{e.company}</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCell}>Non renseigné</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCell}>{e.job_title}</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCell}>{`${e.start_date} - ${e.end_date || 'Présent'}`}</Text></View>
+                        <View style={styles.tableCol20}><Text style={styles.tableCell}>N/A</Text></View>
                     </View>
                 ))}
             </View>
