@@ -1,93 +1,179 @@
 "use client";
 
-import React from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import React, { useState, useEffect } from 'react';
 import { DossierFormData } from "@/types/api";
+import { Button } from '@/components/ui/button';
+import { Printer, Download } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { DossierPDFDocument } from './DossierPDFDocument';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 interface StepProps {
   data: Partial<DossierFormData>;
-  updateData?: (fields: Partial<DossierFormData>) => void; // updateData is optional for the review step
+  updateData: (fields: Partial<DossierFormData>) => void;
 }
 
-const accreditationLabels: { [key: string]: string } = {
-  apacs: "APACS - Accompagnement et Conseil en sécurité",
-  apassi: "APASSI - Audit de la Sécurité des Systèmes d’Information",
-  apdis: "APDIS - Détection d’Incidents de Sécurité",
-  apris: "APRIS - Réponse aux Incidents de Sécurité",
-  apin: "APIN - Investigation Numérique",
-};
+// Helper components from the old DossierSummary
+const SectionTitle = ({ title, number }: { title: string; number?: number }) => (
+  <h4 className="font-bold mt-6 mb-3 bg-primary text-primary-foreground p-2">
+    {number && `${number}. `}{title}
+  </h4>
+);
 
-
-const ReviewSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div>
-    <h4 className="text-md font-semibold mb-2">{title}</h4>
-    <div className="space-y-1 rounded-md border p-4 text-sm">{children}</div>
+const FormField = ({ label, value }: { label: string, value: React.ReactNode }) => (
+  <div className={`flex items-end border-b border-gray-300 py-1`}>
+    <span className="text-sm font-medium text-gray-600 mr-2">{label}:</span>
+    <span className="text-sm flex-1 text-left font-semibold text-black">{value || '.........................'}</span>
   </div>
 );
 
-const ReviewItem: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-  <div className="flex justify-between">
-    <span className="text-muted-foreground">{label}:</span>
-    <span className="text-right font-medium">{value || "Non renseigné"}</span>
+const Table = ({ headers, data }: { headers: string[]; data: (string | number | null | undefined)[][] }) => (
+  <div className="overflow-x-auto border border-black">
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-primary text-primary-foreground">
+          {headers.map((h, i) => (
+            <th key={i} className="p-2 border-black border text-left font-bold">{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.length > 0 ? data.map((row, i) => (
+          <tr key={i}>
+            {row.map((cell, j) => (
+              <td key={j} className="p-2 border-black border-t">{cell || 'N/A'}</td>
+            ))}
+          </tr>
+        )) : (
+          <tr>
+            <td colSpan={headers.length} className="p-2 text-center text-gray-500 border-black border-t">
+              Aucune donnée
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   </div>
 );
 
 export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => {
-  const { companyInfo, legalRepresentative, accreditationTypes, declaration } = data;
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleDeclarationChange = (checked: boolean) => {
-    if (updateData) {
-      updateData({ declaration: checked });
-    }
+    updateData({ declaration: checked });
   };
   
+  const accreditationMap: Record<string, string> = {
+    apacs: "APACS - Accompagnement et Conseil en sécurité",
+    apassi: "APASSI - Audit de la Sécurité des Systèmes d’Information",
+    apdis: "APDIS - Détection d’Incidents de Sécurité",
+    apris: "APRIS - Réponse aux Incidents de Sécurité",
+    apin: "APIN - Investigation Numérique",
+  };
+
+  const selectedAccreditations = data.accreditationTypes
+  ? Object.entries(data.accreditationTypes)
+      .filter(([, isSelected]) => isSelected)
+      .map(([key]) => accreditationMap[key])
+  : [];
+  
+  const { companyInfo, legalRepresentative, representativeDiplomas, representativeCertifications, representativeExperience } = data;
+
   return (
     <div className="space-y-8">
-       {/* Section Récapitulatif */}
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium">Récapitulatif de votre demande</h3>
-          <p className="text-sm text-muted-foreground">
-            Veuillez vérifier que toutes les informations sont correctes avant de soumettre.
-          </p>
+       {/* Section Récapitulatif & Preview */}
+       <div>
+        <div className="flex justify-between items-center mb-4">
+            <div>
+                <h3 className="text-lg font-medium">Prévisualisation de la Fiche de Renseignements</h3>
+                <p className="text-sm text-muted-foreground">
+                    Vérifiez le document qui sera joint à votre soumission. Vous pouvez le télécharger ou l'imprimer.
+                </p>
+            </div>
+            <div className="flex items-center space-x-2 no-print">
+                <Button onClick={() => window.print()} variant="outline">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Imprimer
+                </Button>
+                {isClient && (
+                <PDFDownloadLink
+                    document={<DossierPDFDocument data={data} />}
+                    fileName={`formulaire-accreditation-ansi-guinee-${data.companyInfo?.name || 'dossier'}.pdf`}
+                >
+                    {({ loading }) =>
+                    loading ? (
+                        <Button disabled>Génération PDF...</Button>
+                    ) : (
+                        <Button>
+                            <Download className="mr-2 h-4 w-4" />
+                            Télécharger en PDF
+                        </Button>
+                    )
+                    }
+                </PDFDownloadLink>
+                )}
+            </div>
         </div>
 
-        {companyInfo && (
-          <ReviewSection title="Identité de la société">
-            <ReviewItem label="Raison Sociale" value={companyInfo.name} />
-            <ReviewItem label="Secteur d’activité" value={companyInfo.business_sector} />
-            <ReviewItem label="Identifiant fiscal" value={companyInfo.tax_id} />
-            <ReviewItem label="Registre du commerce" value={companyInfo.commercial_register} />
-            <ReviewItem label="Adresse" value={companyInfo.address} />
-            <ReviewItem label="Email" value={companyInfo.email} />
-            <ReviewItem label="Téléphone" value={companyInfo.phone} />
-          </ReviewSection>
-        )}
-        
-        {legalRepresentative && (
-            <ReviewSection title="Représentant Légal">
-                <ReviewItem label="Nom et Prénom" value={`${legalRepresentative.first_name} ${legalRepresentative.last_name}`} />
-                <ReviewItem label="Fonction" value={legalRepresentative.job_title} />
-                <ReviewItem label="Email" value={legalRepresentative.email} />
-                <ReviewItem label="Téléphone" value={legalRepresentative.phone} />
-            </ReviewSection>
-        )}
+        <div id="printable-area" className="p-8 border rounded-md bg-white text-black font-serif">
+           {/* Header */}
+            <div className="text-center mb-8">
+                <h1 className="text-xl font-bold uppercase">Demande d&apos;accréditation dans le domaine de la cyber sécurité</h1>
+                <h2 className="text-lg font-semibold">- Personne Morale -</h2>
+                <h3 className="text-2xl font-bold mt-4 border-2 bg-primary text-primary-foreground">Fiche de renseignements</h3>
+            </div>
+            
+            {/* Renseignements Généraux */}
+            <div className='space-y-4'>
+                <SectionTitle title="Renseignements généraux" />
 
-        {accreditationTypes && (
-            <ReviewSection title="Accréditations Sollicitées">
-                <ul className="list-disc pl-5">
-                    {Object.entries(accreditationTypes)
-                        .filter(([, checked]) => checked)
-                        .map(([key]) => (
-                            <li key={key}>{accreditationLabels[key]}</li>
-                        ))}
-                </ul>
-            </ReviewSection>
-        )}
+                <h5 className="font-semibold text-md mt-4">Identité de la société</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <FormField label="Nom" value={companyInfo?.name} />
+                  <FormField label="Sigle" value={companyInfo?.acronym} />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <FormField label="Secteur d'activité" value={companyInfo?.business_sector} />
+                  <FormField label="Identifiant fiscal N°" value={companyInfo?.tax_id} />
+                  <FormField label="Registre du commerce" value={companyInfo?.commercial_register} />
+                  <FormField label="Nombre du personnel" value={companyInfo?.total_staff} />
+                </div>
+                <FormField label="Dont... Experts en sécurité informatique" value={companyInfo?.cybersecurity_experts} />
+                
+                <h5 className="font-semibold text-md mt-6">Identité du représentant juridique</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <FormField label="Nom et Prénom" value={`${legalRepresentative?.first_name} ${legalRepresentative?.last_name}`} />
+                  <FormField label="Nationalité" value={"Non renseigné"} />
+                </div>
+                <FormField label="Fonction" value={legalRepresentative?.job_title} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8">
+                  <FormField label="Pièce d'identité N°" value={legalRepresentative?.idcard_number} />
+                  <FormField label="délivrée le" value={legalRepresentative?.idcard_issued_at} />
+                  <FormField label="expire le" value={legalRepresentative?.idcard_expires_at} />
+                </div>
+                <FormField label="Adresse" value={"Non renseigné"} />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <FormField label="Tél" value={legalRepresentative?.phone} />
+                  <FormField label="Tél. Portable" value={legalRepresentative?.mobile} />
+                </div>
+                <FormField label="E-mail" value={legalRepresentative?.email} />
 
-      </div>
+                <h5 className="font-semibold text-md mt-6">Coordonnées de la société</h5>
+                <FormField label="Adresse" value={companyInfo?.address} />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <FormField label="Tél" value={companyInfo?.phone} />
+                  <FormField label="Tél. Portable" value={companyInfo?.mobile} />
+                </div>
+                <FormField label="Site Web" value={companyInfo?.website} />
+            </div>
+        </div>
+       </div>
 
       <Separator />
 
@@ -96,15 +182,12 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
         <h3 className="text-lg font-medium">Engagement et déclaration sur l&apos;honneur</h3>
         <div className="mt-4 space-y-4 rounded-md border p-4">
           <p className="text-sm">
-            Je soussigné(e), m’engage à respecter les dispositions du cahier des charges, et j’assume mes responsabilités face à toute infraction.
-            J’autorise mon consentement éclairé et univoque à l’ANSSI Guinée pour traiter mes données à caractère.
-            Je déclare sur l’honneur l’exactitude des renseignements contenus dans la présente fiche.
-            Je m’engage à informer l’ANSSI Guinée de chaque modification qui survient sur les données déclarées.
+            Je déclare sur l’honneur l’exactitude des renseignements contenus dans la présente fiche et m'engage à informer l’ANSSI Guinée de chaque modification qui survient sur les données déclarées.
           </p>
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox 
                 id="declaration" 
-                checked={declaration || false}
+                checked={data.declaration || false}
                 onCheckedChange={handleDeclarationChange}
             />
             <Label htmlFor="declaration" className="font-bold">Je confirme avoir lu et accepté les conditions</Label>
