@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { DossierFormData } from '@/types/api';
 
 // Register fonts
@@ -27,6 +27,47 @@ const styles = StyleSheet.create({
     padding: 40,
     backgroundColor: '#fff',
     color: '#000',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    border: '2px solid black',
+    padding: 10,
+    marginBottom: 20,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+  },
+  headerTextContainer: {
+    backgroundColor: '#002060',
+    color: '#fff',
+    padding: 10,
+    flex: 1,
+    marginLeft: 10,
+    textAlign: 'center',
+  },
+  headerTextTitle: {
+    fontWeight: 'bold',
+    fontSize: 12,
+    textTransform: 'uppercase',
+  },
+  headerTextSubtitle: {
+    fontSize: 10,
+  },
+  mainTitleContainer: {
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  mainTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    border: '2px solid #000',
+    backgroundColor: '#002060',
+    color: '#fff',
+    padding: 5,
+    display: 'inline-block',
   },
   header: {
     textAlign: 'center',
@@ -187,10 +228,15 @@ export const DossierPDFDocument: React.FC<{ data: Partial<DossierFormData> }> = 
     return (
         <Document>
         <Page size="A4" style={styles.page}>
-            <View style={styles.header}>
-                <Text style={styles.h1}>Demande d&apos;accréditation dans le domaine de la cyber sécurité</Text>
-                <Text style={styles.h2}>- Personne Morale -</Text>
-                <Text style={styles.h3}>Fiche de renseignements</Text>
+            <View style={styles.headerContainer} fixed>
+                <Image style={styles.logo} src="/images/anssi_logo.jpg" />
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.headerTextTitle}>Demande d&apos;accréditation dans le domaine de la cyber sécurité.</Text>
+                    <Text style={styles.headerTextSubtitle}>- Personne Morale -</Text>
+                </View>
+            </View>
+            <View style={styles.mainTitleContainer}>
+                <Text style={styles.mainTitle}>Fiche de renseignements</Text>
             </View>
 
             <Text style={styles.sectionTitle}>1. Renseignements généraux</Text>

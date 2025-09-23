@@ -9,6 +9,7 @@ import { DossierPDFDocument } from './DossierPDFDocument';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 interface StepProps {
   data: Partial<DossierFormData>;
@@ -129,10 +130,15 @@ export const Step4ReviewSubmit: React.FC<StepProps> = ({ data, updateData }) => 
 
         <div id="printable-area" className="p-8 border rounded-md bg-white text-black font-serif">
            {/* Header */}
-            <div className="text-center mb-8">
-                <h1 className="text-xl font-bold uppercase">Demande d&apos;accréditation dans le domaine de la cyber sécurité</h1>
-                <h2 className="text-lg font-semibold">- Personne Morale -</h2>
-                <h3 className="text-2xl font-bold mt-4 border-2 bg-primary text-primary-foreground">Fiche de renseignements</h3>
+            <div className="flex justify-between items-center border-2 border-black p-4">
+                <Image src="/images/anssi_logo.jpg" alt="ANSSI Logo" width={100} height={100} />
+                <div className="bg-primary text-primary-foreground text-center p-4 flex-grow ml-4">
+                    <h2 className="font-bold text-lg">DEMANDE D&apos;ACCREDITATION DANS LE DOMAINE DE LA CYBER SECURITE.</h2>
+                    <p className="font-semibold">- PERSONNE MORALE -</p>
+                </div>
+            </div>
+            <div className="text-center my-4">
+                <h3 className="text-2xl font-bold inline-block px-4 py-2 border-2 border-black bg-primary text-primary-foreground">Fiche de renseignements</h3>
             </div>
             
             {/* Renseignements Généraux */}
