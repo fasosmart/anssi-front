@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Menu, Building } from "lucide-react";
+import { LogOut, User, Menu, Building, Home } from "lucide-react";
 
 export function UserNav() {
   const { data: session, status } = useSession();
@@ -83,7 +83,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/dashboard/user">
-            <User className="mr-2 h-4 w-4" />
+            <Home className="mr-2 h-4 w-4" />
             <span>Mon Espace</span>
           </Link>
         </DropdownMenuItem>
@@ -91,6 +91,12 @@ export function UserNav() {
           <Link href="/dashboard/user/entities">
             <Building className="mr-2 h-4 w-4" />
             <span>Mes Structures</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard/user/profile">
+            <User className="mr-2 h-4 w-4" />
+            <span>Mon Profil</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
