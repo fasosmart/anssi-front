@@ -19,7 +19,12 @@ import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
 import { DossierFormData, Entity, TypeAccreditation } from "@/types/api";
-import apiClient, { getAccreditationTypes } from "@/lib/apiClient";
+import apiClient, { 
+  getAccreditationTypes,
+  createDemand,
+  updateDemand,
+  submitDemand
+} from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useEntity } from "@/contexts/EntityContext";
 
@@ -77,31 +82,43 @@ export default function NewDossierPage() {
         return;
     }
 
+    const selectedAccreditationSlugs = Object.keys(formData.accreditationTypes || {}).filter(
+      (slug) => formData.accreditationTypes?.[slug]
+    );
+
+    if (selectedAccreditationSlugs.length === 0) {
+      toast.error("Veuillez sélectionner au moins un type d'accréditation.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-        const entitySlug = activeEntity.slug;
-        const repSlug = formData.legalRepresentative.slug;
-
-        // TODO: Implement the actual dossier submission logic here.
-        // This will likely involve a new API endpoint to create a dossier
-        // associated with the entity and the selected representative.
-        // The payload should include accreditation types and uploaded documents.
+      const entitySlug = activeEntity.slug;
+      
+      const demandPromises = selectedAccreditationSlugs.map(async (typeSlug) => {
+        // 1. Create a draft demand
+        const newDemand = await createDemand(entitySlug);
         
-        console.log("Submitting dossier for:", {
-            entitySlug,
-            repSlug,
-            accreditationTypes: formData.accreditationTypes,
-            uploadedDocuments: formData.uploadedDocuments,
-        });
+        // 2. Update the demand with representative and type
+        const updatePayload = {
+          representative: formData.legalRepresentative?.slug,
+          type_accreditation: typeSlug,
+        };
+        await updateDemand(entitySlug, newDemand.slug, updatePayload);
 
-        // The following is a placeholder for the actual API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 3. Submit the demand
+        await submitDemand(entitySlug, newDemand.slug);
 
+        return newDemand;
+      });
 
-        // On success
-        toast.success("Votre dossier a été soumis avec succès !");
-        router.push("/dashboard/user/dossiers");
+      await Promise.all(demandPromises);
 
-    } catch {
+      toast.success(`${selectedAccreditationSlugs.length} demande(s) soumise(s) avec succès !`);
+      router.push("/dashboard/user/dossiers");
+
+    } catch (error) {
+        console.error("Submission error:", error);
         toast.error("Une erreur est survenue lors de la soumission de votre dossier.");
     } finally {
         setIsSubmitting(false);

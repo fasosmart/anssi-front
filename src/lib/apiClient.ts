@@ -88,4 +88,19 @@ export const getAccreditationTypes = async () => {
   return response.data;
 };
 
+export const createDemand = async (entitySlug: string) => {
+  const response = await apiClient.post(`/api/${entitySlug}/demands/`);
+  return response.data;
+};
+
+export const updateDemand = async (entitySlug: string, demandSlug: string, data: any) => {
+  const response = await apiClient.patch(`/api/${entitySlug}/demands/${demandSlug}/`, data);
+  return response.data;
+};
+
+export const submitDemand = async (entitySlug: string, demandSlug: string) => {
+  const response = await apiClient.post(`/api/${entitySlug}/demands/${demandSlug}/submit/`);
+  return response.data;
+};
+
 export default apiClient;
