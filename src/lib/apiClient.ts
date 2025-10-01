@@ -124,4 +124,9 @@ export const makeDemandDraft = async (
   )).data;
 };
 
+export const getDemandDetails = async (entitySlug: string, demandSlug: string) => {
+  const response = await apiClient.get(`/api/${entitySlug}/demands/${demandSlug}/`);
+  return response.data;
+};
+
 export default apiClient;

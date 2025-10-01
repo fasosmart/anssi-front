@@ -186,8 +186,10 @@ export default function DossiersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          Voir les détails
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/user/dossiers/${dossier.slug}`}>
+                            Voir les détails
+                          </Link>
                         </DropdownMenuItem>
                         {dossier.status === 'draft' && (
                           <DropdownMenuItem onClick={() => handleDelete(dossier.slug)}>
