@@ -103,4 +103,19 @@ export const submitDemand = async (entitySlug: string, demandSlug: string) => {
   return response.data;
 };
 
+export const getDemands = async (entitySlug: string) => {
+  const response = await apiClient.get(`/api/${entitySlug}/demands/`);
+  return response.data;
+};
+
+export const deleteDemand = async (entitySlug: string, demandSlug: string) => {
+  const response = await apiClient.delete(`/api/${entitySlug}/demands/${demandSlug}/`);
+  return response.data;
+};
+
+export const makeDemandDraft = async (entitySlug: string, demandSlug: string) => {
+  const response = await apiClient.post(`/api/${entitySlug}/demands/${demandSlug}/make-draft/`);
+  return response.data;
+};
+
 export default apiClient;

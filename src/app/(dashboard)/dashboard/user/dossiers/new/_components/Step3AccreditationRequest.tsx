@@ -4,6 +4,8 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DossierFormData, TypeAccreditation } from "@/types/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 type AccreditationKeys = keyof NonNullable<DossierFormData['accreditationTypes']>;
 
@@ -21,11 +23,25 @@ export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateDat
     });
   };
 
+  const selectedCount = Object.values(data.accreditationTypes || {}).filter(Boolean).length;
+
   return (
     <div className="space-y-8">
       {/* Section 1: Préciser l'accréditation sollicitée */}
       <div>
         <h3 className="text-lg font-medium mb-4">Préciser l&apos;accréditation sollicitée (plusieurs peuvent être sollicitées)</h3>
+        
+        {selectedCount > 0 && (
+          <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Information</AlertTitle>
+            <AlertDescription>
+              Vous avez sélectionné {selectedCount} type{selectedCount > 1 ? 's' : ''} d&apos;accréditation. 
+              Cela créera {selectedCount} demande{selectedCount > 1 ? 's' : ''} distincte{selectedCount > 1 ? 's' : ''} lors de la soumission.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-3">
           {accreditationOptions.map((option) => (
             <div key={option.slug} className="flex items-center space-x-2">
