@@ -88,8 +88,8 @@ export const getAccreditationTypes = async () => {
   return response.data;
 };
 
-export const createDemand = async (entitySlug: string) => {
-  const response = await apiClient.post(`/api/${entitySlug}/demands/`);
+export const createDemand = async (entitySlug: string, data: { representative: string; type_accreditation: string; }) => {
+  const response = await apiClient.post(`/api/${entitySlug}/demands/`, data);
   return response.data;
 };
 

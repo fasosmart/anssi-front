@@ -96,17 +96,14 @@ export default function NewDossierPage() {
       const entitySlug = activeEntity.slug;
       
       const demandPromises = selectedAccreditationSlugs.map(async (typeSlug) => {
-        // 1. Create a draft demand
-        const newDemand = await createDemand(entitySlug);
-        
-        // 2. Update the demand with representative and type
-        const updatePayload = {
-          representative: formData.legalRepresentative?.slug,
+        // 1. Create the demand with all required info
+        const createPayload = {
+          representative: formData.legalRepresentative!.slug!,
           type_accreditation: typeSlug,
         };
-        await updateDemand(entitySlug, newDemand.slug, updatePayload);
-
-        // 3. Submit the demand
+        const newDemand = await createDemand(entitySlug, createPayload);
+        
+        // 2. Submit the newly created demand
         await submitDemand(entitySlug, newDemand.slug);
 
         return newDemand;
