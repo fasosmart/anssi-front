@@ -18,8 +18,8 @@ import { Step3AccreditationRequest } from "./_components/Step3AccreditationReque
 import { Step4ReviewSubmit } from "./_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "./_components/MultiStepTimeline";
 import { API } from "@/lib/api";
-import { DossierFormData, Entity } from "@/types/api";
-import apiClient from "@/lib/apiClient";
+import { DossierFormData, Entity, TypeAccreditation } from "@/types/api";
+import apiClient, { getAccreditationTypes } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useEntity } from "@/contexts/EntityContext";
 
@@ -27,27 +27,37 @@ export default function NewDossierPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<DossierFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accreditationOptions, setAccreditationOptions] = useState<TypeAccreditation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { activeEntity, isLoading: isEntityLoading } = useEntity();
   const router = useRouter();
 
   useEffect(() => {
-    const fetchEntityDetails = async (slug: string) => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
       try {
-        const response = await apiClient.get(API.entities.details(slug));
-        updateFormData({ companyInfo: response.data });
+        const typesResponse = await getAccreditationTypes();
+        setAccreditationOptions(typesResponse.results);
+
+        if (activeEntity?.slug) {
+          const entityResponse = await apiClient.get(API.entities.details(activeEntity.slug));
+          updateFormData({ companyInfo: entityResponse.data });
+        } else {
+            updateFormData({ companyInfo: activeEntity as Partial<Entity> });
+        }
       } catch (error) {
-        toast.error("Impossible de charger les détails de la structure.");
-        console.error("Failed to fetch entity details:", error);
-        // Fallback to activeEntity from context if details fetch fails
-        updateFormData({ companyInfo: activeEntity as Partial<Entity> });
+        toast.error("Impossible de charger les données initiales.");
+        console.error("Failed to fetch initial data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (activeEntity?.slug) {
-      fetchEntityDetails(activeEntity.slug);
+    if (!isEntityLoading) {
+        fetchInitialData();
     }
-  }, [activeEntity]);
+  }, [activeEntity, isEntityLoading]);
 
   const updateFormData = (fields: Partial<DossierFormData>) => {
     setFormData((prev) => ({ ...prev, ...fields }));
@@ -114,13 +124,13 @@ export default function NewDossierPage() {
 
   const steps = [
     { id: 1, title: "Renseignements", component: <Step1EntityInfo data={formData} updateData={updateFormData} /> },
-    { id: 2, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} /> },
+    { id: 2, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} accreditationOptions={accreditationOptions} /> },
     { id: 3, title: "Soumission", component: <Step4ReviewSubmit data={formData} updateData={updateFormData} /> },
   ];
 
   const activeStep = steps.find((step) => step.id === currentStep);
 
-  if (isEntityLoading) {
+  if (isEntityLoading || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <p>Chargement des informations...</p>

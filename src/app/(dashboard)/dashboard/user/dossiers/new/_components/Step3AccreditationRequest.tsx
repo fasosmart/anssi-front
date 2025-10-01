@@ -3,26 +3,19 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DossierFormData } from "@/types/api";
+import { DossierFormData, TypeAccreditation } from "@/types/api";
 
 type AccreditationKeys = keyof NonNullable<DossierFormData['accreditationTypes']>;
 
 interface StepProps {
   data: Partial<DossierFormData>;
   updateData: (fields: Partial<DossierFormData>) => void;
+  accreditationOptions: TypeAccreditation[];
 }
 
-const accreditationOptions: {id: AccreditationKeys, label: string}[] = [
-  { id: "apacs", label: "APACS - Accompagnement et Conseil en sécurité" },
-  { id: "apassi", label: "APASSI - Audit de la Sécurité des Systèmes d’Information" },
-  { id: "apdis", label: "APDIS - Détection d’Incidents de Sécurité" },
-  { id: "apris", label: "APRIS - Réponse aux Incidents de Sécurité" },
-  { id: "apin", label: "APIN - Investigation Numérique" },
-];
-
-export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateData }) => {
-  const handleAccreditationChange = (checked: boolean, id: AccreditationKeys) => {
-    const currentTypes = data.accreditationTypes || { apacs: false, apassi: false, apdis: false, apris: false, apin: false };
+export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateData, accreditationOptions }) => {
+  const handleAccreditationChange = (checked: boolean, id: string) => {
+    const currentTypes = data.accreditationTypes || {};
     updateData({
       accreditationTypes: { ...currentTypes, [id]: checked }
     });
@@ -35,15 +28,15 @@ export const Step3AccreditationRequest: React.FC<StepProps> = ({ data, updateDat
         <h3 className="text-lg font-medium mb-4">Préciser l&apos;accréditation sollicitée (plusieurs peuvent être sollicitées)</h3>
         <div className="space-y-3">
           {accreditationOptions.map((option) => (
-            <div key={option.id} className="flex items-center space-x-2">
+            <div key={option.slug} className="flex items-center space-x-2">
               <Checkbox
-                id={option.id}
-                checked={!!data.accreditationTypes?.[option.id]}
+                id={option.slug}
+                checked={!!data.accreditationTypes?.[option.slug]}
                 onCheckedChange={(checked: boolean | "indeterminate") =>
-                  handleAccreditationChange(Boolean(checked), option.id)
+                  handleAccreditationChange(Boolean(checked), option.slug)
                 }
               />
-              <Label htmlFor={option.id} className="font-normal">{option.label}</Label>
+              <Label htmlFor={option.slug} className="font-normal">{option.name}</Label>
             </div>
           ))}
         </div>

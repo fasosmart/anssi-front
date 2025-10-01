@@ -83,4 +83,9 @@ if (typeof window !== 'undefined') {
 }
 
 
+export const getAccreditationTypes = async () => {
+  const response = await apiClient.get('/api/demands/types/');
+  return response.data;
+};
+
 export default apiClient;

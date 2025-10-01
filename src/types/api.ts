@@ -66,19 +66,19 @@ export interface DossierFormData {
   representativeDiplomas?: Partial<Degree>[];
   representativeCertifications?: Partial<Training>[];
   representativeExperience?: Partial<Experience>[];
-  accreditationTypes?: {
-    apacs: boolean;
-    apassi: boolean;
-    apdis: boolean;
-    apris: boolean;
-    apin: boolean;
-  };
+  accreditationTypes?: Record<string, boolean>;
   uploadedDocuments?: {
     idCopy: File | null;
     taxIdCopy: File | null;
     tradeRegisterCopy: File | null;
   };
   declaration?: boolean;
+}
+
+export interface TypeAccreditation {
+  slug: string;
+  name: string;
+  duration?: number;
 }
 
 export interface Document {
