@@ -29,7 +29,7 @@ import { FilePlus2, MoreHorizontal } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useState, useEffect } from "react";
 import { Dossier } from "@/types/api"; // This type might need adjustment
-import { getDemands, deleteDemand, makeDemandDraft } from "@/lib/apiClient";
+import apiClient, { getDemands, deleteDemand, makeDemandDraft } from "@/lib/apiClient";
 import { toast } from "sonner";
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -93,16 +93,19 @@ export default function DossiersPage() {
         }
       }
     };
-
-    const handleMakeDraft = async (slug: string) => {
+    
+    const handleMakeDraft = async (dossier: any) => {
       if (!activeEntity?.slug) return;
       try {
-        await makeDemandDraft(activeEntity.slug, slug);
-        toast.success("La demande a été remise en brouillon.");
-        fetchDossiers(activeEntity.slug); // Refresh the list
-      } catch (error) {
-        toast.error("Impossible de remettre la demande en brouillon.");
-        console.error("Failed to make demand a draft:", error);
+        await makeDemandDraft(activeEntity.slug, dossier.slug, {
+          representative: dossier.representative,
+          type_accreditation: dossier.type_accreditation,
+        });
+        toast.success("La demande est repassée en brouillon.");
+        fetchDossiers(activeEntity.slug);
+      } catch (e) {
+        toast.error("Impossible de remettre en brouillon.");
+        console.error(e);
       }
     };
 
@@ -192,7 +195,7 @@ export default function DossiersPage() {
                           </DropdownMenuItem>
                         )}
                         {(dossier.status === 'rejected' || dossier.status === 'submitted') && (
-                          <DropdownMenuItem onClick={() => handleMakeDraft(dossier.slug)}>
+                          <DropdownMenuItem onClick={() => handleMakeDraft(dossier)}>
                             Remettre en brouillon
                           </DropdownMenuItem>
                         )}

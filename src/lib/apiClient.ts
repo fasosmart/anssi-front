@@ -99,7 +99,7 @@ export const updateDemand = async (entitySlug: string, demandSlug: string, data:
 };
 
 export const submitDemand = async (entitySlug: string, demandSlug: string) => {
-  const response = await apiClient.post(`/api/${entitySlug}/demands/${demandSlug}/submit/`);
+  const response = await apiClient.post(`/api/${entitySlug}/demands/${demandSlug}/submit/`, {});
   return response.data;
 };
 
@@ -113,9 +113,15 @@ export const deleteDemand = async (entitySlug: string, demandSlug: string) => {
   return response.data;
 };
 
-export const makeDemandDraft = async (entitySlug: string, demandSlug: string) => {
-  const response = await apiClient.post(`/api/${entitySlug}/demands/${demandSlug}/make-draft/`);
-  return response.data;
+export const makeDemandDraft = async (
+  entitySlug: string,
+  demandSlug: string,
+  data: { representative: string; type_accreditation: string }
+) => {
+  return (await apiClient.post(
+    `/api/${entitySlug}/demands/${demandSlug}/make-draft/`,
+    data
+  )).data;
 };
 
 export default apiClient;
