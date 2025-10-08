@@ -8,28 +8,30 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle } from 'lucide-react';
 
-const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
-  approved: "default",
-  submitted: "secondary",
-  rejected: "destructive",
-  under_review: "outline",
-  draft: "secondary",
+const statusConfig = {
+  approved: { label: "Approuvé", variant: "default", icon: <FileText className="h-4 w-4" /> },
+  submitted: { label: "Soumis", variant: "secondary", icon: <Clock className="h-4 w-4" /> },
+  rejected: { label: "Rejeté", variant: "destructive", icon: <AlertTriangle className="h-4 w-4" /> },
+  under_review: { label: "En cours d'examen", variant: "outline", icon: <Clock className="h-4 w-4" /> },
+  draft: { label: "Brouillon", variant: "secondary", icon: <FileText className="h-4 w-4" /> },
 };
 
-const statusLabel: { [key: string]: string } = {
-  approved: "Approuvé",
-  submitted: "Soumis",
-  rejected: "Rejeté",
-  under_review: "En cours d'examen",
-  draft: "Brouillon",
-};
+const DetailItem = ({ label, value, icon }: { label: string; value: React.ReactNode; icon?: React.ReactNode }) => (
+  <div className="flex items-start space-x-3">
+    {icon && <div className="text-muted-foreground mt-1">{icon}</div>}
+    <div>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="font-medium">{value || 'N/A'}</p>
+    </div>
+  </div>
+);
 
 export default function DossierDetailPage() {
   const { slug } = useParams();
   const { activeEntity } = useEntity();
-  const [demand, setDemand] = useState<any>(null); // Use a proper type later
+  const [demand, setDemand] = useState<any>(null); // Replace with a proper type
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,85 +43,84 @@ export default function DossierDetailPage() {
           setDemand(data);
         } catch (error) {
           toast.error("Impossible de charger les détails de la demande.");
-          console.error("Failed to fetch demand details:", error);
         } finally {
           setIsLoading(false);
         }
       }
     };
-
-    fetchDetails();
+    if(activeEntity) fetchDetails();
   }, [activeEntity, slug]);
-
-  if (isLoading) {
-    return <div className="text-center p-8">Chargement des détails de la demande...</div>;
-  }
-
-  if (!demand) {
-    return <div className="text-center p-8">Aucune donnée trouvée pour cette demande.</div>;
-  }
   
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  };
+  const formatDate = (dateString: string | null) => dateString ? new Date(dateString).toLocaleDateString() : null;
+  
+  if (isLoading) return <div className="text-center p-8">Chargement...</div>;
+  if (!demand) return <div className="text-center p-8">Demande introuvable.</div>;
+
+  const currentStatus = statusConfig[demand.status as keyof typeof statusConfig] || statusConfig.draft;
 
   return (
     <div className="space-y-6">
-      <Link href="/dashboard/user/dossiers" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+      <Link href="/dashboard/user/dossiers" className="inline-flex items-center text-sm font-medium text-primary hover:underline mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Retour à la liste des demandes
       </Link>
-
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>Détails de la demande</CardTitle>
-              <CardDescription>
-                Informations complètes sur la demande d'accréditation.
-              </CardDescription>
-            </div>
-            <Badge variant={statusVariant[demand.status] || "secondary"}>
-                {statusLabel[demand.status] || demand.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Type d'accréditation</p>
-                <p>{demand.type_accreditation?.name || demand.type_accreditation || 'N/A'}</p>
-            </div>
-            <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Représentant</p>
-                <p>{demand.representative?.first_name} {demand.representative?.last_name || demand.representative || 'N/A'}</p>
-            </div>
-             <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Date de soumission</p>
-                <p>{formatDate(demand.submission_date)}</p>
-            </div>
-             <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Date d'approbation</p>
-                <p>{formatDate(demand.approval_date)}</p>
-            </div>
-             <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Date de rejet</p>
-                <p>{formatDate(demand.rejection_date)}</p>
-            </div>
-             <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Numéro de certificat</p>
-                <p>{demand.certificate_number || 'N/A'}</p>
-            </div>
-             <div className="md:col-span-2 space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Raison du rejet</p>
-                <p>{demand.reason_for_rejection || 'N/A'}</p>
-            </div>
-             <div className="md:col-span-2 space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Remarques</p>
-                <p>{demand.notes || 'N/A'}</p>
-            </div>
-        </CardContent>
-      </Card>
+      
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+        <div>
+          <h1 className="text-2xl font-bold">Demande d'accréditation</h1>
+          <p className="text-muted-foreground">Type : {demand.type_accreditation?.name}</p>
+        </div>
+        <Badge variant={currentStatus.variant} className="text-base px-4 py-2 self-start md:self-center">
+          {currentStatus.icon}
+          <span className="ml-2">{currentStatus.label}</span>
+        </Badge>
+      </header>
+      
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Informations sur la demande</CardTitle></CardHeader>
+            <CardContent className="grid sm:grid-cols-2 gap-6">
+              <DetailItem label="Date de création" value={formatDate(demand.created_at)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Dernière modification" value={formatDate(demand.updated_at)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Date de soumission" value={formatDate(demand.submission_date)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Date d'approbation" value={formatDate(demand.approval_date)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Valide du" value={formatDate(demand.valid_from)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Valide jusqu'au" value={formatDate(demand.valid_to)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Numéro de certificat" value={demand.certificate_number} icon={<Hash size={16}/>} />
+            </CardContent>
+          </Card>
+          
+           {demand.status === 'rejected' && (
+             <Card>
+                <CardHeader><CardTitle className="text-destructive">Informations sur le rejet</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                    <DetailItem label="Date de rejet" value={formatDate(demand.rejection_date)} icon={<Calendar size={16}/>} />
+                    <DetailItem label="Motif du rejet" value={demand.reason_for_rejection} icon={<AlertTriangle size={16}/>} />
+                </CardContent>
+             </Card>
+           )}
+        </div>
+        
+        <div className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Représentant Légal</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <DetailItem label="Nom complet" value={`${demand.representative?.first_name} ${demand.representative?.last_name}`} icon={<User size={16}/>} />
+              <DetailItem label="Poste" value={demand.representative?.job_title} icon={<User size={16}/>} />
+              <DetailItem label="Email" value={demand.representative?.email} icon={<User size={16}/>} />
+              <DetailItem label="Téléphone" value={demand.representative?.phone} icon={<User size={16}/>} />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader><CardTitle>Remarques</CardTitle></CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{demand.notes || 'Aucune remarque fournie.'}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
