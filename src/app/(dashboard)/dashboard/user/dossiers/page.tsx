@@ -217,6 +217,11 @@ export default function DossiersPage() {
                           </DropdownMenuItem>
                           {dossier.status === 'draft' && (
                             <>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/user/dossiers/${dossier.slug}/edit`}>
+                                  Modifier
+                                </Link>
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleSubmit(dossier.slug)}>
                                 Soumettre
                               </DropdownMenuItem>
