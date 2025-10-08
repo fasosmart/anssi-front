@@ -28,8 +28,8 @@ import Link from "next/link";
 import { FilePlus2, MoreHorizontal } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useState, useEffect } from "react";
-import { Dossier } from "@/types/api"; // This type might need adjustment
-import apiClient, { getDemands, deleteDemand, makeDemandDraft, submitDemand } from "@/lib/apiClient";
+import { AccreditationList } from "@/types/api";
+import { getDemands, deleteDemand, makeDemandDraft, submitDemand } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { DeleteDemandDialog } from "./_components/DeleteDemandDialog";
 
@@ -53,7 +53,7 @@ const statusLabel: { [key: string]: string } = {
 export default function DossiersPage() {
     const { activeEntity, isLoading: isEntityLoading } = useEntity();
     const [isLoading, setIsLoading] = useState(true);
-    const [dossiers, setDossiers] = useState<any[]>([]); // Using any for now
+    const [dossiers, setDossiers] = useState<AccreditationList[]>([]);
     const [demandToDelete, setDemandToDelete] = useState<string | null>(null);
 
     const fetchDossiers = async (entitySlug: string) => {
@@ -112,7 +112,7 @@ export default function DossiersPage() {
       }
     };
 
-    const handleMakeDraft = async (dossier: any) => {
+    const handleMakeDraft = async (dossier: AccreditationList) => {
       if (!activeEntity?.slug) return;
       try {
         await makeDemandDraft(activeEntity.slug, dossier.slug, {

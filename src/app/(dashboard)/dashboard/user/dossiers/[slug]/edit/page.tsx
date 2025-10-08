@@ -18,7 +18,7 @@ import { Step3AccreditationRequest } from "../../new/_components/Step3Accreditat
 import { Step4ReviewSubmit } from "../../new/_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "../../new/_components/MultiStepTimeline";
 import { DossierFormData, Entity, TypeAccreditation } from "@/types/api";
-import apiClient, { 
+import { 
   getAccreditationTypes,
   getDemandDetails,
   updateDemand
@@ -145,7 +145,7 @@ export default function EditDossierPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Modifier la demande d'accréditation</CardTitle>
+          <CardTitle>Modifier la demande d&apos;accréditation</CardTitle>
           <CardDescription>Étape {currentStep} sur {steps.length}: {activeStep?.title}</CardDescription>
         </CardHeader>
         <CardContent>

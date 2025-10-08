@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { AccreditationDetail } from '@/types/api';
 import { 
   ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle, Smartphone, MapPin, BadgeInfo, Download, ArrowRight, 
   Mail,
@@ -36,7 +37,7 @@ const DetailItem = ({ label, value, icon }: { label: string; value: React.ReactN
 export default function DossierDetailPage() {
   const { slug } = useParams();
   const { activeEntity } = useEntity();
-  const [demand, setDemand] = useState<any>(null); // Replace with a proper type
+  const [demand, setDemand] = useState<AccreditationDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function DossierDetailPage() {
         try {
           const data = await getDemandDetails(activeEntity.slug, slug);
           setDemand(data);
-        } catch (error) {
+        } catch (_error) {
           toast.error("Impossible de charger les détails de la demande.");
         } finally {
           setIsLoading(false);
@@ -72,7 +73,7 @@ export default function DossierDetailPage() {
       
       <header className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold">Demande d'accréditation</h1>
+          <h1 className="text-2xl font-bold">Demande d&apos;accréditation</h1>
           <p className="text-muted-foreground">Type : {demand.type_accreditation?.name}</p>
         </div>
         <Badge variant={currentStatus.variant as "default" | "secondary" | "destructive" | "outline"} className="text-base px-4 py-2 self-start md:self-center">
@@ -91,7 +92,7 @@ export default function DossierDetailPage() {
               <DetailItem label="Date de soumission" value={formatDate(demand.submission_date)} icon={<Calendar size={16}/>} />
               <DetailItem label="Date d'approbation" value={formatDate(demand.approval_date)} icon={<Calendar size={16}/>} />
               <DetailItem label="Valide du" value={formatDate(demand.valid_from)} icon={<Calendar size={16}/>} />
-              <DetailItem label="Valide jusqu'au" value={formatDate(demand.valid_to)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Valide jusqu&apos;au" value={formatDate(demand.valid_to)} icon={<Calendar size={16}/>} />
               <DetailItem label="Numéro de certificat" value={demand.certificate_number} icon={<Hash size={16}/>} />
             </CardContent>
           </Card>
@@ -140,13 +141,13 @@ export default function DossierDetailPage() {
               <DetailItem label="Téléphone" value={demand.representative?.phone} icon={<Phone size={16}/>} />
               <DetailItem label="Mobile" value={demand.representative?.mobile} icon={<Smartphone size={16}/>} />
               <DetailItem label="N° CNI" value={demand.representative?.idcard_number} icon={<BadgeInfo size={16}/>} />
-              <DetailItem label="Délivrée le" value={formatDate(demand.representative?.idcard_issued_at)} icon={<Calendar size={16}/>} />
-              <DetailItem label="Expire le" value={formatDate(demand.representative?.idcard_expires_at)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Délivrée le" value={formatDate(demand.representative?.idcard_issued_at || null)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Expire le" value={formatDate(demand.representative?.idcard_expires_at || null)} icon={<Calendar size={16}/>} />
               <DetailItem 
                 label="Fichier CNI" 
                 value={
                   demand.representative?.idcard_file ? (
-                    <a href={demand.representative.idcard_file} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center">
+                    <a href={demand.representative.idcard_file as string} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center">
                       Voir le document <Download size={14} className="ml-2" />
                     </a>
                   ) : 'Non fourni'

@@ -93,7 +93,13 @@ export const createDemand = async (entitySlug: string, data: { representative: s
   return response.data;
 };
 
-export const updateDemand = async (entitySlug: string, demandSlug: string, data: any) => {
+export interface DemandUpdatePayload {
+  representative: string;
+  type_accreditation: string;
+  notes?: string;
+}
+
+export const updateDemand = async (entitySlug: string, demandSlug: string, data: DemandUpdatePayload) => {
   const response = await apiClient.patch(`/api/${entitySlug}/demands/${demandSlug}/`, data);
   return response.data;
 };

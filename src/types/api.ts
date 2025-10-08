@@ -25,6 +25,7 @@ export interface Representative {
   phone?: string | null;
   mobile?: string | null;
   email?: string | null;
+  address?: string | null;
   idcard_number?: string | null;
   idcard_issued_at?: string | null; // This corresponds to idDeliveryDate
   idcard_expires_at?: string | null; // This corresponds to idExpirationDate
@@ -90,9 +91,33 @@ export interface Document {
   expires_at?: string | null;
 }
 
-export interface Dossier {
-  id: string;
-  type: string;
-  submittedAt: string;
-  status: string;
+export type DemandStatus = 'draft' | 'submitted' | 'under_review' | 'approved' | 'rejected';
+
+export interface AccreditationList {
+  slug: string;
+  status: DemandStatus;
+  type_accreditation: string; 
+  representative: string; 
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+  rejection_date: string | null;
+}
+
+export interface AccreditationDetail {
+  slug: string;
+  status: DemandStatus;
+  type_accreditation: TypeAccreditation;
+  representative: Representative;
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+  rejection_date: string | null;
+  reason_for_rejection: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  certificate_number: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
