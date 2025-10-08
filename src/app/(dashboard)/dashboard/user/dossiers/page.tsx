@@ -31,6 +31,7 @@ import { useState, useEffect } from "react";
 import { Dossier } from "@/types/api"; // This type might need adjustment
 import apiClient, { getDemands, deleteDemand, makeDemandDraft, submitDemand } from "@/lib/apiClient";
 import { toast } from "sonner";
+import { DeleteDemandDialog } from "./_components/DeleteDemandDialog";
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
   approved: "default",
@@ -53,6 +54,7 @@ export default function DossiersPage() {
     const { activeEntity, isLoading: isEntityLoading } = useEntity();
     const [isLoading, setIsLoading] = useState(true);
     const [dossiers, setDossiers] = useState<any[]>([]); // Using any for now
+    const [demandToDelete, setDemandToDelete] = useState<string | null>(null);
 
     const fetchDossiers = async (entitySlug: string) => {
       if (entitySlug) {
@@ -80,17 +82,21 @@ export default function DossiersPage() {
         }
     }, [activeEntity, isEntityLoading]);
 
-    const handleDelete = async (slug: string) => {
-      if (!activeEntity?.slug) return;
-      if (confirm("Êtes-vous sûr de vouloir supprimer ce brouillon ?")) {
-        try {
-          await deleteDemand(activeEntity.slug, slug);
-          toast.success("Le brouillon a été supprimé avec succès.");
-          fetchDossiers(activeEntity.slug); // Refresh the list
-        } catch (error) {
-          toast.error("Impossible de supprimer le brouillon.");
-          console.error("Failed to delete demand:", error);
-        }
+    const openDeleteDialog = (slug: string) => {
+      setDemandToDelete(slug);
+    };
+
+    const confirmDelete = async () => {
+      if (!activeEntity?.slug || !demandToDelete) return;
+      try {
+        await deleteDemand(activeEntity.slug, demandToDelete);
+        toast.success("Le brouillon a été supprimé avec succès.");
+        fetchDossiers(activeEntity.slug);
+      } catch (error) {
+        toast.error("Impossible de supprimer le brouillon.");
+        console.error("Failed to delete demand:", error);
+      } finally {
+        setDemandToDelete(null);
       }
     };
     
@@ -144,95 +150,102 @@ export default function DossiersPage() {
      }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Mes Demandes</h1>
-          <p className="text-muted-foreground">
-            Suivez l&apos;état des demandes pour <span className="font-semibold text-primary">{activeEntity.name}</span>.
-          </p>
+    <>
+      <DeleteDemandDialog 
+        open={!!demandToDelete}
+        onOpenChange={(open) => !open && setDemandToDelete(null)}
+        onConfirm={confirmDelete}
+      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Mes Demandes</h1>
+            <p className="text-muted-foreground">
+              Suivez l&apos;état des demandes pour <span className="font-semibold text-primary">{activeEntity.name}</span>.
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/dashboard/user/dossiers/new">
+              <FilePlus2 className="mr-2 h-4 w-4" />
+              Nouvelle demande
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/user/dossiers/new">
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Nouvelle demande
-          </Link>
-        </Button>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Historique des demandes</CardTitle>
-          <CardDescription>
-            Voici la liste de toutes vos soumissions passées et actuelles.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Représentant</TableHead>
-                <TableHead>Type de demande</TableHead>
-                <TableHead>Date de soumission</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dossiers.length > 0 ? dossiers.map((dossier) => (
-                <TableRow key={dossier.slug}>
-                  <TableCell className="font-medium">{dossier.representative || "N/A"}</TableCell>
-                  <TableCell>{dossier.type_accreditation || "N/A"}</TableCell>
-                  <TableCell>{dossier.submission_date ? new Date(dossier.submission_date).toLocaleDateString() : 'En attente'}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant[dossier.status] || "secondary"}>
-                      {statusLabel[dossier.status] || dossier.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Ouvrir le menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/user/dossiers/${dossier.slug}`}>
-                            Voir les détails
-                          </Link>
-                        </DropdownMenuItem>
-                        {dossier.status === 'draft' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleSubmit(dossier.slug)}>
-                              Soumettre
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(dossier.slug)}>
-                              Supprimer
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {(dossier.status === 'rejected' || dossier.status === 'submitted') && (
-                          <DropdownMenuItem onClick={() => handleMakeDraft(dossier)}>
-                            Remettre en brouillon
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              )) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Historique des demandes</CardTitle>
+            <CardDescription>
+              Voici la liste de toutes vos soumissions passées et actuelles.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                        Aucune demande trouvée pour cette structure.
-                    </TableCell>
+                  <TableHead>Représentant</TableHead>
+                  <TableHead>Type de demande</TableHead>
+                  <TableHead>Date de soumission</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+              </TableHeader>
+              <TableBody>
+                {dossiers.length > 0 ? dossiers.map((dossier) => (
+                  <TableRow key={dossier.slug}>
+                    <TableCell className="font-medium">{dossier.representative || "N/A"}</TableCell>
+                    <TableCell>{dossier.type_accreditation || "N/A"}</TableCell>
+                    <TableCell>{dossier.submission_date ? new Date(dossier.submission_date).toLocaleDateString() : 'En attente'}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant[dossier.status] || "secondary"}>
+                        {statusLabel[dossier.status] || dossier.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Ouvrir le menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/user/dossiers/${dossier.slug}`}>
+                              Voir les détails
+                            </Link>
+                          </DropdownMenuItem>
+                          {dossier.status === 'draft' && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleSubmit(dossier.slug)}>
+                                Soumettre
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openDeleteDialog(dossier.slug)}>
+                                Supprimer
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {(dossier.status === 'rejected' || dossier.status === 'submitted') && (
+                            <DropdownMenuItem onClick={() => handleMakeDraft(dossier)}>
+                              Remettre en brouillon
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                          Aucune demande trouvée pour cette structure.
+                      </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
