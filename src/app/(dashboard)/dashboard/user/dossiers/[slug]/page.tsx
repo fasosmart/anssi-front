@@ -93,16 +93,38 @@ export default function DossierDetailPage() {
               <DetailItem label="Numéro de certificat" value={demand.certificate_number} icon={<Hash size={16}/>} />
             </CardContent>
           </Card>
+
+          {/* Remarques placées juste en dessous des infos de la demande */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Remarques</CardTitle>
+              {demand.notes && (
+                <CardDescription>
+                  Toute information ou remarque additionnelle concernant cette demande.
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="h-5 w-5 text-muted-foreground mt-1" />
+                <p className={`text-sm ${demand.notes ? "text-foreground" : "text-muted-foreground"} leading-relaxed`}>
+                  {demand.notes && demand.notes.trim() !== ""
+                    ? demand.notes
+                    : "Aucune remarque fournie."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
           
-           {demand.status === 'rejected' && (
-             <Card>
-                <CardHeader><CardTitle className="text-destructive">Informations sur le rejet</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                    <DetailItem label="Date de rejet" value={formatDate(demand.rejection_date)} icon={<Calendar size={16}/>} />
-                    <DetailItem label="Motif du rejet" value={demand.reason_for_rejection} icon={<AlertTriangle size={16}/>} />
-                </CardContent>
-             </Card>
-           )}
+          {demand.status === 'rejected' && (
+            <Card>
+              <CardHeader><CardTitle className="text-destructive">Informations sur le rejet</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <DetailItem label="Date de rejet" value={formatDate(demand.rejection_date)} icon={<Calendar size={16}/>} />
+                <DetailItem label="Motif du rejet" value={demand.reason_for_rejection} icon={<AlertTriangle size={16}/>} />
+              </CardContent>
+            </Card>
+          )}
         </div>
         
         <div className="space-y-6">
@@ -138,13 +160,6 @@ export default function DossierDetailPage() {
                 </Link>
               </Button>
             </CardFooter>
-          </Card>
-          
-          <Card>
-            <CardHeader><CardTitle>Remarques</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{demand.notes || 'Aucune remarque fournie.'}</p>
-            </CardContent>
           </Card>
         </div>
       </div>
