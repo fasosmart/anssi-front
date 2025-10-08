@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { 
-  ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle, Smartphone, MapPin, BadgeInfo, Download, ArrowRight 
+  ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle, Smartphone, MapPin, BadgeInfo, Download, ArrowRight, 
+  Mail,
+  Phone
 } from 'lucide-react';
 
 const statusConfig = {
@@ -134,8 +136,8 @@ export default function DossierDetailPage() {
               <DetailItem label="Nom complet" value={`${demand.representative?.first_name} ${demand.representative?.last_name}`} icon={<User size={16}/>} />
               <DetailItem label="Poste" value={demand.representative?.job_title} />
               <DetailItem label="Adresse" value={demand.representative?.address} icon={<MapPin size={16}/>} />
-              <DetailItem label="Email" value={demand.representative?.email} />
-              <DetailItem label="Téléphone" value={demand.representative?.phone} />
+              <DetailItem label="Email" value={demand.representative?.email} icon={<Mail size={16}/>} />
+              <DetailItem label="Téléphone" value={demand.representative?.phone} icon={<Phone size={16}/>} />
               <DetailItem label="Mobile" value={demand.representative?.mobile} icon={<Smartphone size={16}/>} />
               <DetailItem label="N° CNI" value={demand.representative?.idcard_number} icon={<BadgeInfo size={16}/>} />
               <DetailItem label="Délivrée le" value={formatDate(demand.representative?.idcard_issued_at)} icon={<Calendar size={16}/>} />
