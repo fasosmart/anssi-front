@@ -5,10 +5,13 @@ import { useParams } from 'next/navigation';
 import { useEntity } from '@/contexts/EntityContext';
 import { getDemandDetails } from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  ArrowLeft, Calendar, User, FileText, Hash, Clock, AlertTriangle, Smartphone, MapPin, BadgeInfo, Download, ArrowRight 
+} from 'lucide-react';
 
 const statusConfig = {
   approved: { label: "Approuvé", variant: "default", icon: <FileText className="h-4 w-4" /> },
@@ -70,7 +73,7 @@ export default function DossierDetailPage() {
           <h1 className="text-2xl font-bold">Demande d'accréditation</h1>
           <p className="text-muted-foreground">Type : {demand.type_accreditation?.name}</p>
         </div>
-        <Badge variant={currentStatus.variant} className="text-base px-4 py-2 self-start md:self-center">
+        <Badge variant={currentStatus.variant as "default" | "secondary" | "destructive" | "outline"} className="text-base px-4 py-2 self-start md:self-center">
           {currentStatus.icon}
           <span className="ml-2">{currentStatus.label}</span>
         </Badge>
@@ -107,10 +110,34 @@ export default function DossierDetailPage() {
             <CardHeader><CardTitle>Représentant Légal</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <DetailItem label="Nom complet" value={`${demand.representative?.first_name} ${demand.representative?.last_name}`} icon={<User size={16}/>} />
-              <DetailItem label="Poste" value={demand.representative?.job_title} icon={<User size={16}/>} />
-              <DetailItem label="Email" value={demand.representative?.email} icon={<User size={16}/>} />
-              <DetailItem label="Téléphone" value={demand.representative?.phone} icon={<User size={16}/>} />
+              <DetailItem label="Poste" value={demand.representative?.job_title} />
+              <DetailItem label="Adresse" value={demand.representative?.address} icon={<MapPin size={16}/>} />
+              <DetailItem label="Email" value={demand.representative?.email} />
+              <DetailItem label="Téléphone" value={demand.representative?.phone} />
+              <DetailItem label="Mobile" value={demand.representative?.mobile} icon={<Smartphone size={16}/>} />
+              <DetailItem label="N° CNI" value={demand.representative?.idcard_number} icon={<BadgeInfo size={16}/>} />
+              <DetailItem label="Délivrée le" value={formatDate(demand.representative?.idcard_issued_at)} icon={<Calendar size={16}/>} />
+              <DetailItem label="Expire le" value={formatDate(demand.representative?.idcard_expires_at)} icon={<Calendar size={16}/>} />
+              <DetailItem 
+                label="Fichier CNI" 
+                value={
+                  demand.representative?.idcard_file ? (
+                    <a href={demand.representative.idcard_file} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center">
+                      Voir le document <Download size={14} className="ml-2" />
+                    </a>
+                  ) : 'Non fourni'
+                } 
+                icon={<FileText size={16}/>} 
+              />
             </CardContent>
+            <CardFooter>
+              <Button asChild variant="secondary" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href={`/dashboard/user/representatives/${demand.representative?.slug}`}>
+                  Voir les infos complètes
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardFooter>
           </Card>
           
           <Card>
