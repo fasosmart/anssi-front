@@ -29,7 +29,7 @@ import { FilePlus2, MoreHorizontal } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useState, useEffect } from "react";
 import { Dossier } from "@/types/api"; // This type might need adjustment
-import apiClient, { getDemands, deleteDemand, makeDemandDraft } from "@/lib/apiClient";
+import apiClient, { getDemands, deleteDemand, makeDemandDraft, submitDemand } from "@/lib/apiClient";
 import { toast } from "sonner";
 
 const statusVariant: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -94,6 +94,18 @@ export default function DossiersPage() {
       }
     };
     
+    const handleSubmit = async (slug: string) => {
+      if (!activeEntity?.slug) return;
+      try {
+        await submitDemand(activeEntity.slug, slug);
+        toast.success("La demande d'accréditation a été soumise avec succès.");
+        fetchDossiers(activeEntity.slug); // Refresh the list
+      } catch (error) {
+        toast.error("Impossible de soumettre la demande.");
+        console.error("Failed to submit demand:", error);
+      }
+    };
+
     const handleMakeDraft = async (dossier: any) => {
       if (!activeEntity?.slug) return;
       try {
@@ -192,9 +204,14 @@ export default function DossiersPage() {
                           </Link>
                         </DropdownMenuItem>
                         {dossier.status === 'draft' && (
-                          <DropdownMenuItem onClick={() => handleDelete(dossier.slug)}>
-                            Supprimer
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => handleSubmit(dossier.slug)}>
+                              Soumettre
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(dossier.slug)}>
+                              Supprimer
+                            </DropdownMenuItem>
+                          </>
                         )}
                         {(dossier.status === 'rejected' || dossier.status === 'submitted') && (
                           <DropdownMenuItem onClick={() => handleMakeDraft(dossier)}>
