@@ -41,14 +41,18 @@ export default function EditDossierPage() {
   useEffect(() => {
     const fetchInitialData = async () => {
       if (!activeEntity?.slug || typeof slug !== 'string') return;
+      const repSlug = (await getDemandDetails(activeEntity.slug, slug)).representative.slug;
       
       setIsLoading(true);
       try {
         // Fetch all data in parallel for better performance
-        const [typesResponse, demandDetails, entityDetailsResp] = await Promise.all([
+        const [typesResponse, demandDetails, entityDetailsResp, degreesResponse, trainingsResponse, experiencesResponse] = await Promise.all([
           getAccreditationTypes(),
           getDemandDetails(activeEntity.slug, slug),
-          apiClient.get(API.entities.details(activeEntity.slug))
+          apiClient.get(API.entities.details(activeEntity.slug)),
+          apiClient.get(API.degrees.list(activeEntity.slug, repSlug)),
+          apiClient.get(API.trainings.list(activeEntity.slug, repSlug)),
+          apiClient.get(API.experiences.list(activeEntity.slug, repSlug)),
         ]);
         const entityDetails = entityDetailsResp.data;
         
@@ -60,6 +64,9 @@ export default function EditDossierPage() {
         setFormData({
             companyInfo: entityDetails as Entity, 
             legalRepresentative: demandDetails.representative,
+            representativeDiplomas: degreesResponse.data.results,
+            representativeCertifications: trainingsResponse.data.results,
+            representativeExperience: experiencesResponse.data.results,
             accreditationTypes: {
                 [demandDetails.type_accreditation.slug]: true
             }
