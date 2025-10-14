@@ -18,11 +18,12 @@ import { Step3AccreditationRequest } from "../../new/_components/Step3Accreditat
 import { Step4ReviewSubmit } from "../../new/_components/Step4ReviewSubmit";
 import { MultiStepTimeline } from "../../new/_components/MultiStepTimeline";
 import { DossierFormData, Entity, TypeAccreditation } from "@/types/api";
-import { 
+import apiClient, { 
   getAccreditationTypes,
   getDemandDetails,
   updateDemand
 } from "@/lib/apiClient";
+import { API } from "@/lib/api";
 import { toast } from "sonner";
 import { useEntity } from "@/contexts/EntityContext";
 
@@ -44,17 +45,21 @@ export default function EditDossierPage() {
       setIsLoading(true);
       try {
         // Fetch all data in parallel for better performance
-        const [typesResponse, demandDetails] = await Promise.all([
+        const [typesResponse, demandDetails, entityDetailsResp] = await Promise.all([
           getAccreditationTypes(),
-          getDemandDetails(activeEntity.slug, slug)
+          getDemandDetails(activeEntity.slug, slug),
+          apiClient.get(API.entities.details(activeEntity.slug))
         ]);
+        const entityDetails = entityDetailsResp.data;
         
         setAccreditationOptions(typesResponse.results);
         
-        // Combine data from activeEntity (for company info) and demandDetails (for selections)
+        // Combine data:
+        // - Use the currently active entity for all company-related info
+        // - Use the fetched demand details to pre-select the representative and accreditation type
         setFormData({
-            companyInfo: activeEntity as Entity, // Use active entity for company details
-            legalRepresentative: demandDetails.representative, // Use fetched demand for pre-selected representative
+            companyInfo: entityDetails as Entity, 
+            legalRepresentative: demandDetails.representative,
             accreditationTypes: {
                 [demandDetails.type_accreditation.slug]: true
             }
