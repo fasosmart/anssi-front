@@ -58,5 +58,15 @@ export const API = {
     details: (entitySlug: string, repSlug: string, expSlug: string) => `${BASE_URL}/${entitySlug}/representatives/${repSlug}/experiences/${expSlug}/`,
     update: (entitySlug: string, repSlug: string, expSlug: string) => `${BASE_URL}/${entitySlug}/representatives/${repSlug}/experiences/${expSlug}/`,
     delete: (entitySlug: string, repSlug: string, expSlug: string) => `${BASE_URL}/${entitySlug}/representatives/${repSlug}/experiences/${expSlug}/`,
+  },
+
+  // Countries
+  countries: {
+    list: () => `${BASE_URL}/countries/`,
+  },
+
+  // Document Types
+  documentTypes: {
+    list: () => `${BASE_URL}/entities/document-type/`,
   }
 };
