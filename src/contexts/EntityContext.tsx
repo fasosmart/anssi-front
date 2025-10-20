@@ -33,18 +33,15 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
     try {
+      // Clear localStorage on each login
+      localStorage.removeItem('activeEntitySlug');
+      
       const response = await apiClient.get<{ results: EntityList[] }>(API.entities.list());
       const fetchedEntities = response.data.results || [];
       setEntities(fetchedEntities);
 
-      if (fetchedEntities.length > 0) {
-        // Check local storage for a previously selected entity
-        const lastActiveSlug = localStorage.getItem('activeEntitySlug');
-        const lastActive = fetchedEntities.find(e => e.slug === lastActiveSlug);
-        setActiveEntityState(lastActive || fetchedEntities[0]);
-      } else {
-        setActiveEntityState(null);
-      }
+      // Don't auto-select entity - let EntityRedirectHandler handle the logic
+      setActiveEntityState(null);
     } catch (err) {
       setError("Impossible de charger les structures.");
       // console.error(err);
