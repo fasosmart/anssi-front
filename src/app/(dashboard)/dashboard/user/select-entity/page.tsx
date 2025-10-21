@@ -26,6 +26,7 @@ export default function SelectEntityPage() {
   } = useEntity();
 
   const handleCreateNew = () => {
+    // Note: Assurez-vous que ce chemin est aussi exclu du full layout dans DashboardLayout
     router.push("/dashboard/user/entities/new");
   };
 
@@ -34,27 +35,31 @@ export default function SelectEntityPage() {
     router.push("/dashboard/user");
   };
 
+  // --- RENDU CONDITIONNEL CENTRÉ ---
+
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-        <div className="text-center">
-          <Skeleton className="h-8 w-64 mx-auto mb-2" />
-          <Skeleton className="h-4 w-96 mx-auto" />
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-10 w-1/3" />
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex flex-col gap-8 max-w-xl w-full"> {/* Utiliser w-full pour prendre l'espace dans max-w-xl */}
+          <div className="text-center">
+            <Skeleton className="h-8 w-64 mx-auto mb-2" />
+            <Skeleton className="h-4 w-96 mx-auto" />
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-10 w-1/3" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -63,11 +68,13 @@ export default function SelectEntityPage() {
   // Error state
   if (error) {
     return (
-      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-        <Alert variant="destructive">
-          <AlertTitle>Erreur</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex flex-col gap-8 max-w-lg w-full">
+          <Alert variant="destructive">
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
@@ -75,34 +82,36 @@ export default function SelectEntityPage() {
   // Mode: Create (no entities)
   if (entities.length === 0) {
     return (
-      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-        <div className="text-center">
-          <Building className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Bienvenue sur la plateforme ANSSI
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Pour commencer, vous devez créer votre première structure.
-          </p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex flex-col gap-8 max-w-xl w-full">
+          <div className="text-center">
+            <Building className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h1 className="text-3xl font-bold tracking-tight mb-2">
+              Bienvenue sur la plateforme ANSSI
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Pour commencer, vous devez créer votre première structure.
+            </p>
+          </div>
 
-        <Card className="border-2 border-dashed">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <PlusCircle className="h-6 w-6" />
-              Créer votre première structure
-            </CardTitle>
-            <CardDescription>
-              Ajoutez les informations de votre entreprise, association ou structure personnelle.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Button onClick={handleCreateNew} size="lg">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Créer une structure
-            </Button>
-          </CardContent>
-        </Card>
+          <Card className="border-2 border-dashed">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <PlusCircle className="h-6 w-6" />
+                Créer votre première structure
+              </CardTitle>
+              <CardDescription>
+                Ajoutez les informations de votre entreprise, association ou structure personnelle.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button onClick={handleCreateNew} size="lg">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Créer une structure
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -110,59 +119,54 @@ export default function SelectEntityPage() {
   // Mode: Select (multiple entities)
   if (entities.length > 1) {
     return (
-      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Sélectionnez votre structure
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Choisissez la structure sur laquelle vous souhaitez travailler.
-          </p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex flex-col gap-8 max-w-4xl w-full">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">
+              Sélectionnez votre structure
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Choisissez la structure sur laquelle vous souhaitez travailler.
+            </p>
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {entities.map((entity) => (
-            <Card 
-              key={entity.slug} 
-              className="flex flex-col transition-all hover:shadow-lg cursor-pointer"
-              onClick={() => handleSelectEntity(entity)}
-            >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      {entity.name}
-                    </CardTitle>
-                    <CardDescription>
-                      {entityTypeLabels[entity.entity_type] || entity.entity_type}
-                    </CardDescription>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {entities.map((entity) => (
+              <Card 
+                key={entity.slug} 
+                className="flex flex-col transition-all hover:shadow-lg cursor-pointer"
+                onClick={() => handleSelectEntity(entity)}
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        {entity.name}
+                      </CardTitle>
+                      <CardDescription>
+                        {entityTypeLabels[entity.entity_type] || entity.entity_type}
+                      </CardDescription>
+                    </div>
                   </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-sm text-muted-foreground">
+                    Secteur: {entity.business_sector || 'Non spécifié'}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Sigle: {entity.acronym || "N/A"}
+                  </p>
+                </CardContent>
+                <div className="p-6 pt-0">
+                  <Button className="w-full">
+                    Sélectionner cette structure
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
-                  Secteur: {entity.business_sector || 'Non spécifié'}
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Sigle: {entity.acronym || "N/A"}
-                </p>
-              </CardContent>
-              <div className="p-6 pt-0">
-                <Button className="w-full">
-                  Sélectionner cette structure
-                </Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
-
-        {/* <div className="text-center">
-          <Button variant="outline" onClick={handleCreateNew}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter une nouvelle structure
-          </Button>
-        </div> */}
       </div>
     );
   }
@@ -182,8 +186,8 @@ export default function SelectEntityPage() {
     }, []);
 
     return (
-      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-        <div className="text-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="flex flex-col gap-8 max-w-lg w-full text-center">
           <Building className="h-16 w-16 mx-auto mb-4 text-primary" />
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             Redirection en cours...
@@ -203,13 +207,15 @@ export default function SelectEntityPage() {
 
   // Fallback - should not reach here
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-      <Alert>
-        <AlertTitle>État inattendu</AlertTitle>
-        <AlertDescription>
-          Une erreur inattendue s'est produite. Veuillez rafraîchir la page.
-        </AlertDescription>
-      </Alert>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex flex-col gap-8 max-w-lg w-full">
+        <Alert>
+          <AlertTitle>État inattendu</AlertTitle>
+          <AlertDescription>
+            Une erreur inattendue s'est produite. Veuillez rafraîchir la page.
+          </AlertDescription>
+        </Alert>
+      </div>
     </div>
   );
 }
