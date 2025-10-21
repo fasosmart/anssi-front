@@ -28,6 +28,9 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
 
     if (entityCount === 0) {
       // Cas 3 : l'utilisateur n'a aucune entité -> on le redirige vers la création d'une entité
+      if (pathname?.includes('/entities/new')) {
+        return;
+      }
       router.push('/dashboard/user/select-entity');
     } else if (entityCount === 1 && !activeEntity) {
       // Cas 2 : une seule entité -> on la sélectionne automatiquement
