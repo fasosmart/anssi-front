@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,8 +17,6 @@ const entityTypeLabels: { [key: string]: string } = {
 
 export default function SelectEntityPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const mode = searchParams.get('mode'); // 'create' or 'select'
   
   const { 
     entities, 
@@ -74,7 +73,7 @@ export default function SelectEntityPage() {
   }
 
   // Mode: Create (no entities)
-  if (entities.length === 0 && mode === 'create') {
+  if (entities.length === 0) {
     return (
       <div className="flex flex-col gap-8 max-w-4xl mx-auto">
         <div className="text-center">
@@ -109,7 +108,7 @@ export default function SelectEntityPage() {
   }
 
   // Mode: Select (multiple entities)
-  if (entities.length > 1 && mode === 'select') {
+  if (entities.length > 1) {
     return (
       <div className="flex flex-col gap-8 max-w-4xl mx-auto">
         <div className="text-center">
@@ -164,6 +163,40 @@ export default function SelectEntityPage() {
             Ajouter une nouvelle structure
           </Button>
         </div> */}
+      </div>
+    );
+  }
+
+  // Cas: Une seule entité (redirection automatique vers dashboard)
+  if (entities.length === 1) {
+    // Auto-sélection et redirection
+    const handleAutoSelect = () => {
+      setActiveEntity(entities[0]);
+      router.push("/dashboard/user");
+    };
+
+    // Auto-redirection après un court délai
+    React.useEffect(() => {
+      const timer = setTimeout(handleAutoSelect, 1000);
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <div className="flex flex-col gap-8 max-w-4xl mx-auto">
+        <div className="text-center">
+          <Building className="h-16 w-16 mx-auto mb-4 text-primary" />
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Redirection en cours...
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Vous avez une seule structure. Redirection vers votre espace personnel.
+          </p>
+          <div className="mt-4">
+            <Button onClick={handleAutoSelect} variant="outline">
+              Continuer maintenant
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

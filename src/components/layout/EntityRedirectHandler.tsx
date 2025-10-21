@@ -28,7 +28,7 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
 
     if (entityCount === 0) {
       // Cas 3 : l'utilisateur n'a aucune entité -> on le redirige vers la création d'une entité
-      router.push('/dashboard/user/select-entity?mode=create');
+      router.push('/dashboard/user/select-entity');
     } else if (entityCount === 1 && !activeEntity) {
       // Cas 2 : une seule entité -> on la sélectionne automatiquement
       setActiveEntity(entities[0]);
@@ -38,7 +38,7 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
       }
     } else if (entityCount > 1 && !activeEntity) {
       // Cas 1 : plusieurs entités mais aucune sélectionnée -> on redirige vers la sélection
-      router.push('/dashboard/user/select-entity?mode=select');
+      router.push('/dashboard/user/select-entity');
     }
   }, [status, isLoading, entities, activeEntity, pathname, router, session, setActiveEntity]);
 
