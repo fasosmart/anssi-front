@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -179,12 +179,6 @@ export default function SelectEntityPage() {
       router.push("/dashboard/user");
     };
 
-    // Auto-redirection après un court délai
-    React.useEffect(() => {
-      const timer = setTimeout(handleAutoSelect, 1000);
-      return () => clearTimeout(timer);
-    }, []);
-
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="flex flex-col gap-8 max-w-lg w-full text-center">
@@ -212,7 +206,7 @@ export default function SelectEntityPage() {
         <Alert>
           <AlertTitle>État inattendu</AlertTitle>
           <AlertDescription>
-            Une erreur inattendue s'est produite. Veuillez rafraîchir la page.
+            Une erreur inattendue s&apos;est produite. Veuillez rafraîchir la page.
           </AlertDescription>
         </Alert>
       </div>

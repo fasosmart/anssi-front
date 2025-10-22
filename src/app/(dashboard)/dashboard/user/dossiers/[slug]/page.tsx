@@ -47,7 +47,7 @@ export default function DossierDetailPage() {
         try {
           const data = await getDemandDetails(activeEntity.slug, slug);
           setDemand(data);
-        } catch (_error) {
+        } catch {
           toast.error("Impossible de charger les détails de la demande.");
         } finally {
           setIsLoading(false);

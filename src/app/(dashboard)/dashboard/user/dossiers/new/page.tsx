@@ -22,7 +22,6 @@ import { DossierFormData, Entity, TypeAccreditation } from "@/types/api";
 import apiClient, { 
   getAccreditationTypes,
   createDemand,
-  updateDemand,
   submitDemand
 } from "@/lib/apiClient";
 import { toast } from "sonner";
