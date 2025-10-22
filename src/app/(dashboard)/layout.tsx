@@ -16,50 +16,52 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  
-  // DÉFINITION DE LA CONDITION
-  // Afficher le layout complet (avec sidebar/header) UNIQUEMENT si l'on n'est pas sur ces chemins.
-  const showFullLayout = 
+
+  // La sidebar est affichée uniquement si on n'est PAS sur ces chemins.
+  const showSidebar = 
     !pathname.includes('/select-entity') && 
-    !pathname.includes('/entities/new');
+    !pathname.includes('/entities/new') &&
+    !pathname.includes('/profile');
+    
+  // La classe de grille change en fonction de la présence de la sidebar
+  const gridLayoutClass = showSidebar 
+    ? "md:grid-cols-[auto_1fr]" // Grille avec sidebar
+    : "md:grid-cols-1";          // Grille sans sidebar (une seule colonne principale)
     
   return (
     <EntityProvider>
       <EntityRedirectHandler>
-        {/*
-          LOGIQUE DE RENDU CONDITIONNEL DU LAYOUT
-          1. Si showFullLayout est true : on affiche le layout complet (avec SidebarProvider, AppSidebar, Header, etc.)
-          2. Sinon : on affiche juste le contenu (children) dans un layout minimal.
-        */}
-        {showFullLayout ? (
-          <SidebarProvider>
-            <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
-              <AppSidebar />
-              <div className="flex flex-col">
-                {/* HEADER */}
-                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
-                  <SidebarTrigger className="sm:hidden" />
-                  <div className="relative ml-auto flex items-center gap-2 md:grow-0">
-                    <ThemeToggle />
-                    <UserNav />
-                  </div>
-                </header>
-                {/* MAIN CONTENT */}
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                  <AppBreadcrumb />
-                  {children}
-                </main>
-              </div>
-              <Toaster />
+        {/* Le SidebarProvider est toujours nécessaire car les boutons du header peuvent l'utiliser */}
+        <SidebarProvider>
+          <div className={`grid min-h-screen w-full ${gridLayoutClass}`}>
+            
+            {/* 1. SIDEBAR (Conditionnelle) */}
+            {showSidebar && <AppSidebar />}
+
+            <div className="flex flex-col">
+              
+              {/* 2. HEADER (Toujours présent) */}
+              <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+                {/* Le SidebarTrigger pour mobile est gardé si showSidebar est false, il affichera juste la sidebar vide/globale */}
+                <SidebarTrigger className="sm:hidden" /> 
+                <div className="relative ml-auto flex items-center gap-2 md:grow-0">
+                  <ThemeToggle />
+                  <UserNav />
+                </div>
+              </header>
+              
+              {/* 3. MAIN CONTENT (Toujours présent) */}
+              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                
+                {/* Le Breadcrumb n'est pas utile sur les pages de sélection, on le rend conditionnel */}
+                {showSidebar && <AppBreadcrumb />}
+                
+                {children}
+              </main>
             </div>
-          </SidebarProvider>
-        ) : (
-          // LAYOUT MINIMAL : Juste le contenu de la page
-          <div className="min-h-screen"> 
-            {children}
-            <Toaster /> {/* La Toaster est toujours utile */}
+            <Toaster />
           </div>
-        )}
+        </SidebarProvider>
       </EntityRedirectHandler>
     </EntityProvider>
   );

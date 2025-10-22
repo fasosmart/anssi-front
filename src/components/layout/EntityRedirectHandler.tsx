@@ -20,7 +20,7 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
     if (status !== 'authenticated' || isLoading || !session) return;
 
     // Ignore la logique de redirection si on se trouve déjà sur la page de sélection/création d'entité ou sur les pages d'auth
-    if (pathname?.includes('/select-entity') || pathname?.includes('/login') || pathname?.includes('/register')) {
+    if (pathname?.includes('/select-entity') || pathname?.includes('/login') || pathname?.includes('/register') || pathname?.includes('/profile')) {
       return;
     }
 
