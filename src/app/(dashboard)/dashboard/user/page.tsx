@@ -11,6 +11,7 @@ import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { ActiveEntityCard } from "@/components/dashboard/ActiveEntityCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Building, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Entity } from "@/types/api";
 
 export default function DashboardPage() {
   const { activeEntity } = useEntity();
@@ -97,7 +98,7 @@ export default function DashboardPage() {
 
       {/* Cinquième ligne - Structure active et Actions rapides */}
       <div className="grid gap-4 md:grid-cols-2">
-        <ActiveEntityCard entity={activeEntity as any} />
+        <ActiveEntityCard entity={activeEntity as Entity} />
         <QuickActions />
       </div>
     </div>
