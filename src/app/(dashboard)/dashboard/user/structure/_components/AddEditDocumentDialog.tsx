@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Document, Entity } from "@/types/api";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
+import { useDocumentTypes } from "@/hooks/use-document-types";
 
 interface AddEditDocumentDialogProps {
   isOpen: boolean;
@@ -37,6 +39,7 @@ export function AddEditDocumentDialog({
   const [formData, setFormData] = useState<Partial<Document>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditMode = !!document?.slug;
+  const { documentTypes, isLoading: isLoadingTypes, error: typesError } = useDocumentTypes();
 
   useEffect(() => {
     if (document) {
@@ -51,6 +54,10 @@ export function AddEditDocumentDialog({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDocumentTypeChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, document_type: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,14 +112,27 @@ export function AddEditDocumentDialog({
           </DialogHeader>
           <div className="grid gap-6 py-6">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nom du document</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name || ""}
-                onChange={handleChange}
-                required
-              />
+              <Label htmlFor="document_type">Type de document</Label>
+              {isLoadingTypes ? (
+                <div className="text-sm text-muted-foreground">Chargement des types de documents...</div>
+              ) : typesError ? (
+                <div className="text-sm text-destructive">{typesError}</div>
+              ) : (
+                <Select value={formData.document_type || ""} onValueChange={handleDocumentTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez un type de document" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentTypes
+                      .filter(dt => dt.status === 'ON')
+                      .map((docType) => (
+                        <SelectItem key={docType.slug} value={docType.slug}>
+                          {docType.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="file">Fichier (PDF, PNG, JPG)</Label>

@@ -6,9 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { File as FileIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
+interface DocumentWithType {
+  file: File;
+  documentType: {
+    slug: string;
+    name: string;
+    description?: string | null;
+    status: 'ON' | 'OFF';
+  };
+  id: string;
+}
+
 interface Step3Props {
   entityData: Partial<Entity>;
-  documentsData: File[];
+  documentsData: DocumentWithType[];
 }
 
 const ReviewItem = ({ label, value }: { label: string; value?: string | number | null }) => (
@@ -49,11 +60,14 @@ export const Step3Review: React.FC<Step3Props> = ({ entityData, documentsData })
         <CardContent>
           {documentsData.length > 0 ? (
             <ul className="space-y-2">
-              {documentsData.map((file, index) => (
-                <li key={index} className="flex items-center gap-3 p-2 rounded-md border">
+              {documentsData.map((doc) => (
+                <li key={doc.id} className="flex items-center gap-3 p-2 rounded-md border">
                   <FileIcon className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium">{file.name}</span>
-                  <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(2)} KB)</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{doc.documentType.name}</span>
+                    <span className="text-xs text-muted-foreground block">{doc.file.name}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">({(doc.file.size / 1024).toFixed(2)} KB)</span>
                 </li>
               ))}
             </ul>

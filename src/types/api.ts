@@ -82,10 +82,18 @@ export interface TypeAccreditation {
   duration?: number;
 }
 
+export interface DocumentType {
+  slug: string;
+  name: string;
+  description?: string | null;
+  status: 'ON' | 'OFF';
+}
+
 export interface Document {
   slug?: string;
   created_at?: string;
   name: string;
+  document_type: string;
   file: string | File;
   issued_at: string;
   expires_at?: string | null;
