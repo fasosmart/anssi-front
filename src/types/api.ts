@@ -1,3 +1,5 @@
+export type EntityStatus = 'new' | 'submitted' | 'under_review' | 'validated' | 'blocked' | 'declined';
+
 export interface Entity {
   slug?: string;
   name: string;
@@ -13,6 +15,8 @@ export interface Entity {
   email?: string | null;
   website?: string | null;
   entity_type: 'personal' | 'business' | 'ngo';
+  status?: EntityStatus;
+  rejection_reason?: string | null;
   created_at?: string;
 }
 
@@ -102,6 +106,31 @@ export interface AccreditationList {
   review_date: string | null;
   approval_date: string | null;
   rejection_date: string | null;
+}
+
+export interface EntityList {
+  slug: string;
+  name: string;
+  acronym?: string | null;
+  business_sector?: string | null;
+  entity_type: 'personal' | 'business' | 'ngo';
+  is_active: boolean;
+  status: EntityStatus;
+  created_at: string;
+}
+
+export interface EntityDetail extends Entity {
+  entity_users: EntityUser[];
+  rejection_reason?: string | null;
+  status: EntityStatus;
+}
+
+export interface EntityUser {
+  slug: string;
+  user?: string | null;
+  email: string;
+  status: 'pending' | 'active' | 'blocked' | 'left' | 'declined';
+  created_at: string;
 }
 
 export interface AccreditationDetail {

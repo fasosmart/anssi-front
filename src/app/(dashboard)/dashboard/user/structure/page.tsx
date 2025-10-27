@@ -23,16 +23,30 @@ import { DocumentManager } from "./_components/DocumentManager";
 import { useEntity } from "@/contexts/EntityContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, AlertCircle, XCircle, Ban } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { SubmitEntityConfirmationDialog } from "@/components/ui/submit-entity-confirmation-dialog";
 
 export default function StructurePage() {
-  const { activeEntity, isLoading: isEntityLoading, error: entityError } = useEntity();
+  const { 
+    activeEntity, 
+    isLoading: isEntityLoading, 
+    error: entityError,
+    canEditEntity,
+    canManageRepresentatives,
+    canCreateDemands,
+    getEntityStatusLabel,
+    getEntityStatusColor,
+    submitEntityForReview
+  } = useEntity();
   const router = useRouter();
 
   const [entityDetails, setEntityDetails] = useState<Partial<Entity> | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
 
   const fetchDetailsAndDocuments = async (slug: string) => {
     setIsLoading(true);
@@ -87,6 +101,47 @@ export default function StructurePage() {
     }
   };
 
+  const handleSubmitForReview = async () => {
+    if (!activeEntity?.slug) return;
+    
+    setIsSubmittingForReview(true);
+    try {
+      const success = await submitEntityForReview(activeEntity.slug);
+      if (success) {
+        // Rafraîchir les détails de l'entité
+        await fetchDetailsAndDocuments(activeEntity.slug);
+        setShowSubmitDialog(false);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la soumission:', error);
+    } finally {
+      setIsSubmittingForReview(false);
+    }
+  };
+
+  const handleSubmitButtonClick = () => {
+    setShowSubmitDialog(true);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'new':
+        return <Clock className="h-4 w-4" />;
+      case 'submitted':
+        return <AlertCircle className="h-4 w-4" />;
+      case 'under_review':
+        return <Clock className="h-4 w-4" />;
+      case 'validated':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'blocked':
+        return <Ban className="h-4 w-4" />;
+      case 'declined':
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
   if (isLoading || isEntityLoading) {
     return <div>Chargement de la structure...</div>;
   }
@@ -115,14 +170,64 @@ export default function StructurePage() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Retour à la liste des structures
       </Link>
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">{entityDetails?.name || "Ma Structure"}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">{entityDetails?.name || "Ma Structure"}</h1>
+            {activeEntity?.status && (
+              <Badge 
+                variant="secondary" 
+                className={`${getEntityStatusColor(activeEntity.status)} text-primary flex items-center gap-1`}
+              >
+                {getStatusIcon(activeEntity.status)}
+                {getEntityStatusLabel(activeEntity.status)}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Gérez les informations de votre entreprise ou organisation.
           </p>
         </div>
+        {activeEntity?.status === 'new' && (
+          <Button 
+            onClick={handleSubmitButtonClick}
+            disabled={isSubmittingForReview}
+            className="bg-primary hover:bg-primary/90"
+          >
+            {isSubmittingForReview ? 'Soumission...' : 'Soumettre pour validation'}
+          </Button>
+        )}
       </div>
+      
+      {/* Messages explicatifs selon le statut */}
+      {activeEntity?.status && (
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              {getStatusIcon(activeEntity.status)}
+              <div className="space-y-1">
+                <h3 className="font-semibold">
+                  {activeEntity.status === 'new' && "Structure en cours de création"}
+                  {activeEntity.status === 'submitted' && "Structure soumise"}
+                  {activeEntity.status === 'under_review' && "Structure en cours de validation"}
+                  {activeEntity.status === 'validated' && "Structure validée"}
+                  {activeEntity.status === 'blocked' && "Structure bloquée"}
+                  {activeEntity.status === 'declined' && "Structure refusée"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {activeEntity.status === 'new' && "Vous pouvez modifier les informations de votre structure et la soumettre pour validation."}
+                  {activeEntity.status === 'submitted' && "Votre structure a été soumise et sera bientôt examinée par nos équipes."}
+                  {activeEntity.status === 'under_review' && "Votre structure est en cours d'examen par nos équipes. Vous ne pouvez plus la modifier pour le moment."}
+                  {activeEntity.status === 'validated' && "Votre structure est validée ! Vous pouvez maintenant gérer vos représentants et créer des demandes d'accréditation."}
+                  {activeEntity.status === 'blocked' && "Votre structure est temporairement bloquée. Contactez le support pour plus d'informations."}
+                  {activeEntity.status === 'declined' && "Votre structure a été refusée. Vous pouvez la modifier et la soumettre à nouveau."}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <Tabs defaultValue="general">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="general">Informations Générales</TabsTrigger>
@@ -134,7 +239,10 @@ export default function StructurePage() {
               <CardHeader>
                 <CardTitle>Informations sur l&apos;entreprise</CardTitle>
                 <CardDescription>
-                  Assurez-vous que ces informations sont exactes et à jour.
+                  {canEditEntity() 
+                    ? "Assurez-vous que ces informations sont exactes et à jour."
+                    : "Ces informations sont en lecture seule car votre structure est en cours de validation."
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
@@ -148,6 +256,7 @@ export default function StructurePage() {
                       onChange={handleChange}
                       placeholder="Ex: FasoSmart"
                       required
+                      disabled={!canEditEntity()}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -158,6 +267,7 @@ export default function StructurePage() {
                       value={entityDetails?.acronym || ""}
                       onChange={handleChange}
                       placeholder="Ex: FS"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                 </div>
@@ -170,6 +280,7 @@ export default function StructurePage() {
                     value={entityDetails?.business_sector || ""}
                     onChange={handleChange}
                     placeholder="Ex: Technologies de l'Information et de la Communication"
+                    disabled={!canEditEntity()}
                   />
                 </div>
 
@@ -182,6 +293,7 @@ export default function StructurePage() {
                       value={entityDetails?.tax_id || ""}
                       onChange={handleChange}
                       placeholder="Numéro IFU"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -194,6 +306,7 @@ export default function StructurePage() {
                       value={entityDetails?.commercial_register || ""}
                       onChange={handleChange}
                       placeholder="RCCM..."
+                      disabled={!canEditEntity()}
                     />
                   </div>
                 </div>
@@ -207,6 +320,7 @@ export default function StructurePage() {
                       value={entityDetails?.total_staff || ""}
                       onChange={handleChange}
                       placeholder="Ex: 10"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -218,6 +332,7 @@ export default function StructurePage() {
                       value={entityDetails?.cybersecurity_experts || ""}
                       onChange={handleChange}
                       placeholder="Ex: 3"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                 </div>
@@ -230,6 +345,7 @@ export default function StructurePage() {
                       value={entityDetails?.address || ""}
                       onChange={handleChange}
                       placeholder="Siège social, ville, pays"
+                      disabled={!canEditEntity()}
                     />
                 </div>
 
@@ -242,6 +358,7 @@ export default function StructurePage() {
                       value={entityDetails?.phone || ""}
                       onChange={handleChange}
                       placeholder="+224 XX XX XX XX"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -252,6 +369,7 @@ export default function StructurePage() {
                       value={entityDetails?.mobile || ""}
                       onChange={handleChange}
                       placeholder="+224 XX XX XX XX"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                 </div>
@@ -265,6 +383,7 @@ export default function StructurePage() {
                       value={entityDetails?.email || ""}
                       onChange={handleChange}
                       placeholder="contact@example.com"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                   <div className="grid gap-2">
@@ -276,12 +395,13 @@ export default function StructurePage() {
                       value={entityDetails?.website || ""}
                       onChange={handleChange}
                       placeholder="https://www.example.com"
+                      disabled={!canEditEntity()}
                     />
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !canEditEntity()}>
                   {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
                 </Button>
               </CardFooter>
@@ -293,7 +413,10 @@ export default function StructurePage() {
             <CardHeader>
               <CardTitle>Documents de l&apos;entreprise</CardTitle>
               <CardDescription>
-                Gérez les documents administratifs et légaux de votre structure.
+                {canEditEntity() 
+                  ? "Gérez les documents administratifs et légaux de votre structure."
+                  : "Les documents sont en lecture seule car votre structure est en cours de validation."
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -312,6 +435,15 @@ export default function StructurePage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Modal de confirmation pour la soumission */}
+      <SubmitEntityConfirmationDialog
+        isOpen={showSubmitDialog}
+        onClose={() => setShowSubmitDialog(false)}
+        onConfirm={handleSubmitForReview}
+        isLoading={isSubmittingForReview}
+        entityName={entityDetails?.name || activeEntity?.name || "cette structure"}
+      />
     </div>
   );
 }

@@ -18,7 +18,9 @@ import {
   TableCell 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight, Building, FileText, Users } from "lucide-react";
+import { ArrowUpRight, Building, FileText, Users, Lock } from "lucide-react";
+import { useEntity } from "@/contexts/EntityContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock data - to be replaced with actual API calls
 const stats = {
@@ -44,6 +46,7 @@ const statusStyles: Record<DossierStatus, string> = {
 
 
 export default function DashboardPage() {
+  const { canCreateDemands, activeEntity } = useEntity();
 
   return (
     <div className="flex flex-col gap-8">
@@ -57,9 +60,25 @@ export default function DashboardPage() {
             Un aperçu de vos activités et demandes récentes.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/user/dossiers/new">Nouvelle demande d&apos;accréditation</Link>
-        </Button>
+        <TooltipProvider>
+          {canCreateDemands() ? (
+            <Button asChild>
+              <Link href="/dashboard/user/dossiers/new">Nouvelle demande d&apos;accréditation</Link>
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button disabled className="opacity-50 cursor-not-allowed">
+                  <Lock className="h-4 w-4 mr-2" />
+                  Nouvelle demande d&apos;accréditation
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Disponible après validation de votre structure</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </TooltipProvider>
       </div>
 
       {/* Stat Cards */}
