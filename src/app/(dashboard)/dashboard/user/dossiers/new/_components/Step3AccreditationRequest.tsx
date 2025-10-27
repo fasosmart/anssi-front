@@ -7,8 +7,6 @@ import { DossierFormData, TypeAccreditation } from "@/types/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 
-type AccreditationKeys = keyof NonNullable<DossierFormData['accreditationTypes']>;
-
 interface StepProps {
   data: Partial<DossierFormData>;
   updateData: (fields: Partial<DossierFormData>) => void;

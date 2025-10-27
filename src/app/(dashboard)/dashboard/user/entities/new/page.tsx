@@ -23,12 +23,22 @@ import { API } from "@/lib/api";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 
+interface DocumentWithType {
+  file: File;
+  documentType: {
+    slug: string;
+    name: string;
+    description?: string | null;
+    status: 'ON' | 'OFF';
+  };
+  id: string;
+}
 
 export default function NewEntityPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [entityData, setEntityData] = useState<Partial<Entity>>({});
-  const [documentsData, setDocumentsData] = useState<File[]>([]);
+  const [documentsData, setDocumentsData] = useState<DocumentWithType[]>([]);
   const [createdEntitySlug, setCreatedEntitySlug] = useState<string | null>(null);
 
   const router = useRouter();
@@ -38,10 +48,9 @@ export default function NewEntityPage() {
     setEntityData((prev) => ({ ...prev, ...fields }));
   };
   
-  const updateDocumentsData = (files: File[]) => {
-    setDocumentsData(files);
+  const updateDocumentsData = (documents: DocumentWithType[]) => {
+    setDocumentsData(documents);
   };
-
 
   const handleSubmit = async () => {
     if (!session) {
@@ -67,11 +76,11 @@ export default function NewEntityPage() {
 
         // Step 2: Upload documents for the newly created entity
         if (documentsData.length > 0) {
-            const documentPromises = documentsData.map(file => {
+            const documentPromises = documentsData.map(doc => {
                 const formData = new FormData();
-                formData.append('name', file.name);
-                formData.append('file', file);
-                // These are placeholders, the form should capture this data
+                formData.append('name', doc.documentType.name);
+                formData.append('document_type', doc.documentType.slug);
+                formData.append('file', doc.file);
                 formData.append('issued_at', new Date().toISOString().split('T')[0]); 
                 return apiClient.post(API.documents.create(newEntity.slug), formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
@@ -85,14 +94,12 @@ export default function NewEntityPage() {
 
     } catch {
         toast.error("Erreur lors de la création de la structure.", { id: toastId });
-        // console.error(error);
     } finally {
         setIsSubmitting(false);
     }
   };
   
   const handleNext = () => {
-    // Add validation logic here before proceeding
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
 
@@ -108,7 +115,7 @@ export default function NewEntityPage() {
 
   const steps = [
     { id: 1, title: "Informations", component: <Step1EntityForm data={entityData} updateData={updateEntityData} /> },
-    { id: 2, title: "Documents", component: <Step2Documents entitySlug={createdEntitySlug} updateDocuments={updateDocumentsData} /> },
+    { id: 2, title: "Documents", component: <Step2Documents entitySlug={createdEntitySlug} updateDocuments={updateDocumentsData} initialDocuments={documentsData} /> },
     { id: 3, title: "Vérification", component: <Step3Review entityData={entityData} documentsData={documentsData} /> },
   ];
 

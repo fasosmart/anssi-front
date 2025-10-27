@@ -2,54 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
-} from "@/components/ui/card";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUpRight, Building, FileText, Users, Lock } from "lucide-react";
+import { RefreshCw, Plus, Lock } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { KPICard } from "@/components/dashboard/KPICard";
+import { ChartsSection } from "@/components/dashboard/ChartsSection";
+import { RecentActivities } from "@/components/dashboard/RecentActivities";
+import { ActiveEntityCard } from "@/components/dashboard/ActiveEntityCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { Building, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Entity } from "@/types/api";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Mock data - to be replaced with actual API calls
-const stats = {
-  totalDossiers: 12,
-  totalEntities: 3,
-  totalRepresentatives: 8,
-};
-
-const recentDossiers = [
-  { id: "DOS-0012", entity: "FasoSmart", submittedAt: "2023-10-26", status: "Approved" },
-  { id: "DOS-0011", entity: "Tech Innovate", submittedAt: "2023-10-24", status: "Pending" },
-  { id: "DOS-0010", entity: "CyberSec Solutions", submittedAt: "2023-10-15", status: "Rejected" },
-  { id: "DOS-0009", entity: "FasoSmart", submittedAt: "2023-09-30", status: "Approved" },
-];
-
-type DossierStatus = "Approved" | "Pending" | "Rejected";
-
-const statusStyles: Record<DossierStatus, string> = {
-  Approved: "bg-green-100 text-green-800 border-green-200",
-  Pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  Rejected: "bg-red-100 text-red-800 border-red-200",
-};
-
-
 export default function DashboardPage() {
-  const { canCreateDemands, activeEntity } = useEntity();
+  const { activeEntity, canCreateDemands } = useEntity();
+  const { stats, isLoading, error } = useDashboardData();
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-destructive mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Réessayer
+        </Button>
+      </div>
+    );
+  }
+>>>>>>> feat/ui-process-entities
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -63,14 +46,17 @@ export default function DashboardPage() {
         <TooltipProvider>
           {canCreateDemands() ? (
             <Button asChild>
-              <Link href="/dashboard/user/dossiers/new">Nouvelle demande d&apos;accréditation</Link>
+              <Link href="/dashboard/user/dossiers/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle demande
+              </Link>
             </Button>
           ) : (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button disabled className="opacity-50 cursor-not-allowed">
                   <Lock className="h-4 w-4 mr-2" />
-                  Nouvelle demande d&apos;accréditation
+                  Nouvelle demande
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -81,87 +67,58 @@ export default function DashboardPage() {
         </TooltipProvider>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Demandes totales</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDossiers}</div>
-            <p className="text-xs text-muted-foreground">+2 depuis le mois dernier</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Structures gérées</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEntities}</div>
-            <p className="text-xs text-muted-foreground">Aucune nouvelle structure</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Représentants</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRepresentatives}</div>
-            <p className="text-xs text-muted-foreground">+1 depuis le mois dernier</p>
-          </CardContent>
-        </Card>
+      {/* Première ligne - KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <KPICard
+          title="Demandes totales"
+          value={stats.totalDemands}
+          change={{ value: "+15% depuis le mois dernier", type: "positive" }}
+          icon={FileText}
+        />
+        <KPICard
+          title="En attente"
+          value={stats.pendingDemands}
+          icon={Clock}
+        />
+        <KPICard
+          title="Approuvées"
+          value={stats.approvedDemands}
+          icon={CheckCircle}
+        />
+        <KPICard
+          title="Rejetées"
+          value={stats.rejectedDemands}
+          icon={XCircle}
+        />
       </div>
 
-      {/* Recent Dossiers Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Demandes d&apos;accréditation récentes</CardTitle>
-          <CardDescription>
-            Voici la liste de vos dernières demandes soumises.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Numéro du dossier</TableHead>
-                <TableHead>Structure</TableHead>
-                <TableHead>Date de soumission</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentDossiers.map((dossier) => (
-                <TableRow key={dossier.id}>
-                  <TableCell className="font-medium">{dossier.id}</TableCell>
-                  <TableCell>{dossier.entity}</TableCell>
-                  <TableCell>{dossier.submittedAt}</TableCell>
-                  <TableCell>
-                     <Badge 
-                      variant="outline" 
-                      className={statusStyles[dossier.status as DossierStatus]}
-                    >
-                      {dossier.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" asChild>
-                       <Link href={`/dashboard/user/dossiers/${dossier.id}`} className="flex items-center gap-2">
-                          Voir
-                          <ArrowUpRight className="h-4 w-4" />
-                       </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Deuxième ligne - KPI Cards secondaires */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <KPICard
+          title="Structures"
+          value={stats.totalStructures}
+          change={{ value: "+0% nouvelles structures", type: "neutral" }}
+          icon={Building}
+        />
+        <KPICard
+          title="Représentants"
+          value={stats.totalRepresentatives}
+          change={{ value: "+12% nouveaux représentants", type: "positive" }}
+          icon={Users}
+        />
+      </div>
+
+      {/* Troisième ligne - Graphiques */}
+      <ChartsSection />
+
+      {/* Quatrième ligne - Actions récentes */}
+      <RecentActivities />
+
+      {/* Cinquième ligne - Structure active et Actions rapides */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <ActiveEntityCard entity={activeEntity as Entity} />
+        <QuickActions />
+      </div>
     </div>
   );
 }
