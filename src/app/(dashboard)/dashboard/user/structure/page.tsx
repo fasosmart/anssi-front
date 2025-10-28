@@ -188,7 +188,7 @@ export default function StructurePage() {
             Gérez les informations de votre entreprise ou organisation.
           </p>
         </div>
-        {activeEntity?.status === 'new' && (
+        {(activeEntity?.status === 'new' || activeEntity?.status === 'declined') && (
           <Button 
             onClick={handleSubmitButtonClick}
             disabled={isSubmittingForReview}

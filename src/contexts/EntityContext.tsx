@@ -90,7 +90,7 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
   // Fonctions utilitaires pour les permissions
   const canEditEntity = (entity?: EntityList | null) => {
     const targetEntity = entity || activeEntity;
-    return targetEntity?.status === 'new' || targetEntity?.status === 'validated';
+    return targetEntity?.status === 'new' || targetEntity?.status === 'validated' || targetEntity?.status === 'declined';
   };
 
   const canManageRepresentatives = (entity?: EntityList | null) => {
