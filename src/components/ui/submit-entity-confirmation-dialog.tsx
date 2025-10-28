@@ -41,33 +41,40 @@ export function SubmitEntityConfirmationDialog({
               </AlertDialogTitle>
             </div>
           </div>
-          <AlertDialogDescription className="text-left pt-2">
-            <div className="space-y-3">
-              <p>
-                Vous êtes sur le point de soumettre <strong>{entityName}</strong> pour validation.
-              </p>
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium text-blue-900 dark:text-blue-100">
-                      Après soumission :
-                    </p>
-                    <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-300">
-                      <li>• Votre structure passera en "En cours de validation"</li>
-                      <li>• Vous ne pourrez plus modifier ses informations</li>
-                      <li>• Nos équipes examineront votre dossier</li>
-                      <li>• Vous recevrez une notification du résultat</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                ⚠️ Assurez-vous que toutes les informations sont correctes avant de continuer.
-              </p>
-            </div>
+          {/* ✅ Solution : Laisser AlertDialogDescription vide et mettre le contenu après */}
+          <AlertDialogDescription className="sr-only">
+            Dialogue de confirmation pour soumettre une structure
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        {/* ✅ Contenu déplacé en dehors de AlertDialogDescription */}
+        <div className="space-y-3 px-6 text-sm text-muted-foreground">
+          <div>
+            Vous êtes sur le point de soumettre <strong>{entityName}</strong> pour validation.
+          </div>
+          
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <div className="font-medium text-blue-900 dark:text-blue-100">
+                  Après soumission :
+                </div>
+                <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-300">
+                  <li>• Votre structure passera en "En cours de validation"</li>
+                  <li>• Vous ne pourrez plus modifier ses informations</li>
+                  <li>• Nos équipes examineront votre dossier</li>
+                  <li>• Vous recevrez une notification du résultat</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-sm font-medium text-amber-700 dark:text-amber-300">
+            ⚠️ Assurez-vous que toutes les informations sont correctes avant de continuer.
+          </div>
+        </div>
+
         <AlertDialogFooter className="gap-2">
           <AlertDialogCancel disabled={isLoading}>
             Annuler
