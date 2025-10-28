@@ -41,18 +41,22 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Clear localStorage on each login
-      localStorage.removeItem('activeEntitySlug');
-      
       const response = await apiClient.get<{ results: EntityList[] }>(API.entities.list());
       const fetchedEntities = response.data.results || [];
       setEntities(fetchedEntities);
 
-      // Don't auto-select entity - let EntityRedirectHandler handle the logic
-      setActiveEntityState(null);
+      // Restaurer l'entité active depuis localStorage si disponible
+      const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('activeEntitySlug') : null;
+      if (storedSlug) {
+        const storedEntity = fetchedEntities.find(e => e.slug === storedSlug) || null;
+        setActiveEntityState(storedEntity);
+      } else {
+        // Ne pas auto-sélectionner si plusieurs entités: laisser l'handler rediriger vers select-entity
+        // Si une seule entité, l'EntityRedirectHandler s'occupe d'auto-sélectionner
+        setActiveEntityState(null);
+      }
     } catch (err) {
       setError("Impossible de charger les structures.");
-      // console.error(err);
       toast.error("Impossible de charger les structures.");
     } finally {
       setIsLoading(false);
@@ -62,6 +66,14 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchEntities();
+    }
+    // Nettoyage du localStorage à la déconnexion
+    if (status === 'unauthenticated') {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('activeEntitySlug');
+      }
+      setActiveEntityState(null);
+      setEntities([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);

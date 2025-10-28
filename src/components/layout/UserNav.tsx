@@ -100,7 +100,12 @@ export function UserNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
+        <DropdownMenuItem onClick={() => {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('activeEntitySlug');
+          }
+          signOut({ callbackUrl: '/' });
+        }}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Déconnexion</span>
         </DropdownMenuItem>
