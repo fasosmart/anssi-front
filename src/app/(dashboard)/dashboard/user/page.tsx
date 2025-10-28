@@ -29,7 +29,6 @@ export default function DashboardPage() {
       </div>
     );
   }
->>>>>>> feat/ui-process-entities
 
   return (
     <div className="space-y-6">
