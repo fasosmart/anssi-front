@@ -61,7 +61,7 @@ export function SubmitEntityConfirmationDialog({
                   Après soumission :
                 </div>
                 <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-300">
-                  <li>• Votre structure passera en "En cours de validation"</li>
+                  <li>• Votre structure passera en &quot;En cours de validation&quot;</li>
                   <li>• Vous ne pourrez plus modifier ses informations</li>
                   <li>• Nos équipes examineront votre dossier</li>
                   <li>• Vous recevrez une notification du résultat</li>
