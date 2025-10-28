@@ -297,7 +297,7 @@ export default function StructurePage() {
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="tax_id">Numéro d'identifiant fiscal (NIF)</Label>
+                    <Label htmlFor="tax_id">Numéro d&apos;identifiant fiscal (NIF)</Label>
                     <Input
                       id="tax_id"
                       name="tax_id"
