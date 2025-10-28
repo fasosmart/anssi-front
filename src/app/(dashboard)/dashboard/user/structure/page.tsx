@@ -425,6 +425,7 @@ export default function StructurePage() {
                   entity={entityDetails as Entity}
                   initialDocuments={documents}
                   onDocumentsUpdate={() => fetchDetailsAndDocuments(entityDetails.slug!)}
+                  canEdit={canEditEntity()}
                 />
               ) : (
                 <div className="text-center text-muted-foreground py-8">
