@@ -12,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
 import { Entity, Document } from "@/types/api";
@@ -272,27 +271,39 @@ export default function StructurePage() {
                   </div>
                 </div>
                 
-                <div className="grid gap-2">
-                  <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
-                  <Input
-                    id="business_sector"
-                    name="business_sector"
-                    value={entityDetails?.business_sector || ""}
-                    onChange={handleChange}
-                    placeholder="Ex: Technologies de l'Information et de la Communication"
-                    disabled={!canEditEntity()}
-                  />
-                </div>
-
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="tax_id">Identifiant fiscal (IFU)</Label>
+                    <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
+                    <Input
+                      id="business_sector"
+                      name="business_sector"
+                      value={entityDetails?.business_sector || ""}
+                      onChange={handleChange}
+                      placeholder="Ex: Technologies de l'Information et de la Communication"
+                      disabled={!canEditEntity()}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="address">Adresse complète</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      value={entityDetails?.address || ""}
+                      onChange={handleChange}
+                      placeholder="Siège social, ville, pays"
+                      disabled={!canEditEntity()}
+                    />
+                </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="tax_id">Numéro d'identifiant fiscal (NIF)</Label>
                     <Input
                       id="tax_id"
                       name="tax_id"
                       value={entityDetails?.tax_id || ""}
                       onChange={handleChange}
-                      placeholder="Numéro IFU"
+                      placeholder="NIF"
                       disabled={!canEditEntity()}
                     />
                   </div>
@@ -337,9 +348,9 @@ export default function StructurePage() {
                   </div>
                 </div>
 
-                <div className="grid gap-2">
+                {/* <div className="grid gap-2">
                     <Label htmlFor="address">Adresse complète</Label>
-                    <Textarea
+                    <Input
                       id="address"
                       name="address"
                       value={entityDetails?.address || ""}
@@ -347,7 +358,7 @@ export default function StructurePage() {
                       placeholder="Siège social, ville, pays"
                       disabled={!canEditEntity()}
                     />
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
