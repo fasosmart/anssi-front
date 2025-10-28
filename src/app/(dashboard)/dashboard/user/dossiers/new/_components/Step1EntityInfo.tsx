@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 interface StepProps {
   data: Partial<DossierFormData>;
   updateData: (fields: Partial<DossierFormData>) => void;
+  showValidation?: boolean;
 }
 
 const InfoField = ({
@@ -33,7 +34,7 @@ const InfoField = ({
     </div>
 );
 
-export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
+export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData, showValidation = false }) => {
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [isRepDetailsLoading, setIsRepDetailsLoading] = useState(false);
   
@@ -142,6 +143,9 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData }) => {
         <div className="grid gap-6">
             <div className="space-y-2">
                 <Label htmlFor="representative">Choisissez un représentant</Label>
+                {showValidation && !data.legalRepresentative?.slug && (
+                  <p className="text-sm text-red-600">⚠️ Veuillez sélectionner un représentant juridique</p>
+                )}
             <Select
               onValueChange={handleRepresentativeSelect}
               value={data.legalRepresentative?.slug}
