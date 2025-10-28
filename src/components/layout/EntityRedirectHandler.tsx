@@ -61,6 +61,12 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
         return;
       }
 
+      // Si l'entité n'est pas validée, interdire l'accès au tableau de bord principal
+      if (activeEntity.status !== 'validated' && pathname === '/dashboard/user') {
+        router.push('/dashboard/user/structure');
+        return;
+      }
+
       // Redirections selon le statut
       switch (activeEntity.status) {
         case "new":
