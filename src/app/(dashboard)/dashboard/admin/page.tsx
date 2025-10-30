@@ -89,7 +89,7 @@ export default function AdminDashboard() {
             Tableau de bord Admin
           </h1>
           <p className="text-muted-foreground">
-            Vue d'ensemble des accréditations et gestion du système ANSSI
+            Vue d&apos;ensemble des accréditations et gestion du système ANSSI
           </p>
         </div>
         <div className="flex gap-2">
@@ -226,9 +226,9 @@ export default function AdminDashboard() {
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="activities">Activités récentes</TabsTrigger>
-          <TabsTrigger value="types">Types d'accréditation</TabsTrigger>
+          <TabsTrigger value="types">Types d&apos;accréditation</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Évolution des accréditations</CardTitle>
                 <CardDescription>
-                  Nombre d'accréditations par mois
+                  Nombre d&apos;accréditations par mois
                 </CardDescription>
               </CardHeader>
               <CardContent>

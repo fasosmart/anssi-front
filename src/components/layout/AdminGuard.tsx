@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { Session } from "next-auth";
 
 interface AdminGuardProps {
   children: ReactNode;
@@ -20,7 +21,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     }
 
     if (status === "authenticated") {
-      const isStaff = Boolean((data as any)?.user?.is_staff);
+      const isStaff = Boolean((data as Session)?.user?.is_staff);
       // If user is not staff and tries to access admin pages, redirect to user dashboard
       if (!isStaff && pathname?.startsWith("/dashboard/admin")) {
         router.replace("/dashboard/user");
@@ -36,7 +37,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  const isStaff = Boolean((data as any)?.user?.is_staff);
+  const isStaff = Boolean((data as Session)?.user?.is_staff);
   if (!isStaff) {
     return null;
   }

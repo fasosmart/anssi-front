@@ -18,10 +18,11 @@ import { usePathname } from "next/navigation";
 import { useEntity } from "@/contexts/EntityContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 type MenuItem = {
   href: string;
-  icon: any;
+  icon: React.ElementType;
   label: string;
   requiresValidated?: boolean;
   disabledMessage?: string;
@@ -98,7 +99,7 @@ export function AppSidebar() {
   const { data } = useSession();
 
   const isAdminSpace = pathname?.startsWith("/dashboard/admin");
-  const isStaff = Boolean((data as any)?.user?.is_staff);
+  const isStaff = Boolean((data as Session)?.user?.is_staff);
   const items = isAdminSpace && isStaff ? adminMenuItems : userMenuItems;
 
   return (

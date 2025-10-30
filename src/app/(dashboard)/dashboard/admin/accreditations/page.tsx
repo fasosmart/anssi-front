@@ -23,6 +23,7 @@ import {
   User
 } from "lucide-react";
 import Link from "next/link";
+import { AccreditationList } from "@/types/api";
 
 // Mock data - sera remplacé par l'API
 const mockAccreditations = [
@@ -105,7 +106,7 @@ export default function AccreditationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedAccreditation, setSelectedAccreditation] = useState<any>(null);
+  const [selectedAccreditation, setSelectedAccreditation] = useState<AccreditationList | null>(null);
 
   const filteredAccreditations = mockAccreditations.filter(acc => {
     const matchesSearch = acc.entity.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,7 +153,7 @@ export default function AccreditationsPage() {
             Gestion des Accréditations
           </h1>
           <p className="text-muted-foreground">
-            Suivi et validation des demandes d'accréditation ANSSI
+            Suivi et validation des demandes d&apos;accréditation ANSSI
           </p>
         </div>
         <div className="flex gap-2">
@@ -204,7 +205,7 @@ export default function AccreditationsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Type d'accréditation</label>
+              <label className="text-sm font-medium">Type d&apos;accréditation</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un type" />
@@ -362,7 +363,7 @@ export default function AccreditationsPage() {
                               <Button 
                                 variant="outline" 
                                 className="w-full justify-start"
-                                onClick={() => setSelectedAccreditation(accreditation)}
+                                onClick={() => setSelectedAccreditation(accreditation as unknown as AccreditationList)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 Voir les détails

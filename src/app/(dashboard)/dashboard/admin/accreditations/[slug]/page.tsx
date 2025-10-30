@@ -130,7 +130,7 @@ const statusConfig = {
   rejected: { label: "Rejetée", color: "bg-red-500", textColor: "text-red-700" }
 };
 
-export default function AccreditationDetailPage({ params }: { params: { slug: string } }) {
+export default function AccreditationDetailPage() {
   const accreditation = mockAccreditationDetail;
   const statusConfig_item = statusConfig[accreditation.status];
 
@@ -182,7 +182,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
               </div>
             </div>
             <div className="flex gap-2">
-              {accreditation.status === "pending" && (
+              {accreditation.status === "under_review" && (
                 <Button>
                   <Clock className="h-4 w-4 mr-2" />
                   Mettre en révision
@@ -208,7 +208,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="review">Révision</TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
@@ -221,7 +221,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Building className="h-5 w-5" />
-                  <span>Informations de l'entité</span>
+                  <span>Informations de l&apos;entité</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -230,7 +230,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
                   <p className="text-sm">{accreditation.entity.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Secteur d'activité</label>
+                  <label className="text-sm font-medium text-muted-foreground">Secteur d&apos;activité</label>
                   <p className="text-sm">{accreditation.entity.business_sector}</p>
                 </div>
                 <div>
@@ -254,7 +254,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <User className="h-5 w-5" />
-                  <span>Représentant légal</span>
+                  <span>Représentant l&apos;legal</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -285,12 +285,12 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
           {/* Détails de l'accréditation */}
           <Card>
             <CardHeader>
-              <CardTitle>Détails de l'accréditation</CardTitle>
+              <CardTitle>Détails de l&apos;accréditation</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Type d'accréditation</label>
+                  <label className="text-sm font-medium text-muted-foreground">Type d&apos;accréditation</label>
                   <p className="text-sm">{accreditation.type_accreditation.name}</p>
                 </div>
                 <div>
@@ -323,7 +323,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
             <CardHeader>
               <CardTitle>Documents associés</CardTitle>
               <CardDescription>
-                Liste des documents fournis pour cette accréditation
+                Liste des documents fournis pour cette accréditation&apos;
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -359,7 +359,7 @@ export default function AccreditationDetailPage({ params }: { params: { slug: st
             <CardHeader>
               <CardTitle>Processus de révision</CardTitle>
               <CardDescription>
-                Évaluation et validation de l'accréditation
+                Évaluation et validation de l&apos;accréditation
               </CardDescription>
             </CardHeader>
             <CardContent>

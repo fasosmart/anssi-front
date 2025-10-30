@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   Info
 } from "lucide-react";
+import { TypeAccreditation } from "@/types/api";
 
 // Mock data - sera remplacé par l'API
 const mockAccreditationTypes = [
@@ -161,9 +162,9 @@ const mockSystemSettings = {
 export default function SettingsPage() {
   const [settings, setSettings] = useState(mockSystemSettings);
   const [accreditationTypes, setAccreditationTypes] = useState(mockAccreditationTypes);
-  const [selectedType, setSelectedType] = useState<any>(null);
+  const [selectedType, setSelectedType] = useState<TypeAccreditation | null>(null);
 
-  const handleSettingChange = (category: string, key: string, value: any) => {
+  const handleSettingChange = (category: string, key: string, value: boolean | number | string) => {
     setSettings(prev => ({
       ...prev,
       [category]: {
@@ -187,7 +188,7 @@ export default function SettingsPage() {
             Paramètres Système
           </h1>
           <p className="text-muted-foreground">
-            Configuration et gestion des paramètres de l'application ANSSI
+            Configuration et gestion des paramètres de l&apos;application ANSSI
           </p>
         </div>
         <div className="flex gap-2">
@@ -202,7 +203,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">Général</TabsTrigger>
-          <TabsTrigger value="accreditations">Types d'accréditation</TabsTrigger>
+          <TabsTrigger value="accreditations">Types d&apos;accréditation</TabsTrigger>
           <TabsTrigger value="workflow">Workflows</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Sécurité</TabsTrigger>
@@ -216,7 +217,7 @@ export default function SettingsPage() {
                 <span>Paramètres généraux</span>
               </CardTitle>
               <CardDescription>
-                Configuration de base de l'application
+                Configuration de base de l&apos;application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -300,7 +301,7 @@ export default function SettingsPage() {
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center space-x-2">
                   <Shield className="h-5 w-5" />
-                  <span>Types d'accréditation</span>
+                  <span>Types d&apos;accréditation</span>
                 </span>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
@@ -308,7 +309,7 @@ export default function SettingsPage() {
                 </Button>
               </CardTitle>
               <CardDescription>
-                Gestion des types d'accréditation ANSSI
+                Gestion des types d&apos;accréditation ANSSI
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -373,7 +374,7 @@ export default function SettingsPage() {
                 <span>Configuration des workflows</span>
               </CardTitle>
               <CardDescription>
-                Paramètres des processus d'accréditation
+                Paramètres des processus d&apos;accréditation
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -397,7 +398,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="escalation_days">Délai d'escalation (jours)</Label>
+                  <Label htmlFor="escalation_days">Délai d&apos;escalation (jours)</Label>
                   <Input
                     id="escalation_days"
                     type="number"
@@ -474,7 +475,7 @@ export default function SettingsPage() {
                       checked={settings.notifications.new_accreditation}
                       onCheckedChange={(checked) => handleSettingChange('notifications', 'new_accreditation', checked)}
                     />
-                    <Label htmlFor="new_accreditation">Nouvelle demande d'accréditation</Label>
+                    <Label htmlFor="new_accreditation">Nouvelle demande d&apos;accréditation</Label>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -532,7 +533,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="session_timeout">Délai d'expiration de session (minutes)</Label>
+                  <Label htmlFor="session_timeout">Délai d&apos;expiration de session (minutes)</Label>
                   <Input
                     id="session_timeout"
                     type="number"
@@ -576,7 +577,7 @@ export default function SettingsPage() {
                     checked={settings.security.audit_logs}
                     onCheckedChange={(checked) => handleSettingChange('security', 'audit_logs', checked)}
                   />
-                  <Label htmlFor="audit_logs">Journaux d'audit</Label>
+                  <Label htmlFor="audit_logs">Journaux d&apos;audit</Label>
                 </div>
               </div>
             </CardContent>

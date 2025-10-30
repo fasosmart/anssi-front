@@ -25,6 +25,7 @@ import {
   User
 } from "lucide-react";
 import Link from "next/link";
+import { Entity } from "@/types/api";
 
 // Mock data - sera remplacé par l'API
 const mockEntities = [
@@ -122,7 +123,7 @@ export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedEntity, setSelectedEntity] = useState<any>(null);
+  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
 
   const filteredEntities = mockEntities.filter(entity => {
     const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,7 +216,7 @@ export default function EntitiesPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Type d'entité</label>
+              <label className="text-sm font-medium">Type d&apos;entité</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un type" />
@@ -382,7 +383,7 @@ export default function EntitiesPage() {
                               <Button 
                                 variant="outline" 
                                 className="w-full justify-start"
-                                onClick={() => setSelectedEntity(entity)}
+                                onClick={() => setSelectedEntity(entity as unknown as Entity)}
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 Voir les détails

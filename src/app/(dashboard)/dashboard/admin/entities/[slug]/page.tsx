@@ -162,9 +162,9 @@ const accreditationStatusConfig = {
   rejected: { label: "Rejetée", color: "bg-red-500" }
 };
 
-export default function EntityDetailPage({ params }: { params: { slug: string } }) {
+export default function EntityDetailPage() {
   const entity = mockEntityDetail;
-  const statusConfig_item = statusConfig[entity.status];
+  const statusConfig_item = statusConfig[entity.status as keyof typeof statusConfig];
 
   return (
     <div className="space-y-6">
@@ -246,7 +246,7 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="representatives">Représentants</TabsTrigger>
           <TabsTrigger value="accreditations">Accréditations</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -273,11 +273,11 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
                   <p className="text-sm">{entity.acronym}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Secteur d'activité</label>
+                  <label className="text-sm font-medium text-muted-foreground">Secteur d&apos;activité</label>
                   <p className="text-sm">{entity.business_sector}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Type d'entité</label>
+                  <label className="text-sm font-medium text-muted-foreground">Type d&apos;entité</label>
                   <p className="text-sm">
                     {entity.entity_type === "business" ? "Entreprise" : 
                      entity.entity_type === "personal" ? "Personne physique" : "ONG"}
@@ -312,7 +312,7 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
                   <p className="text-sm">{entity.cybersecurity_experts} experts</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Pourcentage d'experts</label>
+                  <label className="text-sm font-medium text-muted-foreground">Pourcentage d&apos;experts</label>
                   <p className="text-sm">
                     {Math.round((entity.cybersecurity_experts / entity.total_staff) * 100)}%
                   </p>
@@ -363,7 +363,7 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
         <TabsContent value="representatives" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Représentants de l'entité</CardTitle>
+              <CardTitle>Représentants de l&apos;entité</CardTitle>
               <CardDescription>
                 Liste des représentants légaux et techniques
               </CardDescription>
@@ -398,9 +398,9 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
         <TabsContent value="accreditations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Accréditations de l'entité</CardTitle>
+              <CardTitle>Accréditations de l&apos;entité</CardTitle>
               <CardDescription>
-                Historique des demandes d'accréditation
+                Historique des demandes d&apos;accréditation
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -437,7 +437,7 @@ export default function EntityDetailPage({ params }: { params: { slug: string } 
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documents de l'entité</CardTitle>
+              <CardTitle>Documents de l&apos;entité</CardTitle>
               <CardDescription>
                 Pièces justificatives et documents officiels
               </CardDescription>
