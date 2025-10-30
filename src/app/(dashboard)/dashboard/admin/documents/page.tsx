@@ -174,7 +174,7 @@ export default function DocumentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
   const filteredDocuments = mockDocuments.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -385,7 +385,7 @@ export default function DocumentsPage() {
                       <TableRow key={doc.slug}>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            {getFileTypeIcon(doc.file_type)}
+                            {/* {getFileTypeIcon(doc.file_type)} */}
                             <div>
                               <div className="font-medium">{doc.name}</div>
                               <div className="text-sm text-muted-foreground">
@@ -448,7 +448,7 @@ export default function DocumentsPage() {
                                   <Button 
                                     variant="outline" 
                                     className="w-full justify-start"
-                                    onClick={() => setSelectedDocument(doc)}
+                                    onClick={() => setSelectedDocument(doc as unknown as Document)}
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
                                     Voir le document

@@ -177,9 +177,9 @@ const experienceTypeConfig = {
   consultant: { label: "Consultant", color: "bg-red-500" }
 };
 
-export default function RepresentativeDetailPage({ params }: { params: { slug: string } }) {
+export default function RepresentativeDetailPage() {
   const representative = mockRepresentativeDetail;
-  const statusConfig_item = statusConfig[representative.status];
+  const statusConfig_item = statusConfig[representative.status as keyof typeof statusConfig];
 
   return (
     <div className="space-y-6">
@@ -261,7 +261,7 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="degrees">Diplômes</TabsTrigger>
           <TabsTrigger value="experiences">Expériences</TabsTrigger>
           <TabsTrigger value="trainings">Formations</TabsTrigger>
@@ -312,12 +312,12 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Shield className="h-5 w-5" />
-                  <span>Informations d'identité</span>
+                  <span>Informations d&apos;identité</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Numéro de carte d'identité</label>
+                  <label className="text-sm font-medium text-muted-foreground">Numéro de carte d&apos;identité</label>
                   <p className="text-sm">{representative.idcard_number}</p>
                 </div>
                 <div>
@@ -325,11 +325,11 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
                   <p className="text-sm">{new Date(representative.idcard_issued_at).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Date d'expiration</label>
+                  <label className="text-sm font-medium text-muted-foreground">Date d&apos;expiration</label>
                   <p className="text-sm">{new Date(representative.idcard_expires_at).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Carte d'identité</label>
+                  <label className="text-sm font-medium text-muted-foreground">Carte d&apos;identité</label>
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-2" />
@@ -350,7 +350,7 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Building className="h-5 w-5" />
-                <span>Entité d'appartenance</span>
+                <span>Entité d&apos;appartenance</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -364,7 +364,7 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/dashboard/admin/entities/${mockEntity.slug}`}>
                     <Eye className="h-4 w-4 mr-2" />
-                    Voir l'entité
+                    Voir l&apos;entité
                   </Link>
                 </Button>
               </div>
@@ -514,9 +514,9 @@ export default function RepresentativeDetailPage({ params }: { params: { slug: s
               <div className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Carte d'identité</h4>
+                    <h4 className="font-medium mb-2">Carte d&apos;identité</h4>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Document d'identité officiel
+                      Document d&apos;identité officiel
                     </p>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">

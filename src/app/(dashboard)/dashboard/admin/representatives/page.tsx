@@ -27,6 +27,7 @@ import {
   Award
 } from "lucide-react";
 import Link from "next/link";
+import { Representative } from "@/types/api";
 
 // Mock data - sera remplacé par l'API
 const mockRepresentatives = [
@@ -118,7 +119,7 @@ export default function RepresentativesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [entityFilter, setEntityFilter] = useState("all");
-  const [selectedRepresentative, setSelectedRepresentative] = useState<any>(null);
+  const [selectedRepresentative, setSelectedRepresentative] = useState<Representative | null>(null);
 
   const filteredRepresentatives = mockRepresentatives.filter(rep => {
     const matchesSearch = `${rep.first_name} ${rep.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
