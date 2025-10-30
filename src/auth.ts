@@ -80,14 +80,14 @@ export const {
                 return null;
             }
 
-            const user: User = userResponse.data;
+            const user: User = userResponse.data ;
 
             // 3. Return a user object with tokens for the JWT callback
             return { 
                 ...user, 
                 accessToken: access, 
                 refreshToken: refresh 
-            };
+            } as User;
 
         } catch (error) {
             console.error("Authorize error:", error);
@@ -109,7 +109,8 @@ export const {
             last_name: user.last_name,
             slug: user.slug,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-        }
+        } as User;
+        (token.user as User).is_staff = (user as User)?.is_staff ?? false;
       }
 
       // This trigger is fired when the session is updated from the client side.
@@ -142,6 +143,7 @@ export const {
         session.user.last_name  = token.user.last_name ?? undefined;
         session.user.slug       = token.user.slug ?? undefined;
         session.user.name       = token.user.name ?? undefined;
+        (session.user as User).is_staff = (token.user as User)?.is_staff ?? false;
       }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;

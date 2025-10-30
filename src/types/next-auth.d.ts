@@ -14,6 +14,7 @@ declare module "next-auth" {
     first_name?: string;
     last_name?: string;
     slug?: string;
+    is_staff?: boolean;
   }
 
   /**
@@ -31,6 +32,7 @@ declare module "next-auth" {
       first_name?: string | null;
       last_name?: string | null;
       slug?: string | null;
+      is_staff?: boolean | null;
     };
   }
 }
@@ -49,6 +51,7 @@ declare module "next-auth/jwt" {
         first_name?: string | null;
         last_name?: string | null;
         slug?: string | null;
+        is_staff?: boolean | null;
     }
   }
 }

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEntity } from "@/contexts/EntityContext";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { Session } from "next-auth";
 
 interface EntityRedirectHandlerProps {
   children: React.ReactNode;
@@ -19,6 +20,18 @@ export function EntityRedirectHandler({ children }: EntityRedirectHandlerProps) 
   useEffect(() => {
     // Exécute la logique de redirection seulement si l'utilisateur est authentifié et que les entités sont chargées
     if (status !== 'authenticated' || isLoading || !session) return;
+
+    // Si l'utilisateur est staff, interdire les routes user et rediriger vers l'espace admin
+    const isStaff = Boolean((session as Session)?.user?.is_staff);
+    if (isStaff && pathname?.startsWith('/dashboard/user')) {
+      router.replace('/dashboard/admin');
+      return;
+    }
+
+    // Ignorer totalement pour l'espace admin
+    if (pathname?.startsWith('/dashboard/admin')) {
+      return;
+    }
 
     // Ignore la logique de redirection si on se trouve déjà sur la page de sélection/création d'entité ou sur les pages d'auth
     if (pathname?.includes('/select-entity') || pathname?.includes('/login') || pathname?.includes('/register') || pathname?.includes('/profile')) {

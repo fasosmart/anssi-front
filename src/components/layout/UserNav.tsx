@@ -11,10 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Menu, Building, Home } from "lucide-react";
+import { LogOut, User, Menu, Building, Home, Shield, Settings } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Session } from "next-auth";
 
 export function UserNav() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const isStaff = Boolean((session as Session)?.user?.is_staff);
 
   if (status === "loading") {
     return <div className="h-10 w-24 animate-pulse rounded-md bg-muted" />; // Placeholder
@@ -81,24 +85,67 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/user">
-            <Home className="mr-2 h-4 w-4" />
-            <span>Mon Espace</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/user/entities">
-            <Building className="mr-2 h-4 w-4" />
-            <span>Mes Structures</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/user/profile">
-            <User className="mr-2 h-4 w-4" />
-            <span>Mon Profil</span>
-          </Link>
-        </DropdownMenuItem>
+        {isStaff ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin">
+                <Home className="mr-2 h-4 w-4" />
+                <span>Accueil Admin</span>
+              </Link>
+            </DropdownMenuItem>
+            {/* <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin/entities">
+                <Building className="mr-2 h-4 w-4" />
+                <span>Mes Structures</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin/accreditations">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Accréditations</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin/representatives">
+                <User className="mr-2 h-4 w-4" />
+                <span>Représentants</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin/documents">
+                <Building className="mr-2 h-4 w-4" />
+                <span>Documents</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/admin/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres</span>
+              </Link>
+            </DropdownMenuItem> */}
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/user">
+                <Home className="mr-2 h-4 w-4" />
+                <span>Mon Espace</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/user/entities">
+                <Building className="mr-2 h-4 w-4" />
+                <span>Mes Structures</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/user/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>Mon Profil</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => {
           if (typeof window !== 'undefined') {

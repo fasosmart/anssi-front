@@ -17,6 +17,11 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
 
+  // Si on est dans l'espace admin, on délègue entièrement au layout admin interne
+  if (pathname.startsWith('/dashboard/admin')) {
+    return <>{children}</>;
+  }
+
   // La sidebar est affichée uniquement si on n'est PAS sur ces chemins.
   const showSidebar = 
     !pathname.includes('/select-entity') && 
