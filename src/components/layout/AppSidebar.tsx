@@ -12,13 +12,23 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { Home, Building, FileText, Users, Lock } from "lucide-react";
+import { Home, Building, FileText, Users, Lock, ShieldCheck, Files, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEntity } from "@/contexts/EntityContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSession } from "next-auth/react";
 
-const menuItems = [
+type MenuItem = {
+  href: string;
+  icon: any;
+  label: string;
+  requiresValidated?: boolean;
+  disabledMessage?: string;
+  alwaysVisible?: boolean;
+};
+
+const userMenuItems: MenuItem[] = [
   {
     href: "/dashboard/user",
     icon: Home,
@@ -49,12 +59,50 @@ const menuItems = [
   },
 ];
 
+const adminMenuItems: MenuItem[] = [
+  {
+    href: "/dashboard/admin",
+    icon: Home,
+    label: "Accueil",
+  },
+  {
+    href: "/dashboard/admin/entities",
+    icon: Building,
+    label: "Mes Structures",
+  },
+  {
+    href: "/dashboard/admin/accreditations",
+    icon: ShieldCheck,
+    label: "Accréditations",
+  },
+  {
+    href: "/dashboard/admin/representatives",
+    icon: Users,
+    label: "Représentants",
+  },
+  {
+    href: "/dashboard/admin/documents",
+    icon: Files,
+    label: "Documents",
+  },
+  {
+    href: "/dashboard/admin/settings",
+    icon: Settings,
+    label: "Paramètres",
+  },
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
   const { canManageRepresentatives, canCreateDemands } = useEntity();
+  const { data } = useSession();
+
+  const isAdminSpace = pathname?.startsWith("/dashboard/admin");
+  const isStaff = Boolean((data as any)?.user?.is_staff);
+  const items = isAdminSpace && isStaff ? adminMenuItems : userMenuItems;
 
   return (
-    <Sidebar className="hidden border-r md:block">
+    <Sidebar className="border-r">
       <SidebarHeader className="p-4">
         <Link href="/" className="text-2xl font-bold text-primary">
           ANSSI
@@ -66,8 +114,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <TooltipProvider>
-                {menuItems.map((item) => {
-                  const isDisabled = item.requiresValidated && !canManageRepresentatives();
+                {items.map((item) => {
+                  const isDisabled = !isAdminSpace && item.requiresValidated && !canManageRepresentatives();
                   const isActive = pathname === item.href;
                   
                   const menuButton = (

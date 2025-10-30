@@ -1,12 +1,13 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { Session, User } from "next-auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,8 +32,10 @@ export default function LoginPage() {
         setError("Les identifiants sont incorrects ou le compte n'est pas activé. Veuillez réessayer.");
         console.error(result?.error);
       } else {
-        router.push("/dashboard/user");
-      }
+        const session = await getSession();
+        const isStaff = Boolean((session as Session)?.user?.is_staff);
+        router.push(isStaff ? "/dashboard/admin" : "/dashboard/user");
+        }
     } catch {
         setError("Une erreur inattendue est survenue. Veuillez réessayer.");
     } finally {
