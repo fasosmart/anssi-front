@@ -135,4 +135,9 @@ export const getDemandDetails = async (entitySlug: string, demandSlug: string) =
   return response.data;
 };
 
+export const submitEntityForReview = async (entitySlug: string) => {
+  const response = await apiClient.patch(`/api/entities/${entitySlug}/submit_entity_for_review/`);
+  return response.data;
+};
+
 export default apiClient;

@@ -13,6 +13,7 @@ export const API = {
     details: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     update: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     delete: (slug: string) => `${BASE_URL}/entities/${slug}/`,
+    submitForReview: (slug: string) => `${BASE_URL}/entities/${slug}/submit_entity_for_review/`,
   },
 
   // Documents

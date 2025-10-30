@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, CheckCircle, Building } from "lucide-react";
+import { PlusCircle, CheckCircle, Building, Clock, AlertCircle, XCircle, Ban } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEntity } from "@/contexts/EntityContext";
+import { Badge } from "@/components/ui/badge";
 
 const entityTypeLabels: { [key: string]: string } = {
   business: "Entreprise / Société",
@@ -22,7 +23,9 @@ export default function SelectEntityPage() {
     entities, 
     isLoading, 
     error, 
-    setActiveEntity 
+    setActiveEntity,
+    getEntityStatusLabel,
+    getEntityStatusColor
   } = useEntity();
 
   const handleCreateNew = () => {
@@ -33,6 +36,25 @@ export default function SelectEntityPage() {
   const handleSelectEntity = (entity: typeof entities[0]) => {
     setActiveEntity(entity);
     router.push("/dashboard/user");
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'new':
+        return <Clock className="h-4 w-4" />;
+      case 'submitted':
+        return <AlertCircle className="h-4 w-4" />;
+      case 'under_review':
+        return <Clock className="h-4 w-4" />;
+      case 'validated':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'blocked':
+        return <Ban className="h-4 w-4" />;
+      case 'declined':
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
   };
 
   // --- RENDU CONDITIONNEL CENTRÉ ---
@@ -139,7 +161,7 @@ export default function SelectEntityPage() {
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <CardTitle className="flex items-center gap-2">
                         <Building className="h-5 w-5" />
                         {entity.name}
@@ -148,6 +170,15 @@ export default function SelectEntityPage() {
                         {entityTypeLabels[entity.entity_type] || entity.entity_type}
                       </CardDescription>
                     </div>
+                    {entity.status && (
+                      <Badge 
+                        variant="secondary" 
+                        className={`${getEntityStatusColor(entity.status)} text-primary flex items-center gap-1`}
+                      >
+                        {getStatusIcon(entity.status)}
+                        {getEntityStatusLabel(entity.status)}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow">

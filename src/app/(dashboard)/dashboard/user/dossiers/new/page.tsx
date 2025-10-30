@@ -121,7 +121,36 @@ export default function NewDossierPage() {
     }
   };
   
+  // Fonctions de validation pour chaque étape
+  const validateStep1 = (): boolean => {
+    if (!formData.legalRepresentative?.slug) {
+      toast.error("Veuillez sélectionner un représentant juridique avant de continuer.");
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep2 = (): boolean => {
+    const selectedAccreditationSlugs = Object.keys(formData.accreditationTypes || {}).filter(
+      (slug) => formData.accreditationTypes?.[slug]
+    );
+    
+    if (selectedAccreditationSlugs.length === 0) {
+      toast.error("Veuillez sélectionner au moins un type d'accréditation avant de continuer.");
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
+    // Validation selon l'étape actuelle
+    if (currentStep === 1 && !validateStep1()) {
+      return;
+    }
+    if (currentStep === 2 && !validateStep2()) {
+      return;
+    }
+    
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
 
@@ -135,9 +164,27 @@ export default function NewDossierPage() {
     }
   };
 
+  // Fonctions pour vérifier si une étape est valide (pour l'état des boutons)
+  const isStep1Valid = (): boolean => {
+    return !!formData.legalRepresentative?.slug;
+  };
+
+  const isStep2Valid = (): boolean => {
+    const selectedAccreditationSlugs = Object.keys(formData.accreditationTypes || {}).filter(
+      (slug) => formData.accreditationTypes?.[slug]
+    );
+    return selectedAccreditationSlugs.length > 0;
+  };
+
+  const isNextButtonDisabled = (): boolean => {
+    if (currentStep === 1) return !isStep1Valid();
+    if (currentStep === 2) return !isStep2Valid();
+    return false;
+  };
+
   const steps = [
-    { id: 1, title: "Renseignements", component: <Step1EntityInfo data={formData} updateData={updateFormData} /> },
-    { id: 2, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} accreditationOptions={accreditationOptions} /> },
+    { id: 1, title: "Renseignements", component: <Step1EntityInfo data={formData} updateData={updateFormData} showValidation={currentStep === 1 && !isStep1Valid()} /> },
+    { id: 2, title: "Accréditation", component: <Step3AccreditationRequest data={formData} updateData={updateFormData} accreditationOptions={accreditationOptions} showValidation={currentStep === 2 && !isStep2Valid()} /> },
     { id: 3, title: "Soumission", component: <Step4ReviewSubmit data={formData} updateData={updateFormData} /> },
   ];
 
@@ -199,7 +246,7 @@ export default function NewDossierPage() {
             Précédent
           </Button>
           {currentStep < steps.length ? (
-            <Button onClick={handleNext} disabled={isSubmitting}>Suivant</Button>
+            <Button onClick={handleNext} disabled={isSubmitting || isNextButtonDisabled()}>Suivant</Button>
           ) : (
             <Button onClick={handleSubmit} disabled={!formData.declaration || isSubmitting}>
               {isSubmitting ? "Soumission en cours..." : "Soumettre le dossier"}

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { RefreshCw, Plus } from "lucide-react";
+import { RefreshCw, Plus, Lock } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { KPICard } from "@/components/dashboard/KPICard";
@@ -12,9 +12,10 @@ import { ActiveEntityCard } from "@/components/dashboard/ActiveEntityCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Building, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Entity } from "@/types/api";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function DashboardPage() {
-  const { activeEntity } = useEntity();
+  const { activeEntity, canCreateDemands } = useEntity();
   const { stats, isLoading, error } = useDashboardData();
 
   if (error) {
@@ -41,12 +42,28 @@ export default function DashboardPage() {
             Un aperçu de vos activités et demandes récentes.
           </p>
         </div>
-          <Button asChild>
-            <Link href="/dashboard/user/dossiers/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle demande
-            </Link>
-          </Button>
+        <TooltipProvider>
+          {canCreateDemands() ? (
+            <Button asChild>
+              <Link href="/dashboard/user/dossiers/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle demande
+              </Link>
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button disabled className="opacity-50 cursor-not-allowed">
+                  <Lock className="h-4 w-4 mr-2" />
+                  Nouvelle demande
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Disponible après validation de votre structure</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </TooltipProvider>
       </div>
 
       {/* Première ligne - KPI Cards */}

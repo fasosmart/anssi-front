@@ -32,9 +32,10 @@ interface DocumentManagerProps {
   initialDocuments: Document[];
   entity: Entity;
   onDocumentsUpdate: () => void;
+  canEdit?: boolean;
 }
 
-export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }: DocumentManagerProps) {
+export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate, canEdit = true }: DocumentManagerProps) {
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -83,7 +84,7 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
         <TableCell className="text-right">
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-8 w-8 p-0" disabled={!canEdit}>
                 <span className="sr-only">Ouvrir le menu</span>
                 <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -93,12 +94,16 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
                 <DropdownMenuItem onClick={() => window.open(doc.file as string, '_blank')}>
                 Voir
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleEdit(doc)}>
-                Modifier
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDelete(doc)} className="text-red-600">
-                Supprimer
-                </DropdownMenuItem>
+                {canEdit && (
+                  <>
+                    <DropdownMenuItem onClick={() => handleEdit(doc)}>
+                    Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(doc)} className="text-red-600">
+                    Supprimer
+                    </DropdownMenuItem>
+                  </>
+                )}
             </DropdownMenuContent>
             </DropdownMenu>
         </TableCell>
@@ -112,7 +117,7 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
                 <CardTitle className="text-lg">{doc.name}</CardTitle>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={!canEdit}>
                             <span className="sr-only">Ouvrir le menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -122,12 +127,16 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
                          <DropdownMenuItem onClick={() => window.open(doc.file as string, '_blank')}>
                           Voir
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(doc)}>
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(doc)} className="text-red-600">
-                          Supprimer
-                        </DropdownMenuItem>
+                        {canEdit && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleEdit(doc)}>
+                              Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(doc)} className="text-red-600">
+                              Supprimer
+                            </DropdownMenuItem>
+                          </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -147,9 +156,11 @@ export function DocumentManager({ initialDocuments, entity, onDocumentsUpdate }:
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={handleAdd}>Ajouter un document</Button>
-      </div>
+      {canEdit && (
+        <div className="flex justify-end">
+          <Button onClick={handleAdd}>Ajouter un document</Button>
+        </div>
+      )}
       {isMobile ? (
         <div className="space-y-4">
             {documents.length > 0 ? (
