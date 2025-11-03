@@ -31,6 +31,9 @@ import { AdminAPI } from "@/lib/api";
 import { EntityDetail, EntityStatus } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 // Les mocks ci-dessous (représentants, accréditations, documents, historique)
 // restent temporairement pour l'onglet UI;
@@ -158,6 +161,24 @@ export default function EntityDetailPage({ params }: PageProps) {
   const [entity, setEntity] = useState<EntityDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isActing, setIsActing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | "under_review" | "validated" | "blocked">(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const refetch = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await AdminAPI.getEntity(slug);
+      setEntity(data as EntityDetail);
+    } catch (e) {
+      setError("Impossible de charger les détails de l&apos;entité");
+      toast.error("Échec du chargement des détails de l&apos;entité");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -170,8 +191,8 @@ export default function EntityDetailPage({ params }: PageProps) {
         setEntity(data as EntityDetail);
       } catch (e) {
         if (!isMounted) return;
-        setError("Impossible de charger les détails de l'entité");
-        toast.error("Échec du chargement des détails de l'entité");
+        setError("Impossible de charger les détails de l&apos;entité");
+        toast.error("Échec du chargement des détails de l&apos;entité");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -248,29 +269,28 @@ export default function EntityDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              {/* Actions à implémenter étape 2 */}
-              {false && (
-                <>
-                  <Button>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approuver
-                  </Button>
-                  <Button variant="outline" className="text-red-600">
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
-                  </Button>
-                </>
+              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted") && (
+                <Button disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Mettre en révision
+                </Button>
               )}
-              {false && (
-                <Button variant="outline" className="text-red-600">
+              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted" || entity.status === "under_review" || entity.status === "blocked" || entity.status === "declined") && (
+                <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Valider
+                </Button>
+              )}
+              {!isLoading && entity?.status && (entity.status === "validated" || entity.status === "under_review") && (
+                <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
                   <XCircle className="h-4 w-4 mr-2" />
                   Bloquer
                 </Button>
               )}
-              {false && (
-                <Button className="text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Débloquer
+              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted" || entity.status === "under_review") && (
+                <Button variant="outline" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Rejeter
                 </Button>
               )}
             </div>
@@ -554,6 +574,76 @@ export default function EntityDetailPage({ params }: PageProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Confirm generic actions */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l&apos;action</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction === "under_review" && "Mettre cette entité en révision ?"}
+              {confirmAction === "validated" && "Valider définitivement cette entité ?"}
+              {confirmAction === "blocked" && "Bloquer cette entité ? Elle ne pourra plus effectuer d&apos;actions."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button onClick={async () => {
+                if (!entity) return;
+                setIsActing(true);
+                try {
+                  const eslug = entity.slug as string;
+                  if (confirmAction === "under_review") await AdminAPI.setUnderReview(eslug);
+                  if (confirmAction === "validated") await AdminAPI.setValidated(eslug);
+                  if (confirmAction === "blocked") await AdminAPI.setBlocked(eslug);
+                  toast.success("Statut mis à jour");
+                  await refetch();
+                } catch (e) {
+                  toast.error("Échec de la mise à jour du statut");
+                } finally {
+                  setIsActing(false);
+                  setConfirmAction(null);
+                }
+              }} disabled={isActing}>
+                Confirmer
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject with reason */}
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter l&apos;entité</DialogTitle>
+            <DialogDescription>Indiquez la raison du rejet. Elle sera visible par l&apos;entité.</DialogDescription>
+          </DialogHeader>
+          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motif de rejet" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectOpen(false)} disabled={isActing}>Annuler</Button>
+            <Button onClick={async () => {
+              if (!entity) return;
+              if (!rejectReason || rejectReason.trim().length < 5) { toast.warning("Veuillez renseigner un motif (min 5 caractères)"); return; }
+              setIsActing(true);
+              try {
+                await AdminAPI.setDeclined(entity.slug as string, rejectReason.trim());
+                toast.success("Entité rejetée");
+                setRejectOpen(false);
+                setRejectReason("");
+                await refetch();
+              } catch (e) {
+                toast.error("Échec du rejet de l&apos;entité");
+              } finally {
+                setIsActing(false);
+              }
+            }} disabled={isActing}>
+              Rejeter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
