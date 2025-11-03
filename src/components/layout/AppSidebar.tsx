@@ -69,7 +69,7 @@ const adminMenuItems: MenuItem[] = [
   {
     href: "/dashboard/admin/entities",
     icon: Building,
-    label: "Les Structures",
+    label: "Structures",
   },
   {
     href: "/dashboard/admin/accreditations",

@@ -69,17 +69,25 @@ export default function EntitiesPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [entities, setEntities] = useState<AdminEntityList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const offset = (page - 1) * pageSize;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const rowNumber = (index: number) => offset + index + 1;
 
   useEffect(() => {
     const fetchEntities = async () => {
       setIsLoading(true);
       try {
-        const params: any = {};
+        const params: any = { limit: pageSize, offset };
         if (statusFilter !== "all") params.status = statusFilter;
         if (typeFilter !== "all") params.entity_type = typeFilter;
         if (searchTerm) params.search = searchTerm;
         const data = await AdminAPI.listEntities(params);
+        // console.log('entities data', data);
         setEntities(data.results || data || []);
+        setTotalCount(data.count ?? (data.results ? data.results.length : 0));
       } catch (e) {
         toast.error("Impossible de charger les entités administratives");
         setEntities([]);
@@ -88,7 +96,7 @@ export default function EntitiesPage() {
       }
     };
     fetchEntities();
-  }, [searchTerm, statusFilter, typeFilter]);
+  }, [searchTerm, statusFilter, typeFilter, page, pageSize]);
 
   const filteredEntities = entities; // Already filtered server-side
 
@@ -189,19 +197,6 @@ export default function EntitiesPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Actions</label>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtres avancés
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -270,6 +265,7 @@ export default function EntitiesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[60px]">#</TableHead>
                   <TableHead>Entité</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Statut</TableHead>
@@ -296,8 +292,9 @@ export default function EntitiesPage() {
                       </TableRow>
                     );
                   }
-                  return filteredEntities.map((entity) => (
+                  return filteredEntities.map((entity, index) => (
                   <TableRow key={entity.slug}>
+                    <TableCell className="text-muted-foreground">{rowNumber(index)}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">{entity.name}</div>
@@ -349,6 +346,32 @@ export default function EntitiesPage() {
                 })()}
               </TableBody>
             </Table>
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="text-sm text-muted-foreground">
+                {offset + 1}-{Math.min(offset + pageSize, totalCount)} sur {totalCount}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Par page</span>
+                  <Select value={String(pageSize)} onValueChange={(v) => { setPage(1); setPageSize(Number(v)); }}>
+                    <SelectTrigger className="h-8 w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10,20,50].map((s) => (
+                        <SelectItem key={s} value={String(s)}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Précédent</Button>
+                  <div className="text-sm">Page {page} / {totalPages}</div>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Suivant</Button>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
