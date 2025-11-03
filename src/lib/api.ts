@@ -1,4 +1,5 @@
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+import apiClient from "./apiClient";
 
 export const API = {
   // Authentication
@@ -70,4 +71,48 @@ export const API = {
   documentTypes: {
     list: () => `${BASE_URL}/entities/document-type/`,
   }
+  ,
+  // Administrations (Espace admin)
+  administrations: {
+    entities: {
+      list: () => `${BASE_URL}/administrations/entities/`,
+      details: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/`,
+      setUnderReview: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/under_review/`,
+      setValidated: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/validated/`,
+      setBlocked: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/blocked/`,
+      setDeclined: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/declined/`,
+    },
+    users: {
+      updateStaff: (slug: string) => `${BASE_URL}/administrations/update-user/${slug}/`,
+    }
+  }
+};
+
+// Administrations - Helpers centralisés (cohérence d'accès API)
+// NOTE: On centralise ici pour éviter la dispersion des appels côté client
+export const AdminAPI = {
+  listEntities: async (params?: { status?: string; entity_type?: string; search?: string; limit?: number; offset?: number; }) => {
+    const response = await apiClient.get(`/api/administrations/entities/`, { params });
+    return response.data;
+  },
+  getEntity: async (slug: string) => {
+    const response = await apiClient.get(`/api/administrations/entities/${slug}/`);
+    return response.data;
+  },
+  setUnderReview: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/under_review/`);
+    return response.data;
+  },
+  setValidated: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/validated/`);
+    return response.data;
+  },
+  setBlocked: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/blocked/`);
+    return response.data;
+  },
+  setDeclined: async (slug: string, rejection_reason: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/declined/`, { rejection_reason });
+    return response.data;
+  },
 };
