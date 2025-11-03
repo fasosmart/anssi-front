@@ -26,27 +26,14 @@ import {
   Globe
 } from "lucide-react";
 import Link from "next/link";
+import { use as usePromise, useEffect, useMemo, useState } from "react";
+import { AdminAPI } from "@/lib/api";
+import { EntityDetail, EntityStatus } from "@/types/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
-// Mock data - sera remplacé par l'API
-const mockEntityDetail = {
-  slug: "techcorp",
-  name: "TechCorp SARL",
-  acronym: "TC",
-  business_sector: "Technologies de l'information",
-  tax_id: "123456789",
-  commercial_register: "RC-2024-001",
-  total_staff: 25,
-  cybersecurity_experts: 8,
-  address: "Rue du Commerce, Conakry, Guinée",
-  phone: "+224 123 456 789",
-  mobile: "+224 123 456 790",
-  email: "contact@techcorp.gn",
-  website: "https://techcorp.gn",
-  entity_type: "business" as const,
-  status: "active",
-  created_at: "2024-01-10T10:30:00Z",
-  updated_at: "2024-01-15T14:20:00Z"
-};
+// Les mocks ci-dessous (représentants, accréditations, documents, historique)
+// restent temporairement pour l'onglet UI;
 
 const mockRepresentatives = [
   {
@@ -147,11 +134,13 @@ const mockActivityHistory = [
   }
 ];
 
-const statusConfig = {
-  active: { label: "Active", color: "bg-green-500", textColor: "text-green-700" },
-  pending: { label: "En attente", color: "bg-orange-500", textColor: "text-orange-700" },
+const statusConfig: Record<EntityStatus, { label: string; color: string; textColor: string }> = {
+  new: { label: "Nouvelle", color: "bg-blue-500", textColor: "text-blue-700" },
+  submitted: { label: "Soumise", color: "bg-yellow-500", textColor: "text-yellow-700" },
+  under_review: { label: "En cours de validation", color: "bg-orange-500", textColor: "text-orange-700" },
+  validated: { label: "Validée", color: "bg-green-500", textColor: "text-green-700" },
   blocked: { label: "Bloquée", color: "bg-red-500", textColor: "text-red-700" },
-  inactive: { label: "Inactive", color: "bg-gray-500", textColor: "text-gray-700" }
+  declined: { label: "Réjetée", color: "bg-gray-500", textColor: "text-gray-700" },
 };
 
 const accreditationStatusConfig = {
@@ -162,9 +151,39 @@ const accreditationStatusConfig = {
   rejected: { label: "Rejetée", color: "bg-red-500" }
 };
 
-export default function EntityDetailPage() {
-  const entity = mockEntityDetail;
-  const statusConfig_item = statusConfig[entity.status as keyof typeof statusConfig];
+interface PageProps { params: Promise<{ slug: string }> }
+
+export default function EntityDetailPage({ params }: PageProps) {
+  const { slug } = usePromise(params);
+  const [entity, setEntity] = useState<EntityDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchEntity = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await AdminAPI.getEntity(slug);
+        if (!isMounted) return;
+        setEntity(data as EntityDetail);
+      } catch (e) {
+        if (!isMounted) return;
+        setError("Impossible de charger les détails de l'entité");
+        toast.error("Échec du chargement des détails de l'entité");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchEntity();
+    return () => { isMounted = false; };
+  }, [slug]);
+
+  const statusConfig_item = useMemo(() => {
+    if (!entity) return null;
+    return statusConfig[entity.status];
+  }, [entity]);
 
   return (
     <div className="space-y-6">
@@ -178,12 +197,21 @@ export default function EntityDetailPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {entity.name}
-            </h1>
-            <p className="text-muted-foreground">
-              {entity.acronym} • {entity.business_sector}
-            </p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-8 w-[260px] mb-2" />
+                <Skeleton className="h-4 w-[240px] mt-2" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {entity?.name}
+                </h1>
+                <div className="text-muted-foreground">
+                  {entity?.acronym} • {entity?.business_sector}
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
@@ -203,18 +231,25 @@ export default function EntityDetailPage() {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
-              <Badge 
-                variant="secondary" 
-                className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
-              >
-                {statusConfig_item.label}
-              </Badge>
+              {isLoading ? (
+                <Skeleton className="h-6 w-32" />
+              ) : statusConfig_item ? (
+                <Badge 
+                  variant="secondary" 
+                  className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
+                >
+                  {statusConfig_item.label}
+                </Badge>
+              ) : null}
               <div className="text-sm text-muted-foreground">
-                Créée le {new Date(entity.created_at).toLocaleDateString('fr-FR')}
+                {isLoading ? <Skeleton className="h-4 w-40" /> : entity?.created_at ? (
+                  <>Créée le {new Date(entity.created_at).toLocaleDateString('fr-FR')}</>
+                ) : null}
               </div>
             </div>
             <div className="flex gap-2">
-              {entity.status === "pending" && (
+              {/* Actions à implémenter étape 2 */}
+              {false && (
                 <>
                   <Button>
                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -226,13 +261,13 @@ export default function EntityDetailPage() {
                   </Button>
                 </>
               )}
-              {entity.status === "active" && (
+              {false && (
                 <Button variant="outline" className="text-red-600">
                   <XCircle className="h-4 w-4 mr-2" />
                   Bloquer
                 </Button>
               )}
-              {entity.status === "blocked" && (
+              {false && (
                 <Button className="text-green-600">
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Débloquer
@@ -240,6 +275,12 @@ export default function EntityDetailPage() {
               )}
             </div>
           </div>
+          {/* Afficher la raison du rejet si applicable */}
+          {!isLoading && entity?.status === "declined" && entity?.rejection_reason && (
+            <div className="mt-4 text-sm text-red-700">
+              Raison du refus: {entity.rejection_reason}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -266,30 +307,30 @@ export default function EntityDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Nom complet</label>
-                  <p className="text-sm">{entity.name}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Acronyme</label>
-                  <p className="text-sm">{entity.acronym}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.acronym}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Secteur d&apos;activité</label>
-                  <p className="text-sm">{entity.business_sector}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.business_sector}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Type d&apos;entité</label>
                   <p className="text-sm">
-                    {entity.entity_type === "business" ? "Entreprise" : 
-                     entity.entity_type === "personal" ? "Personne physique" : "ONG"}
+                    {isLoading ? "…" : entity?.entity_type === "business" ? "Entreprise" : 
+                     entity?.entity_type === "personal" ? "Personne physique" : "ONG"}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Identifiant fiscal</label>
-                  <p className="text-sm">{entity.tax_id}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.tax_id}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Registre du commerce</label>
-                  <p className="text-sm">{entity.commercial_register}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.commercial_register}</p>
                 </div>
               </CardContent>
             </Card>
@@ -305,16 +346,21 @@ export default function EntityDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Effectif total</label>
-                  <p className="text-sm">{entity.total_staff} employés</p>
+                  <p className="text-sm">{isLoading ? "…" : (entity?.total_staff ?? 0)} employés</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Experts cybersécurité</label>
-                  <p className="text-sm">{entity.cybersecurity_experts} experts</p>
+                  <p className="text-sm">{isLoading ? "…" : (entity?.cybersecurity_experts ?? 0)} experts</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Pourcentage d&apos;experts</label>
                   <p className="text-sm">
-                    {Math.round((entity.cybersecurity_experts / entity.total_staff) * 100)}%
+                    {isLoading ? "…" : (() => {
+                      const experts = entity?.cybersecurity_experts ?? 0;
+                      const total = entity?.total_staff ?? 0;
+                      if (!total) return "0%";
+                      return `${Math.round((experts / total) * 100)}%`;
+                    })()}
                   </p>
                 </div>
               </CardContent>
@@ -334,25 +380,25 @@ export default function EntityDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Adresse</label>
-                    <p className="text-sm">{entity.address}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.address}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Téléphone</label>
-                    <p className="text-sm">{entity.phone}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.phone}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Mobile</label>
-                    <p className="text-sm">{entity.mobile}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.mobile}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p className="text-sm">{entity.email}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.email}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Site web</label>
-                    <p className="text-sm">{entity.website}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.website}</p>
                   </div>
                 </div>
               </div>
