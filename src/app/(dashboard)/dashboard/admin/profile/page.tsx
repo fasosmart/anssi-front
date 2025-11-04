@@ -269,7 +269,7 @@ export default function AdminProfilePage() {
                   </div>
                 </div>
                 
-                {session.user?.is_superuser && (
+                {/* {session.user?.is_superuser && (
                   <div className="space-y-2">
                     <Label className="flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
@@ -280,7 +280,7 @@ export default function AdminProfilePage() {
                       Super administrateur
                     </Badge>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </CardContent>
