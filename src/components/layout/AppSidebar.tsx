@@ -86,11 +86,11 @@ const adminMenuItems: MenuItem[] = [
     icon: Files,
     label: "Documents",
   },
-  {
-    href: "/dashboard/admin/settings",
-    icon: Settings,
-    label: "Paramètres",
-  },
+  // {
+  //   href: "/dashboard/admin/settings",
+  //   icon: Settings,
+  //   label: "Paramètres",
+  // },
 ];
 
 export function AppSidebar() {

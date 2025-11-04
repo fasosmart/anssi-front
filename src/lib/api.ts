@@ -6,6 +6,7 @@ export const API = {
   login: () => `${BASE_URL}/auth/jwt/create/`,
   refresh: () => `${BASE_URL}/auth/jwt/refresh/`,
   me: () => `${BASE_URL}/users/me/`,
+  permissions: () => `${BASE_URL}/users/permission/list/`,
 
   // Entities
   entities: {
@@ -131,6 +132,14 @@ export const AdminAPI = {
   },
   getAccreditation: async (slug: string) => {
     const response = await apiClient.get(`/api/administrations/accreditations/${slug}/`);
+    return response.data;
+  },
+};
+
+// Users - Helpers centralisés
+export const UserAPI = {
+  getPermissions: async () => {
+    const response = await apiClient.get(`/api/users/permission/list/`);
     return response.data;
   },
 };
