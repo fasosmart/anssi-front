@@ -28,114 +28,14 @@ import {
 import Link from "next/link";
 import { use as usePromise, useEffect, useMemo, useState } from "react";
 import { AdminAPI } from "@/lib/api";
-import { EntityDetail, EntityStatus } from "@/types/api";
+import { EntityDetail, EntityDetailAdmin, EntityStatus, RepresentativeList, AccreditationList, Document } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-// Les mocks ci-dessous (représentants, accréditations, documents, historique)
-// restent temporairement pour l'onglet UI;
-
-const mockRepresentatives = [
-  {
-    slug: "rep-001",
-    first_name: "Moussa",
-    last_name: "Diallo",
-    job_title: "Directeur Technique",
-    email: "moussa.diallo@techcorp.gn",
-    phone: "+224 123 456 789",
-    status: "active"
-  },
-  {
-    slug: "rep-002",
-    first_name: "Fatoumata",
-    last_name: "Bah",
-    job_title: "Responsable Cybersécurité",
-    email: "fatoumata.bah@techcorp.gn",
-    phone: "+224 123 456 791",
-    status: "active"
-  }
-];
-
-const mockAccreditations = [
-  {
-    slug: "acc-001",
-    type_accreditation: "APASSI",
-    status: "approved",
-    submission_date: "2024-01-15",
-    approval_date: "2024-01-20"
-  },
-  {
-    slug: "acc-002",
-    type_accreditation: "APACS",
-    status: "under_review",
-    submission_date: "2024-01-18",
-    approval_date: null
-  },
-  {
-    slug: "acc-003",
-    type_accreditation: "APDIS",
-    status: "pending",
-    submission_date: "2024-01-20",
-    approval_date: null
-  }
-];
-
-const mockDocuments = [
-  {
-    slug: "doc-001",
-    name: "Statuts de l'entreprise",
-    document_type: "Statuts",
-    file: "/documents/statuts.pdf",
-    issued_at: "2024-01-10",
-    expires_at: null
-  },
-  {
-    slug: "doc-002",
-    name: "Carte d'identification fiscale",
-    document_type: "Fiscal",
-    file: "/documents/carte-fiscale.pdf",
-    issued_at: "2024-01-08",
-    expires_at: "2025-01-08"
-  },
-  {
-    slug: "doc-003",
-    name: "Registre du commerce",
-    document_type: "Commerce",
-    file: "/documents/registre-commerce.pdf",
-    issued_at: "2024-01-05",
-    expires_at: null
-  }
-];
-
-const mockActivityHistory = [
-  {
-    id: 1,
-    action: "Entité créée",
-    user: "Moussa Diallo",
-    date: "2024-01-10T10:30:00Z",
-    status: "completed",
-    comment: "Nouvelle entité enregistrée dans le système"
-  },
-  {
-    id: 2,
-    action: "Documents validés",
-    user: "Admin ANSSI",
-    date: "2024-01-12T14:20:00Z",
-    status: "completed",
-    comment: "Tous les documents requis ont été validés"
-  },
-  {
-    id: 3,
-    action: "Entité approuvée",
-    user: "Admin ANSSI",
-    date: "2024-01-15T09:15:00Z",
-    status: "completed",
-    comment: "Entité approuvée et activée"
-  }
-];
+// Les données sont maintenant récupérées depuis l'API via EntityDetailAdmin
 
 const statusConfig: Record<EntityStatus, { label: string; color: string; textColor: string }> = {
   new: { label: "Nouvelle", color: "bg-blue-500", textColor: "text-blue-700" },
@@ -158,7 +58,7 @@ interface PageProps { params: Promise<{ slug: string }> }
 
 export default function EntityDetailPage({ params }: PageProps) {
   const { slug } = usePromise(params);
-  const [entity, setEntity] = useState<EntityDetail | null>(null);
+  const [entity, setEntity] = useState<EntityDetailAdmin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
@@ -171,7 +71,7 @@ export default function EntityDetailPage({ params }: PageProps) {
     setError(null);
     try {
       const data = await AdminAPI.getEntity(slug);
-      setEntity(data as EntityDetail);
+      setEntity(data as EntityDetailAdmin);
     } catch (e) {
       setError("Impossible de charger les détails de l&apos;entité");
       toast.error("Échec du chargement des détails de l&apos;entité");
@@ -188,7 +88,7 @@ export default function EntityDetailPage({ params }: PageProps) {
       try {
         const data = await AdminAPI.getEntity(slug);
         if (!isMounted) return;
-        setEntity(data as EntityDetail);
+        setEntity(data as EntityDetailAdmin);
       } catch (e) {
         if (!isMounted) return;
         setError("Impossible de charger les détails de l&apos;entité");
@@ -349,9 +249,30 @@ export default function EntityDetailPage({ params }: PageProps) {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
-          <TabsTrigger value="representatives">Représentants</TabsTrigger>
-          <TabsTrigger value="accreditations">Accréditations</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="representatives">
+            Représentants
+            {!isLoading && entity?.representatives && entity.representatives.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.representatives.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="accreditations">
+            Accréditations
+            {!isLoading && entity?.accreditations && entity.accreditations.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.accreditations.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            Documents
+            {!isLoading && entity?.documents && entity.documents.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.documents.length}
+              </Badge>
+            )}
+          </TabsTrigger>
           {/* <TabsTrigger value="history">Historique</TabsTrigger> */}
         </TabsList>
 
@@ -476,33 +397,49 @@ export default function EntityDetailPage({ params }: PageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockRepresentatives.map((rep) => (
-                  <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5" />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.representatives && entity.representatives.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.representatives.map((rep) => (
+                    <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{rep.first_name} {rep.last_name}</p>
+                          <p className="text-sm text-muted-foreground">{rep.job_title}</p>
+                          {rep.email && (
+                            <p className="text-sm text-muted-foreground">{rep.email}</p>
+                          )}
+                          {rep.phone && (
+                            <p className="text-sm text-muted-foreground">{rep.phone}</p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{rep.first_name} {rep.last_name}</p>
-                        <p className="text-sm text-muted-foreground">{rep.job_title}</p>
-                        <p className="text-sm text-muted-foreground">{rep.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{rep.status}</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/dashboard/admin/representatives/${rep.slug}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun représentant trouvé pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* <TabsContent value="accreditations" className="space-y-4">
+        <TabsContent value="accreditations" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Accréditations de l&apos;entité</CardTitle>
@@ -511,35 +448,65 @@ export default function EntityDetailPage({ params }: PageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockAccreditations.map((acc) => (
-                  <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Shield className="h-8 w-8 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{acc.type_accreditation}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
-                        </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.accreditations && entity.accreditations.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.accreditations.map((acc) => {
+                    const statusKey = acc.status as keyof typeof accreditationStatusConfig;
+                    const statusInfo = accreditationStatusConfig[statusKey] || { label: acc.status, color: "bg-gray-500" };
+                    return (
+                      <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Shield className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{acc.type_accreditation}</p>
+                            {acc.submission_date && (
+                              <p className="text-sm text-muted-foreground">
+                                Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                            {acc.approval_date && (
+                              <p className="text-sm text-muted-foreground">
+                                Approuvée le {new Date(acc.approval_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                            {acc.rejection_date && (
+                              <p className="text-sm text-red-600">
+                                Rejetée le {new Date(acc.rejection_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant="secondary"
+                            className={`${statusInfo.color} text-white border-0`}
+                          >
+                            {statusInfo.label}
+                          </Badge>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant="secondary"
-                        className={`${accreditationStatusConfig[acc.status as keyof typeof accreditationStatusConfig].color} text-white border-0`}
-                      >
-                        {accreditationStatusConfig[acc.status as keyof typeof accreditationStatusConfig].label}
-                      </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune accréditation trouvée pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </TabsContent> */}
+        </TabsContent>
 
         <TabsContent value="documents" className="space-y-4">
           <Card>
@@ -550,34 +517,64 @@ export default function EntityDetailPage({ params }: PageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockDocuments.map((doc) => (
-                  <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{doc.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {doc.document_type} • Émis le {new Date(doc.issued_at).toLocaleDateString('fr-FR')}
-                        </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.documents && entity.documents.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.documents.map((doc) => (
+                    <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <FileText className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{doc.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Émis le {new Date(doc.issued_at).toLocaleDateString('fr-FR')}
+                          </p>
+                          {doc.expires_at && (
+                            <p className="text-sm text-muted-foreground">
+                              Expire le {new Date(doc.expires_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                          {doc.created_at && (
+                            <p className="text-xs text-muted-foreground">
+                              Ajouté le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {typeof doc.file === 'string' && (
+                          <>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={doc.file} download>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun document trouvé pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-4">
+        {/* <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Historique des actions</CardTitle>
@@ -586,34 +583,12 @@ export default function EntityDetailPage({ params }: PageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockActivityHistory.map((item, index) => (
-                  <div key={item.id} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {item.status === "completed" && <CheckCircle className="h-5 w-5 text-green-500" />}
-                      {item.status === "in_progress" && <Clock className="h-5 w-5 text-blue-500" />}
-                      {item.status === "pending" && <AlertTriangle className="h-5 w-5 text-orange-500" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{item.action}</p>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(item.date).toLocaleDateString('fr-FR')}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Par {item.user}
-                      </p>
-                      {item.comment && (
-                        <p className="text-sm mt-1">{item.comment}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Historique des actions à venir</p>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
 
       {/* Confirm generic actions */}
