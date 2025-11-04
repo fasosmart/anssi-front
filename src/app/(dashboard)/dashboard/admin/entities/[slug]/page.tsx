@@ -162,7 +162,7 @@ export default function EntityDetailPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isActing, setIsActing] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<null | "under_review" | "validated" | "blocked">(null);
+  const [confirmAction, setConfirmAction] = useState<null | "under_review" | "validated" | "blocked" | "unblock">(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -269,29 +269,70 @@ export default function EntityDetailPage({ params }: PageProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted") && (
-                <Button disabled={isActing} onClick={() => setConfirmAction("under_review")}>
-                  <Clock className="h-4 w-4 mr-2" />
-                  Mettre en révision
-                </Button>
-              )}
-              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted" || entity.status === "under_review" || entity.status === "blocked" || entity.status === "declined") && (
-                <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+              {/* Statut blocked : Débloquer en premier (action unique) */}
+              {!isLoading && entity?.status === "blocked" && (
+                <Button disabled={isActing} onClick={() => setConfirmAction("unblock")}>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Valider
+                  Débloquer
                 </Button>
               )}
-              {!isLoading && entity?.status && (entity.status === "validated" || entity.status === "under_review") && (
+              
+              {/* Statuts new / submitted : Valider, Mettre en révision, Rejeter */}
+              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted") && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
+                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Mettre en révision
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
+                </>
+              )}
+              
+              {/* Statut under_review : Valider, Rejeter, Bloquer */}
+              {!isLoading && entity?.status === "under_review" && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Bloquer
+                  </Button>
+                </>
+              )}
+              
+              {/* Statut validated : Bloquer uniquement */}
+              {!isLoading && entity?.status === "validated" && (
                 <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
                   <XCircle className="h-4 w-4 mr-2" />
                   Bloquer
                 </Button>
               )}
-              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted" || entity.status === "under_review") && (
-                <Button variant="outline" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Rejeter
-                </Button>
+              
+              {/* Statut declined : Mettre en révision, Valider */}
+              {!isLoading && entity?.status === "declined" && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
+                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Mettre en révision
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -584,6 +625,7 @@ export default function EntityDetailPage({ params }: PageProps) {
               {confirmAction === "under_review" && "Mettre cette entité en révision ?"}
               {confirmAction === "validated" && "Valider définitivement cette entité ?"}
               {confirmAction === "blocked" && "Bloquer cette entité ? Elle ne pourra plus effectuer d&apos;actions."}
+              {confirmAction === "unblock" && "Débloquer cette entité ? Elle pourra à nouveau effectuer des actions."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -597,10 +639,12 @@ export default function EntityDetailPage({ params }: PageProps) {
                   if (confirmAction === "under_review") await AdminAPI.setUnderReview(eslug);
                   if (confirmAction === "validated") await AdminAPI.setValidated(eslug);
                   if (confirmAction === "blocked") await AdminAPI.setBlocked(eslug);
+                  if (confirmAction === "unblock") await AdminAPI.unblock(eslug);
                   toast.success("Statut mis à jour");
                   await refetch();
-                } catch (e) {
-                  toast.error("Échec de la mise à jour du statut");
+                } catch (e: any) {
+                  const message = e?.response?.data?.detail || e?.response?.data?.message || e?.message || "Erreur inconnue";
+                  toast.error(`Échec de la mise à jour du statut: ${message}`);
                 } finally {
                   setIsActing(false);
                   setConfirmAction(null);

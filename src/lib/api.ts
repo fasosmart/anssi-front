@@ -80,7 +80,12 @@ export const API = {
       setUnderReview: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/under_review/`,
       setValidated: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/validated/`,
       setBlocked: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/blocked/`,
+      unblock: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/unblock/`,
       setDeclined: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/declined/`,
+    },
+    accreditations: {
+      list: () => `${BASE_URL}/administrations/accreditations/`,
+      details: (slug: string) => `${BASE_URL}/administrations/accreditations/${slug}/`,
     },
     users: {
       updateStaff: (slug: string) => `${BASE_URL}/administrations/update-user/${slug}/`,
@@ -111,8 +116,21 @@ export const AdminAPI = {
     const response = await apiClient.patch(`/api/administrations/entities/${slug}/blocked/`);
     return response.data;
   },
+  unblock: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/unblock/`);
+    return response.data;
+  },
   setDeclined: async (slug: string, rejection_reason: string) => {
     const response = await apiClient.patch(`/api/administrations/entities/${slug}/declined/`, { rejection_reason });
+    return response.data;
+  },
+  // Accréditations (admin)
+  listAccreditations: async (params?: { status?: string; search?: string; limit?: number; offset?: number; }) => {
+    const response = await apiClient.get(`/api/administrations/accreditations/`, { params });
+    return response.data;
+  },
+  getAccreditation: async (slug: string) => {
+    const response = await apiClient.get(`/api/administrations/accreditations/${slug}/`);
     return response.data;
   },
 };
