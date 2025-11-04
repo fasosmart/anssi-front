@@ -352,7 +352,7 @@ export default function EntityDetailPage({ params }: PageProps) {
           <TabsTrigger value="representatives">Représentants</TabsTrigger>
           <TabsTrigger value="accreditations">Accréditations</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
+          {/* <TabsTrigger value="history">Historique</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -502,7 +502,7 @@ export default function EntityDetailPage({ params }: PageProps) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="accreditations" className="space-y-4">
+        {/* <TabsContent value="accreditations" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Accréditations de l&apos;entité</CardTitle>
@@ -539,7 +539,7 @@ export default function EntityDetailPage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="documents" className="space-y-4">
           <Card>
