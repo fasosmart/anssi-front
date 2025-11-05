@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { AxiosError } from "axios";
 
 // Les données sont maintenant récupérées depuis l'API via EntityDetailAdmin
 
@@ -617,10 +618,18 @@ export default function EntityDetailPage({ params }: PageProps) {
                   if (confirmAction === "unblock") await AdminAPI.unblock(eslug);
                   toast.success("Statut mis à jour");
                   await refetch();
-                } catch (e: any) {
-                  const message = e?.response?.data?.detail || e?.response?.data?.message || e?.message || "Erreur inconnue";
+                } catch (e: unknown) {
+                  const err = e as AxiosError<{ detail?: string; message?: string }>;
+                
+                  const message =
+                    err.response?.data?.detail ||
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Erreur inconnue";
+                
                   toast.error(`Échec de la mise à jour du statut: ${message}`);
-                } finally {
+                }
+                finally {
                   setIsActing(false);
                   setConfirmAction(null);
                 }

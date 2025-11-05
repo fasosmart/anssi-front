@@ -80,7 +80,7 @@ export default function EntitiesPage() {
     const fetchEntities = async () => {
       setIsLoading(true);
       try {
-        const params: any = { limit: pageSize, offset };
+        const params: { limit?: number; offset?: number; status?: string; entity_type?: string; search?: string } = {};
         if (statusFilter !== "all") params.status = statusFilter;
         if (typeFilter !== "all") params.entity_type = typeFilter;
         if (searchTerm) params.search = searchTerm;
