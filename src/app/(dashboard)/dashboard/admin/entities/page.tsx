@@ -1,20 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Filter,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock,
   Building,
   Download,
   MoreHorizontal,
@@ -25,71 +51,14 @@ import {
   User
 } from "lucide-react";
 import Link from "next/link";
-import { Entity } from "@/types/api";
+import { EntityList, EntityStatus } from "@/types/api";
+import { AdminAPI } from "@/lib/api";
+import { toast } from "sonner";
 
-// Mock data - sera remplacé par l'API
-const mockEntities = [
-  {
-    slug: "techcorp",
-    name: "TechCorp SARL",
-    acronym: "TC",
-    business_sector: "Technologies de l'information",
-    entity_type: "business" as const,
-    total_staff: 25,
-    cybersecurity_experts: 8,
-    email: "contact@techcorp.gn",
-    phone: "+224 123 456 789",
-    status: "active",
-    created_at: "2024-01-10T10:30:00Z",
-    accreditations_count: 3,
-    representatives_count: 2
-  },
-  {
-    slug: "secureit",
-    name: "SecureIT",
-    acronym: "SI",
-    business_sector: "Cybersécurité",
-    entity_type: "business" as const,
-    total_staff: 15,
-    cybersecurity_experts: 12,
-    email: "info@secureit.gn",
-    phone: "+224 987 654 321",
-    status: "pending",
-    created_at: "2024-01-12T14:20:00Z",
-    accreditations_count: 1,
-    representatives_count: 1
-  },
-  {
-    slug: "cyberguard",
-    name: "CyberGuard",
-    acronym: "CG",
-    business_sector: "Sécurité informatique",
-    entity_type: "business" as const,
-    total_staff: 8,
-    cybersecurity_experts: 6,
-    email: "contact@cyberguard.gn",
-    phone: "+224 555 123 456",
-    status: "active",
-    created_at: "2024-01-05T09:15:00Z",
-    accreditations_count: 2,
-    representatives_count: 1
-  },
-  {
-    slug: "dataprotect",
-    name: "DataProtect",
-    acronym: "DP",
-    business_sector: "Protection des données",
-    entity_type: "business" as const,
-    total_staff: 12,
-    cybersecurity_experts: 9,
-    email: "info@dataprotect.gn",
-    phone: "+224 777 888 999",
-    status: "blocked",
-    created_at: "2024-01-08T16:45:00Z",
-    accreditations_count: 0,
-    representatives_count: 1
-  }
-];
+type AdminEntityList = EntityList & {
+  accreditations_count?: number;
+  representatives_count?: number;
+};
 
 const entityTypeConfig = {
   personal: { label: "Personne physique", color: "bg-blue-500" },
@@ -97,11 +66,40 @@ const entityTypeConfig = {
   ngo: { label: "ONG", color: "bg-purple-500" }
 };
 
-const statusConfig = {
-  active: { label: "Active", color: "bg-green-500", textColor: "text-green-700" },
-  pending: { label: "En attente", color: "bg-orange-500", textColor: "text-orange-700" },
-  blocked: { label: "Bloquée", color: "bg-red-500", textColor: "text-red-700" },
-  inactive: { label: "Inactive", color: "bg-gray-500", textColor: "text-gray-700" }
+const statusConfig: Record<
+  EntityStatus,
+  { label: string; color: string; textColor: string }
+> = {
+  new: {
+    label: "Nouvelle",
+    color: "bg-blue-500",
+    textColor: "text-blue-700"
+  },
+  submitted: {
+    label: "Soumise",
+    color: "bg-yellow-500",
+    textColor: "text-yellow-700"
+  },
+  under_review: {
+    label: "En cours de validation",
+    color: "bg-orange-500",
+    textColor: "text-orange-700"
+  },
+  validated: {
+    label: "Validée",
+    color: "bg-green-500",
+    textColor: "text-green-700"
+  },
+  blocked: {
+    label: "Bloquée",
+    color: "bg-red-500",
+    textColor: "text-red-700"
+  },
+  declined: {
+    label: "Refusée",
+    color: "bg-gray-500",
+    textColor: "text-gray-700"
+  }
 };
 
 const entityTypeOptions = [
@@ -113,32 +111,66 @@ const entityTypeOptions = [
 
 const statusOptions = [
   { value: "all", label: "Tous les statuts" },
-  { value: "active", label: "Active" },
-  { value: "pending", label: "En attente" },
+  { value: "new", label: "Nouvelle" },
+  { value: "submitted", label: "Soumise" },
+  { value: "under_review", label: "En cours de validation" },
+  { value: "validated", label: "Validée" },
   { value: "blocked", label: "Bloquée" },
-  { value: "inactive", label: "Inactive" }
+  { value: "declined", label: "Refusée" }
 ];
 
 export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [entities, setEntities] = useState<AdminEntityList[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const offset = (page - 1) * pageSize;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const rowNumber = (index: number) => offset + index + 1;
 
-  const filteredEntities = mockEntities.filter(entity => {
-    const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         entity.business_sector.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || entity.status === statusFilter;
-    const matchesType = typeFilter === "all" || entity.entity_type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  useEffect(() => {
+    const fetchEntities = async () => {
+      setIsLoading(true);
+      try {
+        const params: {
+          limit?: number;
+          offset?: number;
+          status?: string;
+          entity_type?: string;
+          search?: string;
+        } = {};
+        if (statusFilter !== "all") params.status = statusFilter;
+        if (typeFilter !== "all") params.entity_type = typeFilter;
+        if (searchTerm) params.search = searchTerm;
+        const data = await AdminAPI.listEntities(params);
+        setEntities(data.results || data || []);
+        setTotalCount(data.count ?? (data.results ? data.results.length : 0));
+      } catch (e) {
+        toast.error("Impossible de charger les entités administratives");
+        setEntities([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEntities();
+  }, [searchTerm, statusFilter, typeFilter, page, pageSize]);
+
+  const filteredEntities = entities; // Already filtered server-side
 
   const getStatusBadge = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
+    const config =
+      statusConfig[status as EntityStatus] || {
+        label: "Inconnu",
+        color: "bg-gray-300",
+        textColor: "text-gray-700"
+      };
     return (
-      <Badge 
-        variant="secondary" 
+      <Badge
+        variant="secondary"
         className={`${config.color} ${config.textColor} border-0`}
       >
         {config.label}
@@ -147,7 +179,11 @@ export default function EntitiesPage() {
   };
 
   const getTypeBadge = (type: string) => {
-    const config = entityTypeConfig[type as keyof typeof entityTypeConfig];
+    // Fallback visuel si le type n'est pas reconnu
+    const config =
+      entityTypeConfig[type as keyof typeof entityTypeConfig] || {
+        label: "Type inconnu"
+      };
     return (
       <Badge variant="outline" className="text-xs">
         {config.label}
@@ -198,7 +234,7 @@ export default function EntitiesPage() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Statut</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -230,19 +266,6 @@ export default function EntitiesPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Actions</label>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtres avancés
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -255,12 +278,10 @@ export default function EntitiesPage() {
               <Building className="h-4 w-4 text-blue-500" />
               <span className="text-sm font-medium">Total entités</span>
             </div>
-            <div className="text-2xl font-bold">
-              {mockEntities.length}
-            </div>
+            <div className="text-2xl font-bold">{entities.length}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -268,11 +289,11 @@ export default function EntitiesPage() {
               <span className="text-sm font-medium">Actives</span>
             </div>
             <div className="text-2xl font-bold">
-              {mockEntities.filter(entity => entity.status === "active").length}
+              {entities.filter((entity) => entity.status === "validated").length}
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -280,11 +301,17 @@ export default function EntitiesPage() {
               <span className="text-sm font-medium">En attente</span>
             </div>
             <div className="text-2xl font-bold">
-              {mockEntities.filter(entity => entity.status === "pending").length}
+              {
+                entities.filter(
+                  (entity) =>
+                    entity.status === "submitted" ||
+                    entity.status === "under_review"
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -292,7 +319,7 @@ export default function EntitiesPage() {
               <span className="text-sm font-medium">Bloquées</span>
             </div>
             <div className="text-2xl font-bold">
-              {mockEntities.filter(entity => entity.status === "blocked").length}
+              {entities.filter((entity) => entity.status === "blocked").length}
             </div>
           </CardContent>
         </Card>
@@ -311,128 +338,155 @@ export default function EntitiesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[60px]">#</TableHead>
                   <TableHead>Entité</TableHead>
-                  <TableHead>Secteur</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Effectif</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>Accréditations</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEntities.map((entity) => (
-                  <TableRow key={entity.slug}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{entity.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {entity.acronym} • {entity.email}
+                {(() => {
+                  if (isLoading) {
+                    return (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-center py-6 text-muted-foreground"
+                        >
+                          Chargement...
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+
+                  if (filteredEntities.length === 0) {
+                    return (
+                      <TableRow>
+                        <TableCell
+                          colSpan={4}
+                          className="text-center py-6 text-muted-foreground"
+                        >
+                          Aucune entité trouvée
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+
+                  return filteredEntities.map((entity, index) => (
+                    <TableRow key={entity.slug}>
+                      <TableCell className="text-muted-foreground">
+                        {rowNumber(index)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{entity.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {entity.acronym}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{entity.business_sector}</div>
-                    </TableCell>
-                    <TableCell>
-                      {getTypeBadge(entity.entity_type)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{entity.total_staff} employés</div>
-                        <div className="text-muted-foreground">
-                          {entity.cybersecurity_experts} experts cybersécurité
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(entity.status)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline">
-                          {entity.accreditations_count} accréditations
-                        </Badge>
-                        <Badge variant="outline">
-                          {entity.representatives_count} représentants
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/admin/entities/${entity.slug}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Actions rapides</DialogTitle>
-                              <DialogDescription>
-                                Choisissez une action pour cette entité
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-2">
-                              <Button 
-                                variant="outline" 
-                                className="w-full justify-start"
-                                onClick={() => setSelectedEntity(entity as unknown as Entity)}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Voir les détails
+                      </TableCell>
+                      <TableCell>
+                        {getTypeBadge(entity.entity_type)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(entity.status as string)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link
+                              href={`/dashboard/admin/entities/${entity.slug}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
                               </Button>
-                              {entity.status === "pending" && (
-                                <>
-                                  <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-green-600"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Approuver
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-red-600"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Rejeter
-                                  </Button>
-                                </>
-                              )}
-                              {entity.status === "active" && (
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full justify-start text-red-600"
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Actions rapides</DialogTitle>
+                                <DialogDescription>
+                                  Choisissez une action pour cette entité
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-2">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start"
                                 >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Bloquer
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Voir les détails
                                 </Button>
-                              )}
-                              {entity.status === "blocked" && (
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full justify-start text-green-600"
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Débloquer
-                                </Button>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ));
+                })()}
               </TableBody>
             </Table>
+
+            {/* Pagination controls */}
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="text-sm text-muted-foreground">
+                {offset + 1}-{Math.min(offset + pageSize, totalCount)} sur{" "}
+                {totalCount}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    Par page
+                  </span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      setPage(1);
+                      setPageSize(Number(v));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-[80px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 20, 50].map((s) => (
+                        <SelectItem key={s} value={String(s)}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    Précédent
+                  </Button>
+                  <div className="text-sm">
+                    Page {page} / {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

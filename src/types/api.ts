@@ -36,6 +36,15 @@ export interface Representative {
   idcard_file?: string | File | null;
 }
 
+export interface RepresentativeList {
+  slug: string;
+  first_name: string;
+  last_name: string;
+  job_title: string;
+  phone?: string | null;
+  email?: string | null;
+}
+
 export interface Degree {
   slug?: string;
   created_at?: string;
@@ -131,6 +140,13 @@ export interface EntityDetail extends Entity {
   entity_users: EntityUser[];
   rejection_reason?: string | null;
   status: EntityStatus;
+}
+
+// EntityDetailAdmin retourné par /api/administrations/entities/{slug}/
+export interface EntityDetailAdmin extends EntityDetail {
+  representatives: RepresentativeList[];
+  accreditations: AccreditationList[];
+  documents: Document[];
 }
 
 export interface EntityUser {

@@ -1,10 +1,12 @@
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+import apiClient from "./apiClient";
 
 export const API = {
   // Authentication
   login: () => `${BASE_URL}/auth/jwt/create/`,
   refresh: () => `${BASE_URL}/auth/jwt/refresh/`,
   me: () => `${BASE_URL}/users/me/`,
+  permissions: () => `${BASE_URL}/users/permission/list/`,
 
   // Entities
   entities: {
@@ -70,4 +72,74 @@ export const API = {
   documentTypes: {
     list: () => `${BASE_URL}/entities/document-type/`,
   }
+  ,
+  // Administrations (Espace admin)
+  administrations: {
+    entities: {
+      list: () => `${BASE_URL}/administrations/entities/`,
+      details: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/`,
+      setUnderReview: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/under_review/`,
+      setValidated: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/validated/`,
+      setBlocked: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/blocked/`,
+      unblock: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/unblock/`,
+      setDeclined: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/declined/`,
+    },
+    accreditations: {
+      list: () => `${BASE_URL}/administrations/accreditations/`,
+      details: (slug: string) => `${BASE_URL}/administrations/accreditations/${slug}/`,
+    },
+    users: {
+      updateStaff: (slug: string) => `${BASE_URL}/administrations/update-user/${slug}/`,
+    }
+  }
+};
+
+// Administrations - Helpers centralisés (cohérence d'accès API)
+// NOTE: On centralise ici pour éviter la dispersion des appels côté client
+export const AdminAPI = {
+  listEntities: async (params?: { status?: string; entity_type?: string; search?: string; limit?: number; offset?: number; }) => {
+    const response = await apiClient.get(`/api/administrations/entities/`, { params });
+    return response.data;
+  },
+  getEntity: async (slug: string) => {
+    const response = await apiClient.get(`/api/administrations/entities/${slug}/`);
+    return response.data;
+  },
+  setUnderReview: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/under_review/`);
+    return response.data;
+  },
+  setValidated: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/validated/`);
+    return response.data;
+  },
+  setBlocked: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/blocked/`);
+    return response.data;
+  },
+  unblock: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/unblock/`);
+    return response.data;
+  },
+  setDeclined: async (slug: string, rejection_reason: string) => {
+    const response = await apiClient.patch(`/api/administrations/entities/${slug}/declined/`, { rejection_reason });
+    return response.data;
+  },
+  // Accréditations (admin)
+  listAccreditations: async (params?: { status?: string; search?: string; limit?: number; offset?: number; }) => {
+    const response = await apiClient.get(`/api/administrations/accreditations/`, { params });
+    return response.data;
+  },
+  getAccreditation: async (slug: string) => {
+    const response = await apiClient.get(`/api/administrations/accreditations/${slug}/`);
+    return response.data;
+  },
+};
+
+// Users - Helpers centralisés
+export const UserAPI = {
+  getPermissions: async () => {
+    const response = await apiClient.get(`/api/users/permission/list/`);
+    return response.data;
+  },
 };

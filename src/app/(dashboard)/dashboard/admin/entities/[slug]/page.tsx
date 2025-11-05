@@ -26,132 +26,25 @@ import {
   Globe
 } from "lucide-react";
 import Link from "next/link";
+import { use as usePromise, useEffect, useMemo, useState } from "react";
+import { AdminAPI } from "@/lib/api";
+import { EntityDetail, EntityDetailAdmin, EntityStatus, RepresentativeList, AccreditationList, Document } from "@/types/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { AxiosError } from "axios";
 
-// Mock data - sera remplacé par l'API
-const mockEntityDetail = {
-  slug: "techcorp",
-  name: "TechCorp SARL",
-  acronym: "TC",
-  business_sector: "Technologies de l'information",
-  tax_id: "123456789",
-  commercial_register: "RC-2024-001",
-  total_staff: 25,
-  cybersecurity_experts: 8,
-  address: "Rue du Commerce, Conakry, Guinée",
-  phone: "+224 123 456 789",
-  mobile: "+224 123 456 790",
-  email: "contact@techcorp.gn",
-  website: "https://techcorp.gn",
-  entity_type: "business" as const,
-  status: "active",
-  created_at: "2024-01-10T10:30:00Z",
-  updated_at: "2024-01-15T14:20:00Z"
-};
+// Les données sont maintenant récupérées depuis l'API via EntityDetailAdmin
 
-const mockRepresentatives = [
-  {
-    slug: "rep-001",
-    first_name: "Moussa",
-    last_name: "Diallo",
-    job_title: "Directeur Technique",
-    email: "moussa.diallo@techcorp.gn",
-    phone: "+224 123 456 789",
-    status: "active"
-  },
-  {
-    slug: "rep-002",
-    first_name: "Fatoumata",
-    last_name: "Bah",
-    job_title: "Responsable Cybersécurité",
-    email: "fatoumata.bah@techcorp.gn",
-    phone: "+224 123 456 791",
-    status: "active"
-  }
-];
-
-const mockAccreditations = [
-  {
-    slug: "acc-001",
-    type_accreditation: "APASSI",
-    status: "approved",
-    submission_date: "2024-01-15",
-    approval_date: "2024-01-20"
-  },
-  {
-    slug: "acc-002",
-    type_accreditation: "APACS",
-    status: "under_review",
-    submission_date: "2024-01-18",
-    approval_date: null
-  },
-  {
-    slug: "acc-003",
-    type_accreditation: "APDIS",
-    status: "pending",
-    submission_date: "2024-01-20",
-    approval_date: null
-  }
-];
-
-const mockDocuments = [
-  {
-    slug: "doc-001",
-    name: "Statuts de l'entreprise",
-    document_type: "Statuts",
-    file: "/documents/statuts.pdf",
-    issued_at: "2024-01-10",
-    expires_at: null
-  },
-  {
-    slug: "doc-002",
-    name: "Carte d'identification fiscale",
-    document_type: "Fiscal",
-    file: "/documents/carte-fiscale.pdf",
-    issued_at: "2024-01-08",
-    expires_at: "2025-01-08"
-  },
-  {
-    slug: "doc-003",
-    name: "Registre du commerce",
-    document_type: "Commerce",
-    file: "/documents/registre-commerce.pdf",
-    issued_at: "2024-01-05",
-    expires_at: null
-  }
-];
-
-const mockActivityHistory = [
-  {
-    id: 1,
-    action: "Entité créée",
-    user: "Moussa Diallo",
-    date: "2024-01-10T10:30:00Z",
-    status: "completed",
-    comment: "Nouvelle entité enregistrée dans le système"
-  },
-  {
-    id: 2,
-    action: "Documents validés",
-    user: "Admin ANSSI",
-    date: "2024-01-12T14:20:00Z",
-    status: "completed",
-    comment: "Tous les documents requis ont été validés"
-  },
-  {
-    id: 3,
-    action: "Entité approuvée",
-    user: "Admin ANSSI",
-    date: "2024-01-15T09:15:00Z",
-    status: "completed",
-    comment: "Entité approuvée et activée"
-  }
-];
-
-const statusConfig = {
-  active: { label: "Active", color: "bg-green-500", textColor: "text-green-700" },
-  pending: { label: "En attente", color: "bg-orange-500", textColor: "text-orange-700" },
+const statusConfig: Record<EntityStatus, { label: string; color: string; textColor: string }> = {
+  new: { label: "Nouvelle", color: "bg-blue-500", textColor: "text-blue-700" },
+  submitted: { label: "Soumise", color: "bg-yellow-500", textColor: "text-yellow-700" },
+  under_review: { label: "En cours de validation", color: "bg-orange-500", textColor: "text-orange-700" },
+  validated: { label: "Validée", color: "bg-green-500", textColor: "text-green-700" },
   blocked: { label: "Bloquée", color: "bg-red-500", textColor: "text-red-700" },
-  inactive: { label: "Inactive", color: "bg-gray-500", textColor: "text-gray-700" }
+  declined: { label: "Réjetée", color: "bg-gray-500", textColor: "text-gray-700" },
 };
 
 const accreditationStatusConfig = {
@@ -162,9 +55,57 @@ const accreditationStatusConfig = {
   rejected: { label: "Rejetée", color: "bg-red-500" }
 };
 
-export default function EntityDetailPage() {
-  const entity = mockEntityDetail;
-  const statusConfig_item = statusConfig[entity.status as keyof typeof statusConfig];
+interface PageProps { params: Promise<{ slug: string }> }
+
+export default function EntityDetailPage({ params }: PageProps) {
+  const { slug } = usePromise(params);
+  const [entity, setEntity] = useState<EntityDetailAdmin | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isActing, setIsActing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | "under_review" | "validated" | "blocked" | "unblock">(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const refetch = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await AdminAPI.getEntity(slug);
+      setEntity(data as EntityDetailAdmin);
+    } catch (e) {
+      setError("Impossible de charger les détails de l&apos;entité");
+      toast.error("Échec du chargement des détails de l&apos;entité");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchEntity = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await AdminAPI.getEntity(slug);
+        if (!isMounted) return;
+        setEntity(data as EntityDetailAdmin);
+      } catch (e) {
+        if (!isMounted) return;
+        setError("Impossible de charger les détails de l&apos;entité");
+        toast.error("Échec du chargement des détails de l&apos;entité");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchEntity();
+    return () => { isMounted = false; };
+  }, [slug]);
+
+  const statusConfig_item = useMemo(() => {
+    if (!entity) return null;
+    return statusConfig[entity.status];
+  }, [entity]);
 
   return (
     <div className="space-y-6">
@@ -178,12 +119,21 @@ export default function EntityDetailPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {entity.name}
-            </h1>
-            <p className="text-muted-foreground">
-              {entity.acronym} • {entity.business_sector}
-            </p>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-8 w-[260px] mb-2" />
+                <Skeleton className="h-4 w-[240px] mt-2" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {entity?.name}
+                </h1>
+                <div className="text-muted-foreground">
+                  {entity?.acronym} • {entity?.business_sector}
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
@@ -203,43 +153,96 @@ export default function EntityDetailPage() {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
-              <Badge 
-                variant="secondary" 
-                className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
-              >
-                {statusConfig_item.label}
-              </Badge>
+              {isLoading ? (
+                <Skeleton className="h-6 w-32" />
+              ) : statusConfig_item ? (
+                <Badge 
+                  variant="secondary" 
+                  className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
+                >
+                  {statusConfig_item.label}
+                </Badge>
+              ) : null}
               <div className="text-sm text-muted-foreground">
-                Créée le {new Date(entity.created_at).toLocaleDateString('fr-FR')}
+                {isLoading ? <Skeleton className="h-4 w-40" /> : entity?.created_at ? (
+                  <>Créée le {new Date(entity.created_at).toLocaleDateString('fr-FR')}</>
+                ) : null}
               </div>
             </div>
             <div className="flex gap-2">
-              {entity.status === "pending" && (
+              {/* Statut blocked : Débloquer en premier (action unique) */}
+              {!isLoading && entity?.status === "blocked" && (
+                <Button disabled={isActing} onClick={() => setConfirmAction("unblock")}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Débloquer
+                </Button>
+              )}
+              
+              {/* Statuts new / submitted : Valider, Mettre en révision, Rejeter */}
+              {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted") && (
                 <>
-                  <Button>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Approuver
+                    Valider
                   </Button>
-                  <Button variant="outline" className="text-red-600">
+                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Mettre en révision
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
                     <XCircle className="h-4 w-4 mr-2" />
                     Rejeter
                   </Button>
                 </>
               )}
-              {entity.status === "active" && (
-                <Button variant="outline" className="text-red-600">
+              
+              {/* Statut under_review : Valider, Rejeter, Bloquer */}
+              {!isLoading && entity?.status === "under_review" && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Bloquer
+                  </Button>
+                </>
+              )}
+              
+              {/* Statut validated : Bloquer uniquement */}
+              {!isLoading && entity?.status === "validated" && (
+                <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
                   <XCircle className="h-4 w-4 mr-2" />
                   Bloquer
                 </Button>
               )}
-              {entity.status === "blocked" && (
-                <Button className="text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Débloquer
-                </Button>
+              
+              {/* Statut declined : Mettre en révision, Valider */}
+              {!isLoading && entity?.status === "declined" && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Valider
+                  </Button>
+                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Mettre en révision
+                  </Button>
+                </>
               )}
             </div>
           </div>
+          {/* Afficher la raison du rejet si applicable */}
+          {!isLoading && entity?.status === "declined" && entity?.rejection_reason && (
+            <div className="mt-4 text-sm text-red-700">
+              Raison du refus: {entity.rejection_reason}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -247,10 +250,31 @@ export default function EntityDetailPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
-          <TabsTrigger value="representatives">Représentants</TabsTrigger>
-          <TabsTrigger value="accreditations">Accréditations</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
+          <TabsTrigger value="representatives">
+            Représentants
+            {!isLoading && entity?.representatives && entity.representatives.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.representatives.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="accreditations">
+            Accréditations
+            {!isLoading && entity?.accreditations && entity.accreditations.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.accreditations.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            Documents
+            {!isLoading && entity?.documents && entity.documents.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.documents.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          {/* <TabsTrigger value="history">Historique</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -266,30 +290,30 @@ export default function EntityDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Nom complet</label>
-                  <p className="text-sm">{entity.name}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Acronyme</label>
-                  <p className="text-sm">{entity.acronym}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.acronym}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Secteur d&apos;activité</label>
-                  <p className="text-sm">{entity.business_sector}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.business_sector}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Type d&apos;entité</label>
                   <p className="text-sm">
-                    {entity.entity_type === "business" ? "Entreprise" : 
-                     entity.entity_type === "personal" ? "Personne physique" : "ONG"}
+                    {isLoading ? "…" : entity?.entity_type === "business" ? "Entreprise" : 
+                     entity?.entity_type === "personal" ? "Personne physique" : "ONG"}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Identifiant fiscal</label>
-                  <p className="text-sm">{entity.tax_id}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.tax_id}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Registre du commerce</label>
-                  <p className="text-sm">{entity.commercial_register}</p>
+                  <p className="text-sm">{isLoading ? "…" : entity?.commercial_register}</p>
                 </div>
               </CardContent>
             </Card>
@@ -305,16 +329,21 @@ export default function EntityDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Effectif total</label>
-                  <p className="text-sm">{entity.total_staff} employés</p>
+                  <p className="text-sm">{isLoading ? "…" : (entity?.total_staff ?? 0)} employés</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Experts cybersécurité</label>
-                  <p className="text-sm">{entity.cybersecurity_experts} experts</p>
+                  <p className="text-sm">{isLoading ? "…" : (entity?.cybersecurity_experts ?? 0)} experts</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Pourcentage d&apos;experts</label>
                   <p className="text-sm">
-                    {Math.round((entity.cybersecurity_experts / entity.total_staff) * 100)}%
+                    {isLoading ? "…" : (() => {
+                      const experts = entity?.cybersecurity_experts ?? 0;
+                      const total = entity?.total_staff ?? 0;
+                      if (!total) return "0%";
+                      return `${Math.round((experts / total) * 100)}%`;
+                    })()}
                   </p>
                 </div>
               </CardContent>
@@ -334,25 +363,25 @@ export default function EntityDetailPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Adresse</label>
-                    <p className="text-sm">{entity.address}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.address}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Téléphone</label>
-                    <p className="text-sm">{entity.phone}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.phone}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Mobile</label>
-                    <p className="text-sm">{entity.mobile}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.mobile}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p className="text-sm">{entity.email}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.email}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Site web</label>
-                    <p className="text-sm">{entity.website}</p>
+                    <p className="text-sm">{isLoading ? "…" : entity?.website}</p>
                   </div>
                 </div>
               </div>
@@ -369,28 +398,44 @@ export default function EntityDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockRepresentatives.map((rep) => (
-                  <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5" />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.representatives && entity.representatives.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.representatives.map((rep) => (
+                    <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{rep.first_name} {rep.last_name}</p>
+                          <p className="text-sm text-muted-foreground">{rep.job_title}</p>
+                          {rep.email && (
+                            <p className="text-sm text-muted-foreground">{rep.email}</p>
+                          )}
+                          {rep.phone && (
+                            <p className="text-sm text-muted-foreground">{rep.phone}</p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{rep.first_name} {rep.last_name}</p>
-                        <p className="text-sm text-muted-foreground">{rep.job_title}</p>
-                        <p className="text-sm text-muted-foreground">{rep.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{rep.status}</Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/dashboard/admin/representatives/${rep.slug}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun représentant trouvé pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -404,32 +449,62 @@ export default function EntityDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockAccreditations.map((acc) => (
-                  <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Shield className="h-8 w-8 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{acc.type_accreditation}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
-                        </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.accreditations && entity.accreditations.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.accreditations.map((acc) => {
+                    const statusKey = acc.status as keyof typeof accreditationStatusConfig;
+                    const statusInfo = accreditationStatusConfig[statusKey] || { label: acc.status, color: "bg-gray-500" };
+                    return (
+                      <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Shield className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{acc.type_accreditation}</p>
+                            {acc.submission_date && (
+                              <p className="text-sm text-muted-foreground">
+                                Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                            {acc.approval_date && (
+                              <p className="text-sm text-muted-foreground">
+                                Approuvée le {new Date(acc.approval_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                            {acc.rejection_date && (
+                              <p className="text-sm text-red-600">
+                                Rejetée le {new Date(acc.rejection_date).toLocaleDateString('fr-FR')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant="secondary"
+                            className={`${statusInfo.color} text-white border-0`}
+                          >
+                            {statusInfo.label}
+                          </Badge>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant="secondary"
-                        className={`${accreditationStatusConfig[acc.status as keyof typeof accreditationStatusConfig].color} text-white border-0`}
-                      >
-                        {accreditationStatusConfig[acc.status as keyof typeof accreditationStatusConfig].label}
-                      </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune accréditation trouvée pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -443,34 +518,64 @@ export default function EntityDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockDocuments.map((doc) => (
-                  <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{doc.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {doc.document_type} • Émis le {new Date(doc.issued_at).toLocaleDateString('fr-FR')}
-                        </p>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full" />
+                </div>
+              ) : entity?.documents && entity.documents.length > 0 ? (
+                <div className="space-y-4">
+                  {entity.documents.map((doc) => (
+                    <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <FileText className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{doc.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Émis le {new Date(doc.issued_at).toLocaleDateString('fr-FR')}
+                          </p>
+                          {doc.expires_at && (
+                            <p className="text-sm text-muted-foreground">
+                              Expire le {new Date(doc.expires_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                          {doc.created_at && (
+                            <p className="text-xs text-muted-foreground">
+                              Ajouté le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {typeof doc.file === 'string' && (
+                          <>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={doc.file} download>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun document trouvé pour cette entité</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-4">
+        {/* <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Historique des actions</CardTitle>
@@ -479,35 +584,94 @@ export default function EntityDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockActivityHistory.map((item, index) => (
-                  <div key={item.id} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {item.status === "completed" && <CheckCircle className="h-5 w-5 text-green-500" />}
-                      {item.status === "in_progress" && <Clock className="h-5 w-5 text-blue-500" />}
-                      {item.status === "pending" && <AlertTriangle className="h-5 w-5 text-orange-500" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{item.action}</p>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(item.date).toLocaleDateString('fr-FR')}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Par {item.user}
-                      </p>
-                      {item.comment && (
-                        <p className="text-sm mt-1">{item.comment}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Historique des actions à venir</p>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
+
+      {/* Confirm generic actions */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l&apos;action</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction === "under_review" && "Mettre cette entité en révision ?"}
+              {confirmAction === "validated" && "Valider définitivement cette entité ?"}
+              {confirmAction === "blocked" && "Bloquer cette entité ? Elle ne pourra plus effectuer d&apos;actions."}
+              {confirmAction === "unblock" && "Débloquer cette entité ? Elle pourra à nouveau effectuer des actions."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button onClick={async () => {
+                if (!entity) return;
+                setIsActing(true);
+                try {
+                  const eslug = entity.slug as string;
+                  if (confirmAction === "under_review") await AdminAPI.setUnderReview(eslug);
+                  if (confirmAction === "validated") await AdminAPI.setValidated(eslug);
+                  if (confirmAction === "blocked") await AdminAPI.setBlocked(eslug);
+                  if (confirmAction === "unblock") await AdminAPI.unblock(eslug);
+                  toast.success("Statut mis à jour");
+                  await refetch();
+                } catch (e: unknown) {
+                  const err = e as AxiosError<{ detail?: string; message?: string }>;
+                
+                  const message =
+                    err.response?.data?.detail ||
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Erreur inconnue";
+                
+                  toast.error(`Échec de la mise à jour du statut: ${message}`);
+                }
+                finally {
+                  setIsActing(false);
+                  setConfirmAction(null);
+                }
+              }} disabled={isActing}>
+                Confirmer
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject with reason */}
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter l&apos;entité</DialogTitle>
+            <DialogDescription>Indiquez la raison du rejet. Elle sera visible par l&apos;entité.</DialogDescription>
+          </DialogHeader>
+          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motif de rejet" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectOpen(false)} disabled={isActing}>Annuler</Button>
+            <Button onClick={async () => {
+              if (!entity) return;
+              if (!rejectReason || rejectReason.trim().length < 5) { toast.warning("Veuillez renseigner un motif (min 5 caractères)"); return; }
+              setIsActing(true);
+              try {
+                await AdminAPI.setDeclined(entity.slug as string, rejectReason.trim());
+                toast.success("Entité rejetée");
+                setRejectOpen(false);
+                setRejectReason("");
+                await refetch();
+              } catch (e) {
+                toast.error("Échec du rejet de l&apos;entité");
+              } finally {
+                setIsActing(false);
+              }
+            }} disabled={isActing}>
+              Rejeter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

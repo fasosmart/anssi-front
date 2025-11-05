@@ -93,28 +93,10 @@ export function UserNav() {
                 <span>Accueil Admin</span>
               </Link>
             </DropdownMenuItem>
-            {/* <DropdownMenuItem asChild>
-              <Link href="/dashboard/admin/entities">
-                <Building className="mr-2 h-4 w-4" />
-                <span>Mes Structures</span>
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/admin/accreditations">
-                <Shield className="mr-2 h-4 w-4" />
-                <span>Accréditations</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/admin/representatives">
+              <Link href="/dashboard/admin/profile">
                 <User className="mr-2 h-4 w-4" />
-                <span>Représentants</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/admin/documents">
-                <Building className="mr-2 h-4 w-4" />
-                <span>Documents</span>
+                <span>Mon Profil</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -122,7 +104,7 @@ export function UserNav() {
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Paramètres</span>
               </Link>
-            </DropdownMenuItem> */}
+            </DropdownMenuItem>
           </>
         ) : (
           <>

@@ -69,7 +69,7 @@ const adminMenuItems: MenuItem[] = [
   {
     href: "/dashboard/admin/entities",
     icon: Building,
-    label: "Mes Structures",
+    label: "Structures",
   },
   {
     href: "/dashboard/admin/accreditations",
@@ -86,11 +86,11 @@ const adminMenuItems: MenuItem[] = [
     icon: Files,
     label: "Documents",
   },
-  {
-    href: "/dashboard/admin/settings",
-    icon: Settings,
-    label: "Paramètres",
-  },
+  // {
+  //   href: "/dashboard/admin/settings",
+  //   icon: Settings,
+  //   label: "Paramètres",
+  // },
 ];
 
 export function AppSidebar() {

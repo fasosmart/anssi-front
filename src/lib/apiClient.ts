@@ -140,4 +140,6 @@ export const submitEntityForReview = async (entitySlug: string) => {
   return response.data;
 };
 
+// Helpers déplacés dans src/lib/api.ts (AdminAPI, UserAPI)
+
 export default apiClient;
