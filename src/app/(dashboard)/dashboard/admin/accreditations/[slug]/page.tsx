@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft,
   FileText,
@@ -14,7 +15,10 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  GraduationCap,
+  Briefcase,
+  Award
 } from "lucide-react";
 import Link from "next/link";
 import { AdminAccreditationRetrieve } from "@/types/api";
@@ -302,16 +306,6 @@ export default function AccreditationDetailPage() {
                   <p className="text-sm">{accreditation.representative.phone}</p>
                 </div>
               )}
-              {entitySlug && (
-                <div className="pt-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/dashboard/admin/entities/${entitySlug}/representatives/${accreditation.representative.slug}`}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Voir le représentant
-                    </Link>
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -394,6 +388,154 @@ export default function AccreditationDetailPage() {
                 <p className="text-sm">{accreditation.notes}</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Cursus du représentant au moment de la soumission */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Cursus du représentant</CardTitle>
+            <CardDescription>
+              Diplômes, expériences et formations au moment de la soumission de la demande
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="degrees" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="degrees">
+                  Diplômes ({accreditation.accreditation_degree.length})
+                </TabsTrigger>
+                <TabsTrigger value="experiences">
+                  Expériences ({accreditation.accreditation_experience.length})
+                </TabsTrigger>
+                <TabsTrigger value="trainings">
+                  Formations ({accreditation.accreditation_training.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="degrees" className="space-y-4">
+                {accreditation.accreditation_degree.length > 0 ? (
+                  <div className="space-y-4">
+                    {accreditation.accreditation_degree.map((accDegree) => (
+                      <div key={accDegree.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <GraduationCap className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{accDegree.degree.degree_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {accDegree.degree.institution} • {accDegree.degree.year_obtained}
+                            </p>
+                            {accDegree.degree.specialty && (
+                              <p className="text-sm text-muted-foreground">
+                                Spécialité: {accDegree.degree.specialty}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {accDegree.degree.file && (
+                          <div className="flex items-center space-x-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accDegree.degree.file)} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accDegree.degree.file)} download>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <GraduationCap className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Aucun diplôme associé à cette demande</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="experiences" className="space-y-4">
+                {accreditation.accreditation_experience.length > 0 ? (
+                  <div className="space-y-4">
+                    {accreditation.accreditation_experience.map((accExp) => (
+                      <div key={accExp.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Briefcase className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{accExp.experience.job_title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {accExp.experience.company} • {new Date(accExp.experience.start_date).toLocaleDateString('fr-FR')} - 
+                              {accExp.experience.end_date ? new Date(accExp.experience.end_date).toLocaleDateString('fr-FR') : 'En cours'}
+                            </p>
+                          </div>
+                        </div>
+                        {accExp.experience.file && (
+                          <div className="flex items-center space-x-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accExp.experience.file)} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accExp.experience.file)} download>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Briefcase className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Aucune expérience associée à cette demande</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="trainings" className="space-y-4">
+                {accreditation.accreditation_training.length > 0 ? (
+                  <div className="space-y-4">
+                    {accreditation.accreditation_training.map((accTraining) => (
+                      <div key={accTraining.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Award className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{accTraining.training.training_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {accTraining.training.institution} • {accTraining.training.year_obtained}
+                            </p>
+                          </div>
+                        </div>
+                        {accTraining.training.file && (
+                          <div className="flex items-center space-x-2">
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accTraining.training.file)} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="sm" asChild>
+                              <a href={String(accTraining.training.file)} download>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Award className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Aucune formation associée à cette demande</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
