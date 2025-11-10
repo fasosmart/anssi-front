@@ -75,6 +75,7 @@ export const API = {
   ,
   // Administrations (Espace admin)
   administrations: {
+    dashboard: () => `${BASE_URL}/administrations/dashboard/`,
     entities: {
       list: () => `${BASE_URL}/administrations/entities/`,
       details: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/`,
@@ -150,6 +151,11 @@ export const AdminAPI = {
   },
   setAccreditationRejected: async (slug: string, rejection_reason: string) => {
     const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/rejected/`, { rejection_reason });
+    return response.data;
+  },
+  // Dashboard (admin)
+  getDashboard: async () => {
+    const response = await apiClient.get(API.administrations.dashboard());
     return response.data;
   },
 };

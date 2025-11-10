@@ -223,3 +223,46 @@ export interface AccreditationDetail {
   created_at: string;
   updated_at: string;
 }
+
+// Types pour le dashboard admin
+export interface LastAccreditation {
+  slug: string;
+  entity: string;
+  representative: string;
+  type_accreditation: string;
+  status: DemandStatus;
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+}
+
+export interface LastEntity {
+  slug: string;
+  name: string;
+  acronym: string | null;
+  business_sector: string | null;
+  entity_type: 'personal' | 'business' | 'ngo';
+  is_active: boolean;
+  status: EntityStatus;
+  created_at: string;
+}
+
+export interface AdminDashboardData {
+  accreditations: {
+    total: number;
+    submitted: number;
+    under_review: number;
+    approved: number;
+    rejected: number;
+  };
+  entity: {
+    total: number;
+    submitted: number;
+    under_review: number;
+    validated: number;
+    blocked: number;
+  };
+  total_representative: number;
+  last_accreditation: LastAccreditation[];
+  last_entity: LastEntity[];
+}
