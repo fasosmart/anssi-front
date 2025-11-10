@@ -24,7 +24,7 @@ import Link from "next/link";
 import { AdminAccreditationList, DemandStatus } from "@/types/api";
 import { AdminAPI } from "@/lib/api";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 
 const statusConfig = {
   draft: { label: "Brouillon", color: "bg-gray-500", textColor: "text-gray-700" },
@@ -265,9 +265,7 @@ export default function AccreditationsPage() {
           <CardTitle>Liste des accréditations</CardTitle>
           <CardDescription>
             {isLoading ? (
-              <span className="inline-block"> 
-                <Skeleton className="h-4 w-32" />
-              </span>
+              <SkeletonText className="h-4 w-20" />
             ) : (
               `${totalCount} accréditation(s) trouvée(s)`
             )}
