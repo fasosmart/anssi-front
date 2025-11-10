@@ -125,6 +125,55 @@ export interface AccreditationList {
   rejection_date: string | null;
 }
 
+// AdminAccreditationList retourné par /api/administrations/accreditations/
+export interface AdminAccreditationList {
+  slug: string;
+  entity: string;
+  representative: string;
+  type_accreditation: string;
+  status: DemandStatus;
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+}
+
+// Types pour AdminAccreditationRetrieve
+export interface AccreditationDegree {
+  slug: string;
+  degree: Degree;
+}
+
+export interface AccreditaionExperience {
+  slug: string;
+  experience: Experience;
+}
+
+export interface AccreditaionTraining {
+  slug: string;
+  training: Training;
+}
+
+// AdminAccreditationRetrieve retourné par /api/administrations/accreditations/{slug}/
+export interface AdminAccreditationRetrieve {
+  slug: string;
+  status: DemandStatus;
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+  rejection_date: string | null;
+  reason_for_rejection: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  certificate_number: string | null;
+  notes: string | null;
+  entity: EntityDetail;
+  representative: RepresentativeList;
+  type_accreditation: string;
+  accreditation_degree: AccreditationDegree[];
+  accreditation_experience: AccreditaionExperience[];
+  accreditation_training: AccreditaionTraining[];
+}
+
 export interface EntityList {
   slug: string;
   name: string;

@@ -422,11 +422,11 @@ export default function EntityDetailPage({ params }: PageProps) {
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/admin/representatives/${rep.slug}`}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/admin/entities/${entity?.slug}/representatives/${rep.slug}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
                     </div>
                   ))}
                 </div>
@@ -490,7 +490,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                             {statusInfo.label}
                           </Badge>
                           <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
+                            <Link href={`/dashboard/admin/entities/${entity?.slug}/accreditations/${acc.slug}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
