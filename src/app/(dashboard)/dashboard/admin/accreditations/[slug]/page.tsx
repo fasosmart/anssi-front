@@ -11,13 +11,19 @@ import {
   Building,
   User,
   Download,
-  Eye
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { AdminAccreditationRetrieve } from "@/types/api";
 import { AdminAPI } from "@/lib/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const statusConfig = {
   draft: { label: "Brouillon", color: "bg-gray-500", textColor: "text-gray-700" },
@@ -32,23 +38,71 @@ export default function AccreditationDetailPage() {
   const slug = params.slug as string;
   const [accreditation, setAccreditation] = useState<AdminAccreditationRetrieve | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isActing, setIsActing] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | "under_review" | "approved">(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const fetchAccreditation = async () => {
+    setIsLoading(true);
+    try {
+      const data = await AdminAPI.getAccreditation(slug);
+      setAccreditation(data);
+    } catch (e) {
+      toast.error("Impossible de charger les détails de l'accréditation");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAccreditation = async () => {
-      setIsLoading(true);
-      try {
-        const data = await AdminAPI.getAccreditation(slug);
-        setAccreditation(data);
-      } catch (e) {
-        toast.error("Impossible de charger les détails de l'accréditation");
-      } finally {
-        setIsLoading(false);
-      }
-    };
     if (slug) {
       fetchAccreditation();
     }
   }, [slug]);
+
+  const handleAction = async () => {
+    if (!accreditation || !confirmAction) return;
+    
+    setIsActing(true);
+    try {
+      if (confirmAction === "under_review") {
+        await AdminAPI.setAccreditationUnderReview(accreditation.slug);
+        toast.success("Accréditation mise en révision");
+      } else if (confirmAction === "approved") {
+        await AdminAPI.setAccreditationApproved(accreditation.slug);
+        toast.success("Accréditation approuvée");
+      }
+      setConfirmAction(null);
+      await fetchAccreditation();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || "Une erreur est survenue");
+    } finally {
+      setIsActing(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!accreditation || !rejectReason.trim()) return;
+    
+    if (rejectReason.trim().length < 5) {
+      toast.error("La raison du rejet doit contenir au moins 5 caractères");
+      return;
+    }
+
+    setIsActing(true);
+    try {
+      await AdminAPI.setAccreditationRejected(accreditation.slug, rejectReason.trim());
+      toast.success("Accréditation rejetée");
+      setRejectOpen(false);
+      setRejectReason("");
+      await fetchAccreditation();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail || "Une erreur est survenue");
+    } finally {
+      setIsActing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,6 +177,29 @@ export default function AccreditationDetailPage() {
                 <div className="text-sm text-muted-foreground">
                   Soumise le {new Date(accreditation.submission_date).toLocaleDateString('fr-FR')}
                 </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {/* Statut submitted : Mettre en révision */}
+              {accreditation.status === "submitted" && (
+                <Button disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Mettre en révision
+                </Button>
+              )}
+              
+              {/* Statut under_review : Approuver, Rejeter */}
+              {accreditation.status === "under_review" && (
+                <>
+                  <Button disabled={isActing} onClick={() => setConfirmAction("approved")}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approuver
+                  </Button>
+                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -320,6 +397,72 @@ export default function AccreditationDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de confirmation pour Mettre en révision et Approuver */}
+      <AlertDialog open={confirmAction !== null} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction === "under_review" && "Mettre en révision"}
+              {confirmAction === "approved" && "Approuver l'accréditation"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction === "under_review" && "Êtes-vous sûr de vouloir mettre cette accréditation en révision ?"}
+              {confirmAction === "approved" && "Êtes-vous sûr de vouloir approuver cette accréditation ? Cette action est définitive."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleAction} disabled={isActing}>
+              {isActing ? "Traitement..." : "Confirmer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal de rejet avec raison */}
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeter l&apos;accréditation</DialogTitle>
+            <DialogDescription>
+              Veuillez indiquer la raison du rejet de cette accréditation. Cette information sera visible par l&apos;entité.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Raison du rejet *</label>
+              <Textarea
+                placeholder="Indiquez la raison du rejet (minimum 5 caractères)..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              {rejectReason.trim().length > 0 && rejectReason.trim().length < 5 && (
+                <p className="text-sm text-red-600">
+                  La raison doit contenir au moins 5 caractères
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setRejectOpen(false);
+              setRejectReason("");
+            }} disabled={isActing}>
+              Annuler
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleReject} 
+              disabled={isActing || rejectReason.trim().length < 5}
+            >
+              {isActing ? "Traitement..." : "Rejeter"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

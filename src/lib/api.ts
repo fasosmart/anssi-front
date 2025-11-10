@@ -148,8 +148,8 @@ export const AdminAPI = {
     const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/approved/`);
     return response.data;
   },
-  setAccreditationRejected: async (slug: string) => {
-    const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/rejected/`);
+  setAccreditationRejected: async (slug: string, rejection_reason: string) => {
+    const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/rejected/`, { rejection_reason });
     return response.data;
   },
 };
