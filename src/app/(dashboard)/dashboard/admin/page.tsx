@@ -143,7 +143,7 @@ export default function AdminDashboard() {
             Vue d&apos;ensemble des accréditations et gestion du système ANSSI
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             <Filter className="h-4 w-4 mr-2" />
             Filtres
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Métriques principales */}
@@ -279,7 +279,6 @@ export default function AdminDashboard() {
         <TabsList>
           <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
           <TabsTrigger value="activities">Activités récentes</TabsTrigger>
-          <TabsTrigger value="types">Types d&apos;accréditation</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -347,135 +346,190 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="activities" className="space-y-4">
+        <TabsContent value="activities" className="space-y-6">
+          {/* Accréditations récentes */}
           <Card>
             <CardHeader>
-              <CardTitle>Activités récentes</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                <span>Accréditations récentes</span>
+              </CardTitle>
               <CardDescription>
-                Dernières actions sur le système
+                Dernières demandes d&apos;accréditation
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {recentActivities.length > 0 ? (
-                <div className="space-y-4">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <div className="flex-shrink-0">
-                        {activity.type === "accreditation" && (
-                          activity.status === "approved" ? <CheckCircle className="h-5 w-5 text-green-500" /> :
-                          activity.status === "rejected" ? <XCircle className="h-5 w-5 text-red-500" /> :
+              {dashboardData && dashboardData.last_accreditation.length > 0 ? (
+                <div className="space-y-3">
+                  {dashboardData.last_accreditation.map((acc) => (
+                    <div 
+                      key={acc.slug} 
+                      className="flex items-start space-x-4 p-4 border-l-4 border-l-blue-500 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        {acc.status === "approved" ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : acc.status === "rejected" ? (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        ) : acc.status === "under_review" ? (
+                          <Clock className="h-5 w-5 text-orange-500" />
+                        ) : (
                           <FileText className="h-5 w-5 text-blue-500" />
                         )}
-                        {activity.type === "entity" && <Building className="h-5 w-5 text-purple-500" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{activity.action}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.entity}
-                          {activity.type_accreditation && ` - ${activity.type_accreditation}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(activity.timestamp).toLocaleDateString('fr-FR', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={activity.status === "approved" ? "default" : 
-                                  activity.status === "rejected" ? "destructive" : "secondary"}
-                        >
-                          {activity.status === "submitted" ? "Soumise" :
-                           activity.status === "under_review" ? "En révision" :
-                           activity.status === "approved" ? "Approuvée" :
-                           activity.status === "rejected" ? "Rejetée" :
-                           activity.status === "draft" ? "Brouillon" :
-                           activity.status === "new" ? "Nouvelle" :
-                           activity.status === "validated" ? "Validée" :
-                           activity.status === "blocked" ? "Bloquée" :
-                           activity.status}
-                        </Badge>
-                        {activity.type === "accreditation" && (
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/dashboard/admin/accreditations/${activity.slug}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        )}
-                        {activity.type === "entity" && (
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/dashboard/admin/entities/${activity.slug}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              {acc.status === "submitted" ? "Nouvelle demande soumise" :
+                               acc.status === "approved" ? "Accréditation approuvée" :
+                               acc.status === "rejected" ? "Demande rejetée" :
+                               acc.status === "under_review" ? "Demande en révision" :
+                               "Demande en brouillon"}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              <span className="font-medium">{acc.entity}</span>
+                              {acc.representative && ` • ${acc.representative}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                              {acc.type_accreditation}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {acc.submission_date || acc.review_date || acc.approval_date ? (
+                                new Date(acc.submission_date || acc.review_date || acc.approval_date || '').toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              ) : (
+                                'Date non disponible'
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <Badge 
+                              variant={acc.status === "approved" ? "default" : 
+                                      acc.status === "rejected" ? "destructive" : "secondary"}
+                              className="whitespace-nowrap"
+                            >
+                              {acc.status === "submitted" ? "Soumise" :
+                               acc.status === "under_review" ? "En révision" :
+                               acc.status === "approved" ? "Approuvée" :
+                               acc.status === "rejected" ? "Rejetée" :
+                               acc.status === "draft" ? "Brouillon" :
+                               acc.status}
+                            </Badge>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Aucune activité récente</p>
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Aucune accréditation récente</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Entités récentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Building className="h-5 w-5 text-purple-500" />
+                <span>Entités récentes</span>
+              </CardTitle>
+              <CardDescription>
+                Dernières entités enregistrées
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {dashboardData && dashboardData.last_entity.length > 0 ? (
+                <div className="space-y-3">
+                  {dashboardData.last_entity.map((entity) => (
+                    <div 
+                      key={entity.slug} 
+                      className="flex items-start space-x-4 p-4 border-l-4 border-l-purple-500 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <Building className="h-5 w-5 text-purple-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              Nouvelle entité enregistrée
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              <span className="font-medium">{entity.name}</span>
+                              {entity.acronym && ` (${entity.acronym})`}
+                            </p>
+                            {entity.business_sector && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {entity.business_sector}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">
+                                {entity.entity_type === "business" ? "Entreprise" :
+                                 entity.entity_type === "ngo" ? "ONG" :
+                                 "Personne physique"}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {new Date(entity.created_at).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <Badge 
+                              variant={entity.status === "validated" ? "default" : 
+                                      entity.status === "blocked" ? "destructive" : "secondary"}
+                              className="whitespace-nowrap"
+                            >
+                              {entity.status === "new" ? "Nouvelle" :
+                               entity.status === "submitted" ? "Soumise" :
+                               entity.status === "under_review" ? "En révision" :
+                               entity.status === "validated" ? "Validée" :
+                               entity.status === "blocked" ? "Bloquée" :
+                               entity.status === "declined" ? "Rejetée" :
+                               entity.status}
+                            </Badge>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/dashboard/admin/entities/${entity.slug}`}>
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Building className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Aucune entité récente</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="types" className="space-y-4">
-          {dashboardData.last_accreditation.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {(() => {
-                // Calculer la répartition par type depuis les dernières accréditations
-                const typeCounts = dashboardData.last_accreditation.reduce((acc, accr) => {
-                  const typeName = accr.type_accreditation.split(' ')[0] || accr.type_accreditation;
-                  acc[typeName] = (acc[typeName] || 0) + 1;
-                  return acc;
-                }, {} as Record<string, number>);
-                
-                return Object.entries(typeCounts).map(([name, count]) => (
-                  <Card key={name}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 rounded-full ${getAccreditationTypeColor(name)}`} />
-                        <span>{name}</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Accréditation {name}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{count}</div>
-                      <p className="text-sm text-muted-foreground">
-                        Dernières accréditations
-                      </p>
-                      <div className="mt-4">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/dashboard/admin/accreditations?type=${name}`}>
-                            Voir les détails
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ));
-              })()}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Aucune donnée disponible</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Les données complètes seront disponibles prochainement
-              </p>
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
 
       {/* Actions rapides */}
