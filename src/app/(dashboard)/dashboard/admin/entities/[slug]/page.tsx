@@ -107,6 +107,116 @@ export default function EntityDetailPage({ params }: PageProps) {
     return statusConfig[entity.status];
   }, [entity]);
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-9 w-24" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-[260px]" />
+              <Skeleton className="h-4 w-[240px]" />
+            </div>
+          </div>
+        </div>
+
+        {/* Statut et actions Skeleton */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-6 w-32 rounded-full" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-32" />
+                <Skeleton className="h-9 w-24" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Onglets Skeleton */}
+        <div className="space-y-4">
+          <div className="flex space-x-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-36" />
+            <Skeleton className="h-10 w-36" />
+          </div>
+
+          {/* Contenu onglet "Vue d'ensemble" Skeleton */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <Skeleton className="h-6 w-48" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <Skeleton className="h-6 w-48" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-6 w-48" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -119,21 +229,12 @@ export default function EntityDetailPage({ params }: PageProps) {
             </Link>
           </Button>
           <div>
-            {isLoading ? (
-              <>
-                <Skeleton className="h-8 w-[260px] mb-2" />
-                <Skeleton className="h-4 w-[240px] mt-2" />
-              </>
-            ) : (
-              <>
             <h1 className="text-3xl font-bold tracking-tight">
-                  {entity?.name}
+              {entity?.name}
             </h1>
-                <div className="text-muted-foreground">
-                  {entity?.acronym} • {entity?.business_sector}
-                </div>
-              </>
-            )}
+            <div className="text-muted-foreground">
+              {entity?.acronym} • {entity?.business_sector}
+            </div>
           </div>
         </div>
         {/* <div className="flex gap-2">

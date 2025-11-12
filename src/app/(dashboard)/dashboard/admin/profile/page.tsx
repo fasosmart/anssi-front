@@ -169,11 +169,102 @@ export default function AdminProfilePage() {
     }
   };
 
-  if (!session) {
+  if (!session || isLoadingPermissions) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-64 w-full" />
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+
+        {/* Informations personnelles Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-5 w-5 rounded" />
+              <Skeleton className="h-6 w-56" />
+            </div>
+            <Skeleton className="h-4 w-96 mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-6 w-32 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-48" />
+          </CardFooter>
+        </Card>
+
+        {/* Permissions Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-5 w-5 rounded" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+            <Skeleton className="h-4 w-80 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex items-center space-x-2 p-3 bg-muted rounded-md border">
+                  <Skeleton className="h-4 w-4 rounded" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sécurité Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-5 w-5 rounded" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <Skeleton className="h-4 w-96 mt-2" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-44" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-56" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-48" />
+          </CardFooter>
+        </Card>
       </div>
     );
   }
