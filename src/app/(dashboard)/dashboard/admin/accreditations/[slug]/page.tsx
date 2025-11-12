@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { AxiosError } from "axios";
 
 const statusConfig = {
   draft: { label: "Brouillon", color: "bg-gray-500", textColor: "text-gray-700" },
@@ -79,8 +80,9 @@ export default function AccreditationDetailPage() {
       }
       setConfirmAction(null);
       await fetchAccreditation();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.detail || "Une erreur est survenue");
+    } catch (e: unknown) {
+      const err = e as AxiosError<{ detail?: string}>;
+      toast.error(err.response?.data?.detail || "Une erreur est survenue");
     } finally {
       setIsActing(false);
     }
@@ -101,8 +103,9 @@ export default function AccreditationDetailPage() {
       setRejectOpen(false);
       setRejectReason("");
       await fetchAccreditation();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.detail || "Une erreur est survenue");
+    } catch (e: unknown) {
+      const err = e as AxiosError<{ detail?: string}>;
+      toast.error(err.response?.data?.detail || "Une erreur est survenue");
     } finally {
       setIsActing(false);
     }

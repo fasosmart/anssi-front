@@ -25,6 +25,7 @@ import { AdminAPI } from "@/lib/api";
 import { AdminDashboardData } from "@/types/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AxiosError } from "axios";
 
 // Couleurs pour les types d'accréditation (temporaire, en attendant les données)
 const accreditationTypeColors: Record<string, string> = {
@@ -56,10 +57,10 @@ export default function AdminDashboard() {
       try {
         const data = await AdminAPI.getDashboard();
         setDashboardData(data);
-      } catch (e: any) {
-        console.error("Erreur lors du chargement du dashboard:", e);
-        setError("Impossible de charger les données du dashboard");
-        toast.error("Erreur lors du chargement des données");
+      } catch (e: unknown) {
+        const err = e as AxiosError<{ detail?: string}>;
+        toast.error(err.response?.data?.detail || "Une erreur est survenue");
+        setError(err.response?.data?.detail || "Une erreur est survenue");
       } finally {
         setIsLoading(false);
       }
