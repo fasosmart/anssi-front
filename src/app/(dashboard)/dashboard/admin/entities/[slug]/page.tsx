@@ -126,9 +126,9 @@ export default function EntityDetailPage({ params }: PageProps) {
               </>
             ) : (
               <>
-                <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight">
                   {entity?.name}
-                </h1>
+            </h1>
                 <div className="text-muted-foreground">
                   {entity?.acronym} • {entity?.business_sector}
                 </div>
@@ -136,7 +136,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -145,7 +145,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Statut et actions rapides */}
@@ -156,12 +156,12 @@ export default function EntityDetailPage({ params }: PageProps) {
               {isLoading ? (
                 <Skeleton className="h-6 w-32" />
               ) : statusConfig_item ? (
-                <Badge 
-                  variant="secondary" 
-                  className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
-                >
-                  {statusConfig_item.label}
-                </Badge>
+              <Badge 
+                variant="secondary" 
+                className={`${statusConfig_item.color} ${statusConfig_item.textColor} border-0 text-white`}
+              >
+                {statusConfig_item.label}
+              </Badge>
               ) : null}
               <div className="text-sm text-muted-foreground">
                 {isLoading ? <Skeleton className="h-4 w-40" /> : entity?.created_at ? (
@@ -226,13 +226,13 @@ export default function EntityDetailPage({ params }: PageProps) {
               {!isLoading && entity?.status === "declined" && (
                 <>
                   <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" />
                     Valider
                   </Button>
                   <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
                     <Clock className="h-4 w-4 mr-2" />
                     Mettre en révision
-                  </Button>
+                </Button>
                 </>
               )}
             </div>
@@ -250,6 +250,14 @@ export default function EntityDetailPage({ params }: PageProps) {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
+          <TabsTrigger value="documents">
+            Documents
+            {!isLoading && entity?.documents && entity.documents.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.documents.length}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="representatives">
             Représentants
             {!isLoading && entity?.representatives && entity.representatives.length > 0 && (
@@ -263,14 +271,6 @@ export default function EntityDetailPage({ params }: PageProps) {
             {!isLoading && entity?.accreditations && entity.accreditations.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {entity.accreditations.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            Documents
-            {!isLoading && entity?.documents && entity.documents.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {entity.documents.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -404,32 +404,32 @@ export default function EntityDetailPage({ params }: PageProps) {
                   <Skeleton className="h-20 w-full" />
                 </div>
               ) : entity?.representatives && entity.representatives.length > 0 ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {entity.representatives.map((rep) => (
-                    <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{rep.first_name} {rep.last_name}</p>
-                          <p className="text-sm text-muted-foreground">{rep.job_title}</p>
+                  <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{rep.first_name} {rep.last_name}</p>
+                        <p className="text-sm text-muted-foreground">{rep.job_title}</p>
                           {rep.email && (
-                            <p className="text-sm text-muted-foreground">{rep.email}</p>
+                        <p className="text-sm text-muted-foreground">{rep.email}</p>
                           )}
                           {rep.phone && (
                             <p className="text-sm text-muted-foreground">{rep.phone}</p>
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/admin/representatives/${rep.slug}`}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/admin/entities/${entity?.slug}/representatives/${rep.slug}`}>
+                        <Eye className="h-4 w-4" />
+                            </Link>
                       </Button>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -455,20 +455,20 @@ export default function EntityDetailPage({ params }: PageProps) {
                   <Skeleton className="h-20 w-full" />
                 </div>
               ) : entity?.accreditations && entity.accreditations.length > 0 ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {entity.accreditations.map((acc) => {
                     const statusKey = acc.status as keyof typeof accreditationStatusConfig;
                     const statusInfo = accreditationStatusConfig[statusKey] || { label: acc.status, color: "bg-gray-500" };
                     return (
-                      <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <Shield className="h-8 w-8 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{acc.type_accreditation}</p>
+                  <div key={acc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Shield className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{acc.type_accreditation}</p>
                             {acc.submission_date && (
-                              <p className="text-sm text-muted-foreground">
-                                Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
-                              </p>
+                        <p className="text-sm text-muted-foreground">
+                          Soumise le {new Date(acc.submission_date).toLocaleDateString('fr-FR')}
+                        </p>
                             )}
                             {acc.approval_date && (
                               <p className="text-sm text-muted-foreground">
@@ -480,22 +480,22 @@ export default function EntityDetailPage({ params }: PageProps) {
                                 Rejetée le {new Date(acc.rejection_date).toLocaleDateString('fr-FR')}
                               </p>
                             )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant="secondary"
-                            className={`${statusInfo.color} text-white border-0`}
-                          >
-                            {statusInfo.label}
-                          </Badge>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
                       </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        variant="secondary"
+                            className={`${statusInfo.color} text-white border-0`}
+                      >
+                            {statusInfo.label}
+                      </Badge>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/admin/entities/${entity?.slug}/accreditations/${acc.slug}`}>
+                        <Eye className="h-4 w-4" />
+                            </Link>
+                      </Button>
+                    </div>
+                  </div>
                     );
                   })}
                 </div>
@@ -503,7 +503,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                 <div className="text-center py-8 text-muted-foreground">
                   <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune accréditation trouvée pour cette entité</p>
-                </div>
+              </div>
               )}
             </CardContent>
           </Card>
@@ -524,14 +524,14 @@ export default function EntityDetailPage({ params }: PageProps) {
                   <Skeleton className="h-20 w-full" />
                 </div>
               ) : entity?.documents && entity.documents.length > 0 ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {entity.documents.map((doc) => (
-                    <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <FileText className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{doc.name}</p>
-                          <p className="text-sm text-muted-foreground">
+                  <div key={doc.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{doc.name}</p>
+                        <p className="text-sm text-muted-foreground">
                             Émis le {new Date(doc.issued_at).toLocaleDateString('fr-FR')}
                           </p>
                           {doc.expires_at && (
@@ -545,26 +545,26 @@ export default function EntityDetailPage({ params }: PageProps) {
                             </p>
                           )}
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                    </div>
+                    <div className="flex items-center space-x-2">
                         {typeof doc.file === 'string' && (
                           <>
                             <Button variant="ghost" size="sm" asChild>
                               <a href={doc.file} target="_blank" rel="noopener noreferrer">
-                                <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                               </a>
-                            </Button>
+                      </Button>
                             <Button variant="ghost" size="sm" asChild>
                               <a href={doc.file} download>
-                                <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4" />
                               </a>
-                            </Button>
+                      </Button>
                           </>
                         )}
                       </div>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />

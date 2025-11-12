@@ -75,6 +75,7 @@ export const API = {
   ,
   // Administrations (Espace admin)
   administrations: {
+    dashboard: () => `${BASE_URL}/administrations/dashboard/`,
     entities: {
       list: () => `${BASE_URL}/administrations/entities/`,
       details: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/`,
@@ -125,6 +126,11 @@ export const AdminAPI = {
     const response = await apiClient.patch(`/api/administrations/entities/${slug}/declined/`, { rejection_reason });
     return response.data;
   },
+  // details representatives (admin)
+  getRepresentative: async (repSlug: string) => {
+    const response = await apiClient.get(`/api/administrations/representative/${repSlug}/`);
+    return response.data;
+  },
   // Accréditations (admin)
   listAccreditations: async (params?: { status?: string; search?: string; limit?: number; offset?: number; }) => {
     const response = await apiClient.get(`/api/administrations/accreditations/`, { params });
@@ -132,6 +138,24 @@ export const AdminAPI = {
   },
   getAccreditation: async (slug: string) => {
     const response = await apiClient.get(`/api/administrations/accreditations/${slug}/`);
+    return response.data;
+  },
+  // Accréditations actions (admin)
+  setAccreditationUnderReview: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/under_review/`);
+    return response.data;
+  },
+  setAccreditationApproved: async (slug: string) => {
+    const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/approved/`);
+    return response.data;
+  },
+  setAccreditationRejected: async (slug: string, rejection_reason: string) => {
+    const response = await apiClient.patch(`/api/administrations/accreditations/${slug}/rejected/`, { rejection_reason });
+    return response.data;
+  },
+  // Dashboard (admin)
+  getDashboard: async () => {
+    const response = await apiClient.get(API.administrations.dashboard());
     return response.data;
   },
 };

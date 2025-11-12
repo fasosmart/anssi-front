@@ -1,102 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Search, 
-  Filter, 
   Eye, 
   CheckCircle, 
   XCircle, 
   Clock, 
   FileText,
   Download,
-  MoreHorizontal,
-  Calendar,
   Building,
-  User
+  User,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
-import { AccreditationList } from "@/types/api";
-
-// Mock data - sera remplacé par l'API
-const mockAccreditations = [
-  {
-    slug: "acc-001",
-    status: "pending" as const,
-    type_accreditation: "APASSI",
-    representative: "Moussa Diallo",
-    entity: "TechCorp SARL",
-    submission_date: "2024-01-15",
-    review_date: null,
-    approval_date: null,
-    rejection_date: null,
-    created_at: "2024-01-15T10:30:00Z"
-  },
-  {
-    slug: "acc-002", 
-    status: "under_review" as const,
-    type_accreditation: "APACS",
-    representative: "Fatoumata Bah",
-    entity: "SecureIT",
-    submission_date: "2024-01-10",
-    review_date: "2024-01-12",
-    approval_date: null,
-    rejection_date: null,
-    created_at: "2024-01-10T14:20:00Z"
-  },
-  {
-    slug: "acc-003",
-    status: "approved" as const,
-    type_accreditation: "APDIS",
-    representative: "Ibrahim Traoré",
-    entity: "CyberGuard",
-    submission_date: "2024-01-05",
-    review_date: "2024-01-08",
-    approval_date: "2024-01-12",
-    rejection_date: null,
-    created_at: "2024-01-05T09:15:00Z"
-  },
-  {
-    slug: "acc-004",
-    status: "rejected" as const,
-    type_accreditation: "APRIS",
-    representative: "Aminata Keita",
-    entity: "DataProtect",
-    submission_date: "2024-01-03",
-    review_date: "2024-01-06",
-    approval_date: null,
-    rejection_date: "2024-01-10",
-    created_at: "2024-01-03T16:45:00Z"
-  }
-];
+import { AdminAccreditationList, DemandStatus } from "@/types/api";
+import { AdminAPI } from "@/lib/api";
+import { toast } from "sonner";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 
 const statusConfig = {
   draft: { label: "Brouillon", color: "bg-gray-500", textColor: "text-gray-700" },
-  pending: { label: "En attente", color: "bg-orange-500", textColor: "text-orange-700" },
+  submitted: { label: "Soumise", color: "bg-yellow-500", textColor: "text-yellow-700" },
   under_review: { label: "En révision", color: "bg-blue-500", textColor: "text-blue-700" },
   approved: { label: "Approuvée", color: "bg-green-500", textColor: "text-green-700" },
   rejected: { label: "Rejetée", color: "bg-red-500", textColor: "text-red-700" }
 };
 
-const accreditationTypes = [
-  { value: "all", label: "Tous les types" },
-  { value: "APACS", label: "APACS - Accompagnement et Conseil" },
-  { value: "APASSI", label: "APASSI - Audit Sécurité SI" },
-  { value: "APDIS", label: "APDIS - Détection Incidents" },
-  { value: "APRIS", label: "APRIS - Réponse Incidents" },
-  { value: "APIN", label: "APIN - Investigation Numérique" }
-];
-
 const statusOptions = [
   { value: "all", label: "Tous les statuts" },
-  { value: "pending", label: "En attente" },
+  { value: "draft", label: "Brouillon" },
+  { value: "submitted", label: "Soumise" },
   { value: "under_review", label: "En révision" },
   { value: "approved", label: "Approuvée" },
   { value: "rejected", label: "Rejetée" }
@@ -105,43 +46,75 @@ const statusOptions = [
 export default function AccreditationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedAccreditation, setSelectedAccreditation] = useState<AccreditationList | null>(null);
+  const [accreditations, setAccreditations] = useState<AdminAccreditationList[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const offset = (page - 1) * pageSize;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
-  const filteredAccreditations = mockAccreditations.filter(acc => {
-    const matchesSearch = acc.entity.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         acc.representative.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || acc.status === statusFilter;
-    const matchesType = typeFilter === "all" || acc.type_accreditation === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
+  // Statistiques par statut
+  const [stats, setStats] = useState({
+    draft: 0,
+    submitted: 0,
+    under_review: 0,
+    approved: 0,
+    rejected: 0,
   });
 
+  useEffect(() => {
+    const fetchAccreditations = async () => {
+      setIsLoading(true);
+      try {
+        const params: { limit?: number; offset?: number; status?: string; search?: string } = {
+          limit: pageSize,
+          offset,
+        };
+        if (statusFilter !== "all") params.status = statusFilter;
+        if (searchTerm) params.search = searchTerm;
+        
+        const data = await AdminAPI.listAccreditations(params);
+        setAccreditations(data.results || data || []);
+        setTotalCount(data.count ?? (data.results ? data.results.length : 0));
+      } catch (e) {
+        toast.error("Impossible de charger les accréditations");
+        setAccreditations([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAccreditations();
+  }, [searchTerm, statusFilter, page, pageSize]);
+
+  // Calculer les statistiques depuis les données chargées
+  useEffect(() => {
+    if (accreditations.length > 0) {
+      const newStats = {
+        draft: accreditations.filter(acc => acc.status === "draft").length,
+        submitted: accreditations.filter(acc => acc.status === "submitted").length,
+        under_review: accreditations.filter(acc => acc.status === "under_review").length,
+        approved: accreditations.filter(acc => acc.status === "approved").length,
+        rejected: accreditations.filter(acc => acc.status === "rejected").length,
+      };
+      setStats(newStats);
+    }
+  }, [accreditations]);
+
   const getStatusBadge = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
+    const config = statusConfig[status as keyof typeof statusConfig] || { 
+      label: status, 
+      color: "bg-gray-500", 
+      textColor: "text-gray-700" 
+    };
     return (
       <Badge 
         variant="secondary" 
-        className={`${config.color} ${config.textColor} border-0`}
+        className={`${config.color} ${config.textColor} border-0 text-white`}
       >
         {config.label}
       </Badge>
     );
-  };
-
-  const getActionIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="h-4 w-4" />;
-      case "under_review":
-        return <Eye className="h-4 w-4" />;
-      case "approved":
-        return <CheckCircle className="h-4 w-4" />;
-      case "rejected":
-        return <XCircle className="h-4 w-4" />;
-      default:
-        return <FileText className="h-4 w-4" />;
-    }
   };
 
   return (
@@ -156,16 +129,12 @@ export default function AccreditationsPage() {
             Suivi et validation des demandes d&apos;accréditation ANSSI
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Nouvelle accréditation
-          </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Filtres */}
@@ -174,7 +143,7 @@ export default function AccreditationsPage() {
           <CardTitle>Filtres et recherche</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">Recherche</label>
               <div className="relative">
@@ -182,7 +151,10 @@ export default function AccreditationsPage() {
                 <Input
                   placeholder="Entité, représentant..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1); // Reset à la première page lors de la recherche
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -190,7 +162,13 @@ export default function AccreditationsPage() {
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Statut</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select 
+                value={statusFilter} 
+                onValueChange={(value) => {
+                  setStatusFilter(value);
+                  setPage(1); // Reset à la première page lors du changement de filtre
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un statut" />
                 </SelectTrigger>
@@ -205,48 +183,48 @@ export default function AccreditationsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Type d&apos;accréditation</label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <label className="text-sm font-medium">Taille de page</label>
+              <Select 
+                value={pageSize.toString()} 
+                onValueChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un type" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {accreditationTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Actions</label>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtres avancés
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Statistiques rapides */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-orange-500" />
-              <span className="text-sm font-medium">En attente</span>
+              <FileText className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium">Brouillon</span>
             </div>
-            <div className="text-2xl font-bold">
-              {mockAccreditations.filter(acc => acc.status === "pending").length}
+            <div className="text-2xl font-bold">{stats.draft}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-yellow-500" />
+              <span className="text-sm font-medium">Soumise</span>
             </div>
+            <div className="text-2xl font-bold">{stats.submitted}</div>
           </CardContent>
         </Card>
         
@@ -256,9 +234,7 @@ export default function AccreditationsPage() {
               <Eye className="h-4 w-4 text-blue-500" />
               <span className="text-sm font-medium">En révision</span>
             </div>
-            <div className="text-2xl font-bold">
-              {mockAccreditations.filter(acc => acc.status === "under_review").length}
-            </div>
+            <div className="text-2xl font-bold">{stats.under_review}</div>
           </CardContent>
         </Card>
         
@@ -268,9 +244,7 @@ export default function AccreditationsPage() {
               <CheckCircle className="h-4 w-4 text-green-500" />
               <span className="text-sm font-medium">Approuvées</span>
             </div>
-            <div className="text-2xl font-bold">
-              {mockAccreditations.filter(acc => acc.status === "approved").length}
-            </div>
+            <div className="text-2xl font-bold">{stats.approved}</div>
           </CardContent>
         </Card>
         
@@ -280,9 +254,7 @@ export default function AccreditationsPage() {
               <XCircle className="h-4 w-4 text-red-500" />
               <span className="text-sm font-medium">Rejetées</span>
             </div>
-            <div className="text-2xl font-bold">
-              {mockAccreditations.filter(acc => acc.status === "rejected").length}
-            </div>
+            <div className="text-2xl font-bold">{stats.rejected}</div>
           </CardContent>
         </Card>
       </div>
@@ -292,119 +264,114 @@ export default function AccreditationsPage() {
         <CardHeader>
           <CardTitle>Liste des accréditations</CardTitle>
           <CardDescription>
-            {filteredAccreditations.length} accréditation(s) trouvée(s)
+            {isLoading ? (
+              <SkeletonText className="h-4 w-20" />
+            ) : (
+              `${totalCount} accréditation(s) trouvée(s)`
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Entité</TableHead>
-                  <TableHead>Représentant</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date soumission</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAccreditations.map((accreditation) => (
-                  <TableRow key={accreditation.slug}>
-                    <TableCell className="font-medium">
-                      {accreditation.slug}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <span>{accreditation.entity}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <span>{accreditation.representative}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {accreditation.type_accreditation}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(accreditation.status)}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(accreditation.submission_date).toLocaleDateString('fr-FR')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/admin/accreditations/${accreditation.slug}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Actions rapides</DialogTitle>
-                              <DialogDescription>
-                                Choisissez une action pour cette accréditation
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-2">
-                              <Button 
-                                variant="outline" 
-                                className="w-full justify-start"
-                                onClick={() => setSelectedAccreditation(accreditation as unknown as AccreditationList)}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Voir les détails
-                              </Button>
-                              {accreditation.status === "pending" && (
-                                <Button 
-                                  variant="outline" 
-                                  className="w-full justify-start"
-                                >
-                                  <Clock className="h-4 w-4 mr-2" />
-                                  Mettre en révision
-                                </Button>
-                              )}
-                              {accreditation.status === "under_review" && (
-                                <>
-                                  <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-green-600"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Approuver
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-red-600"
-                                  >
-                                    <XCircle className="h-4 w-4 mr-2" />
-                                    Rejeter
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : accreditations.length > 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>#</TableHead>
+                      <TableHead>Entité</TableHead>
+                      <TableHead>Représentant</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date soumission</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {accreditations.map((accreditation, index) => (
+                      <TableRow key={accreditation.slug}>
+                        <TableCell className="font-medium">
+                          {offset + index + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Building className="h-4 w-4 text-muted-foreground" />
+                            <span>{accreditation.entity}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>{accreditation.representative}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {accreditation.type_accreditation}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(accreditation.status)}
+                        </TableCell>
+                        <TableCell>
+                          {accreditation.submission_date ? (
+                            new Date(accreditation.submission_date).toLocaleDateString('fr-FR')
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href={`/dashboard/admin/accreditations/${accreditation.slug}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Page {page} sur {totalPages} • {totalCount} résultat(s)
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1 || isLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages || isLoading}
+                  >
+                    Suivant
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>Aucune accréditation trouvée</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

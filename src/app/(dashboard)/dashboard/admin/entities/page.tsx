@@ -183,7 +183,7 @@ export default function EntitiesPage() {
             Suivi et validation des entités enregistrées
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -192,7 +192,7 @@ export default function EntitiesPage() {
             <Building className="h-4 w-4 mr-2" />
             Nouvelle entité
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Filtres */}
@@ -201,7 +201,7 @@ export default function EntitiesPage() {
           <CardTitle>Filtres et recherche</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">Recherche</label>
               <div className="relative">
@@ -354,61 +354,55 @@ export default function EntitiesPage() {
                   }
 
                   return filteredEntities.map((entity, index) => (
-                    <TableRow key={entity.slug}>
-                      <TableCell className="text-muted-foreground">
-                        {rowNumber(index)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">{entity.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {entity.acronym}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getTypeBadge(entity.entity_type)}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(entity.status as string)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button asChild variant="ghost" size="sm">
-                            <Link
-                              href={`/dashboard/admin/entities/${entity.slug}`}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
+                  <TableRow key={entity.slug}>
+                    <TableCell className="text-muted-foreground">{rowNumber(index)}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{entity.name}</div>
+                        <div className="text-sm text-muted-foreground">{entity.acronym}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getTypeBadge(entity.entity_type)}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(entity.status as unknown as string)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/dashboard/admin/entities/${entity.slug}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        
+                        {/* <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Actions rapides</DialogTitle>
+                              <DialogDescription>
+                                Choisissez une action pour cette entité
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-2">
+                              <Button 
+                                variant="outline" 
+                                className="w-full justify-start"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Voir les détails
                               </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Actions rapides</DialogTitle>
-                                <DialogDescription>
-                                  Choisissez une action pour cette entité
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-2">
-                                <Button
-                                  variant="outline"
-                                  className="w-full justify-start"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Voir les détails
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                            </div>
+                          </DialogContent>
+                        </Dialog> */}
+                      </div>
+                    </TableCell>
+                  </TableRow>
                   ));
                 })()}
               </TableBody>
