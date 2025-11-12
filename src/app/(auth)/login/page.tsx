@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Session, User } from "next-auth";
+import { Session } from "next-auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
