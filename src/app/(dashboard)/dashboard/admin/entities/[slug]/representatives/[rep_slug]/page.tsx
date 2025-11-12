@@ -106,12 +106,12 @@ export default function RepresentativeDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Contenu principal avec onglets */}

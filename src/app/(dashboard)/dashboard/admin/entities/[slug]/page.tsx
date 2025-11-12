@@ -136,7 +136,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -145,7 +145,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             <Edit className="h-4 w-4 mr-2" />
             Modifier
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Statut et actions rapides */}
@@ -250,6 +250,14 @@ export default function EntityDetailPage({ params }: PageProps) {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Vue d&apos;ensemble</TabsTrigger>
+          <TabsTrigger value="documents">
+            Documents
+            {!isLoading && entity?.documents && entity.documents.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {entity.documents.length}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="representatives">
             Représentants
             {!isLoading && entity?.representatives && entity.representatives.length > 0 && (
@@ -263,14 +271,6 @@ export default function EntityDetailPage({ params }: PageProps) {
             {!isLoading && entity?.accreditations && entity.accreditations.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {entity.accreditations.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            Documents
-            {!isLoading && entity?.documents && entity.documents.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {entity.documents.length}
               </Badge>
             )}
           </TabsTrigger>

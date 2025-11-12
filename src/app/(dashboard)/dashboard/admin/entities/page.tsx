@@ -134,7 +134,7 @@ export default function EntitiesPage() {
             Suivi et validation des entités enregistrées
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Exporter
@@ -143,7 +143,7 @@ export default function EntitiesPage() {
             <Building className="h-4 w-4 mr-2" />
             Nouvelle entité
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Filtres */}
@@ -152,7 +152,7 @@ export default function EntitiesPage() {
           <CardTitle>Filtres et recherche</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="text-sm font-medium">Recherche</label>
               <div className="relative">
@@ -315,7 +315,7 @@ export default function EntitiesPage() {
                           </Link>
                         </Button>
                         
-                        <Dialog>
+                        {/* <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="ghost" size="sm">
                               <MoreHorizontal className="h-4 w-4" />
@@ -338,7 +338,7 @@ export default function EntitiesPage() {
                               </Button>
                             </div>
                           </DialogContent>
-                        </Dialog>
+                        </Dialog> */}
                       </div>
                     </TableCell>
                   </TableRow>
