@@ -266,3 +266,37 @@ export interface AdminDashboardData {
   last_accreditation: LastAccreditation[];
   last_entity: LastEntity[];
 }
+
+// Types pour User (admin)
+export interface User {
+  slug: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  url?: string;
+  is_superuser: boolean;
+  is_staff: boolean;
+}
+
+export interface UserList {
+  slug: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_superuser: boolean;
+  is_staff: boolean;
+}
+
+export interface UserUpdate {
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_staff: boolean;
+}
+
+export interface PaginatedUserList {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: UserList[];
+}

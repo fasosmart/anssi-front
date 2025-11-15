@@ -76,6 +76,11 @@ const adminMenuItems: MenuItem[] = [
     icon: ShieldCheck,
     label: "Accréditations",
   },
+  {
+    href: "/dashboard/admin/users",
+    icon: Users,
+    label: "Utilisateurs",
+  },
   // {
   //   href: "/dashboard/admin/settings",
   //   icon: Settings,

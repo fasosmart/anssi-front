@@ -73,6 +73,12 @@ export const API = {
     list: () => `${BASE_URL}/entities/document-type/`,
   }
   ,
+  // Users (admin)
+  users: {
+    list: () => `${BASE_URL}/users/`,
+    details: (slug: string) => `${BASE_URL}/users/${slug}/`,
+  },
+
   // Administrations (Espace admin)
   administrations: {
     dashboard: () => `${BASE_URL}/administrations/dashboard/`,
@@ -156,6 +162,19 @@ export const AdminAPI = {
   // Dashboard (admin)
   getDashboard: async () => {
     const response = await apiClient.get(API.administrations.dashboard());
+    return response.data;
+  },
+  // Users (admin)
+  listUsers: async (params?: { limit?: number; offset?: number; search?: string; }) => {
+    const response = await apiClient.get(API.users.list(), { params });
+    return response.data;
+  },
+  getUser: async (slug: string) => {
+    const response = await apiClient.get(API.users.details(slug));
+    return response.data;
+  },
+  updateUser: async (slug: string, data: { first_name?: string; last_name?: string; email?: string; is_staff?: boolean; }) => {
+    const response = await apiClient.patch(API.administrations.users.updateStaff(slug), data);
     return response.data;
   },
 };
