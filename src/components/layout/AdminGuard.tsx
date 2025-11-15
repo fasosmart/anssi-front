@@ -16,7 +16,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.replace("/");
+      router.replace("/login");
       return;
     }
 
