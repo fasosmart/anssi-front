@@ -22,10 +22,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AdminAPI } from "@/lib/api";
-import { AdminDashboardData } from "@/types/api";
+import { AdminDashboardData, AdminDashboardCharts } from "@/types/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AxiosError } from "axios";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Cell,
+} from "recharts";
 
 // Couleurs pour les types d'accréditation (temporaire, en attendant les données)
 const accreditationTypeColors: Record<string, string> = {
@@ -49,6 +60,9 @@ export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<Array<{ name: string; count: number; color: string }>>([]);
+  const [isChartLoading, setIsChartLoading] = useState(true);
+  const [chartError, setChartError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -66,7 +80,28 @@ export default function AdminDashboard() {
       }
     };
 
+    const fetchDashboardCharts = async () => {
+      setIsChartLoading(true);
+      setChartError(null);
+      try {
+        const charts: AdminDashboardCharts = await AdminAPI.getDashboardCharts();
+        setChartData([
+          { name: "Accréditations", count: charts.accreditation_shart ?? 0, color: "#2563eb" },
+          { name: "Entités", count: charts.entity_shart ?? 0, color: "#9333ea" },
+        ]);
+      } catch (e) {
+        const err = e as AxiosError<{ detail?: string }>;
+        const message = err.response?.data?.detail || "Impossible de charger les statistiques mensuelles";
+        toast.error(message);
+        setChartError(message);
+        setChartData([]);
+      } finally {
+        setIsChartLoading(false);
+      }
+    };
+
     fetchDashboardData();
+    fetchDashboardCharts();
   }, []);
 
   // Construire les activités récentes à partir des données API
@@ -104,6 +139,10 @@ export default function AdminDashboard() {
     approvedAccreditations: dashboardData.accreditations.approved,
     rejectedAccreditations: dashboardData.accreditations.rejected,
     totalEntities: dashboardData.entity.total,
+    entitySubmitted: dashboardData.entity.submitted,
+    entityUnderReview: dashboardData.entity.under_review,
+    entityValidated: dashboardData.entity.validated,
+    entityBlocked: dashboardData.entity.blocked,
     totalRepresentatives: dashboardData.total_representative,
     activeAccreditations: dashboardData.accreditations.approved,
   } : null;
@@ -286,6 +325,82 @@ export default function AdminDashboard() {
       </div>
     );
   }
+  const accreditationCards = [
+    {
+      label: "Accréditations totales",
+      value: stats.totalAccreditations,
+      icon: FileText,
+      subLabel: "Total des accréditations",
+      accent: "",
+    },
+    {
+      label: "Soumises",
+      value: dashboardData.accreditations.submitted,
+      icon: FileText,
+      subLabel: "En attente de revue",
+      accent: "text-blue-600",
+    },
+    {
+      label: "En révision",
+      value: dashboardData.accreditations.under_review,
+      icon: Clock,
+      subLabel: "Nécessitent une action",
+      accent: "text-orange-600",
+    },
+    {
+      label: "Approuvées",
+      value: stats.approvedAccreditations,
+      icon: CheckCircle,
+      subLabel: "Accréditations validées",
+      accent: "text-green-600",
+    },
+    {
+      label: "Rejetées",
+      value: stats.rejectedAccreditations,
+      icon: XCircle,
+      subLabel: "Accréditations rejetées",
+      accent: "text-red-600",
+    },
+  ];
+
+  const entityCards = [
+    {
+      label: "Entités totales",
+      value: stats.totalEntities,
+      icon: Building,
+      subLabel: "Entités enregistrées",
+      accent: "",
+    },
+    {
+      label: "Soumises",
+      value: stats.entitySubmitted,
+      icon: FileText,
+      subLabel: "En attente de revue",
+      accent: "text-blue-600",
+    },
+    {
+      label: "En révision",
+      value: stats.entityUnderReview,
+      icon: Clock,
+      subLabel: "En cours d'analyse",
+      accent: "text-orange-600",
+    },
+    {
+      label: "Validées",
+      value: stats.entityValidated,
+      icon: CheckCircle,
+      subLabel: "Entités approuvées",
+      accent: "text-green-600",
+    },
+    {
+      label: "Bloquées",
+      value: stats.entityBlocked,
+      icon: XCircle,
+      subLabel: "Mises en attente",
+      accent: "text-red-600",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -310,92 +425,50 @@ export default function AdminDashboard() {
         </div> */}
       </div>
 
-      {/* Métriques principales */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Accréditations totales
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAccreditations}</div>
-            <p className="text-xs text-muted-foreground">
-              Total des accréditations
-            </p>
-          </CardContent>
-        </Card>
+      {/* Métriques organisées par onglets */}
+      <Tabs defaultValue="accreditations" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="accreditations">Accréditations</TabsTrigger>
+          <TabsTrigger value="entities">Entités</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              En attente
-            </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {stats.pendingAccreditations}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Nécessitent une révision
-            </p>
-          </CardContent>
-        </Card>
+        <TabsContent value="accreditations">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {accreditationCards.map((card) => (
+              <Card key={card.label}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                  <card.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${card.accent}`}>{card.value}</div>
+                  <p className="text-xs text-muted-foreground">{card.subLabel}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Approuvées
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.approvedAccreditations}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Accréditations approuvées
-            </p>
-          </CardContent>
-        </Card>
+        <TabsContent value="entities">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {entityCards.map((card) => (
+              <Card key={card.label}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
+                  <card.icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${card.accent}`}>{card.value}</div>
+                  <p className="text-xs text-muted-foreground">{card.subLabel}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Rejetées
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats.rejectedAccreditations}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Accréditations rejetées
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Métriques secondaires */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Entités actives
-            </CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEntities}</div>
-            <p className="text-xs text-muted-foreground">
-              Entités enregistrées
-            </p>
-          </CardContent>
-        </Card>
-
+      {/* Métriques additionnelles */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -438,22 +511,47 @@ export default function AdminDashboard() {
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Graphique des accréditations par mois */}
+            {/* Graphique des accréditations / entités du mois */}
             <Card>
               <CardHeader>
                 <CardTitle>Évolution des accréditations</CardTitle>
                 <CardDescription>
-                  Nombre d&apos;accréditations par mois
+                  Accréditations vs entités créées ce mois-ci
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-                  <div className="text-center">
-                    <TrendingUp className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Graphique d&apos;évolution</p>
-                    <p className="text-xs text-muted-foreground">Données en attente du backend</p>
+                {isChartLoading ? (
+                  <div className="h-[300px] flex items-center justify-center">
+                    <Skeleton className="h-full w-full rounded-md" />
                   </div>
-                </div>
+                ) : chartError ? (
+                  <div className="h-[300px] flex flex-col items-center justify-center text-center text-muted-foreground border border-dashed rounded-lg p-4">
+                    <AlertTriangle className="h-10 w-10 text-destructive mb-2" />
+                    <p className="text-sm">{chartError}</p>
+                  </div>
+                ) : chartData.length === 0 ? (
+                  <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-dashed rounded-lg">
+                    <TrendingUp className="h-12 w-12 mb-2 opacity-50" />
+                    <p className="text-sm">Aucune statistique disponible</p>
+                  </div>
+                ) : (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="name" />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="count" name="Volume" radius={[6, 6, 0, 0]}>
+                          {chartData.map((entry, idx) => (
+                            <Cell key={`cell-${entry.name}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

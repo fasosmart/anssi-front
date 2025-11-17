@@ -82,6 +82,7 @@ export const API = {
   // Administrations (Espace admin)
   administrations: {
     dashboard: () => `${BASE_URL}/administrations/dashboard/`,
+    dashboardCharts: () => `${BASE_URL}/administrations/dashboard/sharts/`,
     entities: {
       list: () => `${BASE_URL}/administrations/entities/`,
       details: (slug: string) => `${BASE_URL}/administrations/entities/${slug}/`,
@@ -162,6 +163,10 @@ export const AdminAPI = {
   // Dashboard (admin)
   getDashboard: async () => {
     const response = await apiClient.get(API.administrations.dashboard());
+    return response.data;
+  },
+  getDashboardCharts: async () => {
+    const response = await apiClient.get(API.administrations.dashboardCharts());
     return response.data;
   },
   // Users (admin)

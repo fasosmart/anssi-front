@@ -267,6 +267,11 @@ export interface AdminDashboardData {
   last_entity: LastEntity[];
 }
 
+export interface AdminDashboardCharts {
+  accreditation_shart: number;
+  entity_shart: number;
+}
+
 // Types pour User (admin)
 export interface UserGroup {
   id: number | string;
