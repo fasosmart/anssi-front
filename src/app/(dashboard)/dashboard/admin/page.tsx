@@ -467,40 +467,37 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Métriques additionnelles */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Représentants
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRepresentatives}</div>
-            <p className="text-xs text-muted-foreground">
-              Représentants enregistrés
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Accréditations actives
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeAccreditations}
+      {/* Indicateurs globaux (chips) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Indicateurs globaux</CardTitle>
+          <CardDescription>
+            Vue synthétique sur les ressources clés
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Représentants enregistrés</p>
+                <p className="text-2xl font-bold mt-1">{stats.totalRepresentatives}</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Users className="h-6 w-6" />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Accréditations approuvées
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Accréditations actives</p>
+                <p className="text-2xl font-bold mt-1">{stats.activeAccreditations}</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <Activity className="h-6 w-6" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
