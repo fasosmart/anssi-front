@@ -294,9 +294,9 @@ export default function AccreditationDetailPage() {
                 {statusConfig_item.label}
               </Badge>
               {accreditation.submission_date && (
-                <div className="text-sm text-muted-foreground">
-                  Soumise le {new Date(accreditation.submission_date).toLocaleDateString('fr-FR')}
-                </div>
+              <div className="text-sm text-muted-foreground">
+                Soumise le {new Date(accreditation.submission_date).toLocaleDateString('fr-FR')}
+              </div>
               )}
             </div>
             <div className="flex gap-2">
@@ -328,20 +328,20 @@ export default function AccreditationDetailPage() {
 
       {/* Contenu principal */}
       <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Informations de l'entité */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building className="h-5 w-5" />
-                <span>Informations de l&apos;entité</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Nom</label>
-                <p className="text-sm">{accreditation.entity.name}</p>
-              </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Informations de l'entité */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Building className="h-5 w-5" />
+                  <span>Informations de l&apos;entité</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nom</label>
+                  <p className="text-sm">{accreditation.entity.name}</p>
+                </div>
               {accreditation.entity.acronym && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Acronyme</label>
@@ -388,28 +388,28 @@ export default function AccreditationDetailPage() {
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Informations du représentant */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="h-5 w-5" />
+            {/* Informations du représentant */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="h-5 w-5" />
                 <span>Représentant légal</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Nom complet</label>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Nom complet</label>
                 <p className="text-sm">
                   {accreditation.representative.first_name} {accreditation.representative.last_name}
                 </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Poste</label>
-                <p className="text-sm">{accreditation.representative.job_title}</p>
-              </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Poste</label>
+                  <p className="text-sm">{accreditation.representative.job_title}</p>
+                </div>
               {accreditation.representative.email && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Email</label>
@@ -422,21 +422,21 @@ export default function AccreditationDetailPage() {
                   <p className="text-sm">{accreditation.representative.phone}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Détails de l'accréditation */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Détails de l&apos;accréditation</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Type d&apos;accréditation</label>
+          {/* Détails de l'accréditation */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Détails de l&apos;accréditation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Type d&apos;accréditation</label>
                 <p className="text-sm">{accreditation.type_accreditation}</p>
-              </div>
+                </div>
               {accreditation.submission_date && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Date de soumission</label>
@@ -498,24 +498,24 @@ export default function AccreditationDetailPage() {
                 <p className="text-sm text-red-600 mt-1">{accreditation.reason_for_rejection}</p>
               </div>
             )}
-            {accreditation.notes && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                <p className="text-sm">{accreditation.notes}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {accreditation.notes && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Notes</label>
+                  <p className="text-sm">{accreditation.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
         {/* Cursus du représentant au moment de la soumission */}
-        <Card>
-          <CardHeader>
+          <Card>
+            <CardHeader>
             <CardTitle>Cursus du représentant</CardTitle>
-            <CardDescription>
+              <CardDescription>
               Diplômes, expériences et formations au moment de la soumission de la demande
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
             <Tabs defaultValue="degrees" className="space-y-4">
               <TabsList>
                 <TabsTrigger value="degrees">
@@ -531,51 +531,51 @@ export default function AccreditationDetailPage() {
 
               <TabsContent value="degrees" className="space-y-4">
                 {accreditation.accreditation_degree.length > 0 ? (
-                  <div className="space-y-4">
+              <div className="space-y-4">
                     {accreditation.accreditation_degree.map((accDegree) => (
                       <div key={accDegree.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4">
                           <GraduationCap className="h-8 w-8 text-muted-foreground" />
-                          <div>
+                      <div>
                             <p className="font-medium">{accDegree.degree.degree_name}</p>
                             <p className="text-sm text-muted-foreground">
                               {accDegree.degree.institution} • {accDegree.degree.year_obtained}
                             </p>
                             {accDegree.degree.specialty && (
-                              <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                                 Spécialité: {accDegree.degree.specialty}
-                              </p>
+                        </p>
                             )}
-                          </div>
-                        </div>
+                      </div>
+                    </div>
                         {accDegree.degree.file && (
-                          <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                             <Button variant="ghost" size="sm" asChild>
                               <a href={String(accDegree.degree.file)} target="_blank" rel="noopener noreferrer">
-                                <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                               </a>
-                            </Button>
+                      </Button>
                             <Button variant="ghost" size="sm" asChild>
                               <a href={String(accDegree.degree.file)} download>
-                                <Download className="h-4 w-4" />
+                        <Download className="h-4 w-4" />
                               </a>
-                            </Button>
-                          </div>
+                      </Button>
+                    </div>
                         )}
-                      </div>
-                    ))}
                   </div>
+                ))}
+              </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <GraduationCap className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p>Aucun diplôme associé à cette demande</p>
                   </div>
                 )}
-              </TabsContent>
+        </TabsContent>
 
               <TabsContent value="experiences" className="space-y-4">
                 {accreditation.accreditation_experience.length > 0 ? (
-                  <div className="space-y-4">
+              <div className="space-y-4">
                     {accreditation.accreditation_experience.map((accExp) => (
                       <div key={accExp.slug} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center space-x-4">
@@ -585,9 +585,9 @@ export default function AccreditationDetailPage() {
                             <p className="text-sm text-muted-foreground">
                               {accExp.experience.company} • {new Date(accExp.experience.start_date).toLocaleDateString('fr-FR')} - 
                               {accExp.experience.end_date ? new Date(accExp.experience.end_date).toLocaleDateString('fr-FR') : 'En cours'}
-                            </p>
-                          </div>
-                        </div>
+                        </p>
+                      </div>
+                    </div>
                         {accExp.experience.file && (
                           <div className="flex items-center space-x-2">
                             <Button variant="ghost" size="sm" asChild>
@@ -611,11 +611,11 @@ export default function AccreditationDetailPage() {
                     <p>Aucune expérience associée à cette demande</p>
                   </div>
                 )}
-              </TabsContent>
+        </TabsContent>
 
               <TabsContent value="trainings" className="space-y-4">
                 {accreditation.accreditation_training.length > 0 ? (
-                  <div className="space-y-4">
+              <div className="space-y-4">
                     {accreditation.accreditation_training.map((accTraining) => (
                       <div key={accTraining.slug} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center space-x-4">
@@ -639,11 +639,11 @@ export default function AccreditationDetailPage() {
                                 <Download className="h-4 w-4" />
                               </a>
                             </Button>
-                          </div>
+                    </div>
                         )}
                       </div>
                     ))}
-                  </div>
+                    </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Award className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -652,8 +652,8 @@ export default function AccreditationDetailPage() {
                 )}
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Modal de confirmation pour Mettre en révision et Approuver */}

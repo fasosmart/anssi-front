@@ -645,7 +645,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                               Ajouté le {new Date(doc.created_at).toLocaleDateString('fr-FR')}
                             </p>
                           )}
-                        </div>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
                         {typeof doc.file === 'string' && (
@@ -662,7 +662,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                       </Button>
                           </>
                         )}
-                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

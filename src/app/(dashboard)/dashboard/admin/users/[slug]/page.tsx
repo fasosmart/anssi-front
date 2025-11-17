@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft,
   User,
@@ -23,7 +24,6 @@ import { User as UserType } from "@/types/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AxiosError } from "axios";
@@ -228,6 +228,22 @@ export default function UserDetailPage({ params }: PageProps) {
     );
   }
 
+  // Normalise le format des groupes renvoyés par l'API pour l'affichage (string, number ou objet complet)
+  const resolvedGroups = Array.isArray(user.groups)
+    ? user.groups.map((group, index) => {
+        if (typeof group === "string") {
+          return { id: index, label: group };
+        }
+        if (typeof group === "number") {
+          return { id: group, label: `Groupe #${group}` };
+        }
+        return {
+          id: group.id ?? index,
+          label: group.name ?? `Groupe #${group.id ?? index}`,
+        };
+      })
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -248,7 +264,7 @@ export default function UserDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Status and Actions */}
+      {/* Statut global + actions rapides (édition + bascule staff) */}
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -313,113 +329,199 @@ export default function UserDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* User Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informations personnelles</CardTitle>
-          <CardDescription>
-            Détails de l&apos;utilisateur
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">Prénom</Label>
-              {isEditing ? (
-                <Input
-                  id="first_name"
-                  value={editForm.first_name}
-                  onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                  disabled={isActing}
-                />
-              ) : (
-                <div className="flex items-center gap-2 p-2 border rounded-md">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{user.first_name}</span>
+      {/* Vue tabulée : séparation claire entre le profil et la partie permissions/groupes */}
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="profile" className="flex-1 sm:flex-none">
+            Profil
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="flex-1 sm:flex-none">
+            Permissions & groupes
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Onglet Profil : informations éditables + badges de statut */}
+        <TabsContent value="profile" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations personnelles</CardTitle>
+              <CardDescription>
+                Détails de l&apos;utilisateur
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">Prénom</Label>
+                  {isEditing ? (
+                    <Input
+                      id="first_name"
+                      value={editForm.first_name}
+                      onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                      disabled={isActing}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 p-2 border rounded-md">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span>{user.first_name}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Nom</Label>
-              {isEditing ? (
-                <Input
-                  id="last_name"
-                  value={editForm.last_name}
-                  onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                  disabled={isActing}
-                />
-              ) : (
-                <div className="flex items-center gap-2 p-2 border rounded-md">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{user.last_name}</span>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Nom</Label>
+                  {isEditing ? (
+                    <Input
+                      id="last_name"
+                      value={editForm.last_name}
+                      onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                      disabled={isActing}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 p-2 border rounded-md">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span>{user.last_name}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            {isEditing ? (
-              <Input
-                id="email"
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                disabled={isActing}
-              />
-            ) : (
-              <div className="flex items-center gap-2 p-2 border rounded-md">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{user.email}</span>
               </div>
-            )}
-          </div>
-          <Separator />
-          <div className="space-y-2">
-            <Label>Statut staff</Label>
-            {isEditing ? (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_staff"
-                  checked={editForm.is_staff}
-                  onChange={(e) => setEditForm({ ...editForm, is_staff: e.target.checked })}
-                  disabled={isActing}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_staff" className="font-normal cursor-pointer">
-                  Accorder le statut staff à cet utilisateur
-                </Label>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 p-2 border rounded-md">
-                {user.is_staff ? (
-                  <>
-                    <UserCheck className="h-4 w-4 text-green-500" />
-                    <span>Oui</span>
-                  </>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                {isEditing ? (
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    disabled={isActing}
+                  />
                 ) : (
-                  <>
-                    <UserX className="h-4 w-4 text-muted-foreground" />
-                    <span>Non</span>
-                  </>
+                  <div className="flex items-center gap-2 p-2 border rounded-md">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span>{user.email}</span>
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-          {user.is_superuser && (
-            <>
               <Separator />
               <div className="space-y-2">
-                <Label>Super utilisateur</Label>
-                <div className="flex items-center gap-2 p-2 border rounded-md">
-                  <ShieldCheck className="h-4 w-4 text-purple-500" />
-                  <span>Oui (non modifiable)</span>
-                </div>
+                <Label>Statut staff</Label>
+                {isEditing ? (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="is_staff"
+                      checked={editForm.is_staff}
+                      onChange={(e) => setEditForm({ ...editForm, is_staff: e.target.checked })}
+                      disabled={isActing}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="is_staff" className="font-normal cursor-pointer">
+                      Accorder le statut staff à cet utilisateur
+                    </Label>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-2 border rounded-md">
+                    {user.is_staff ? (
+                      <>
+                        <UserCheck className="h-4 w-4 text-green-500" />
+                        <span>Oui</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 text-muted-foreground" />
+                        <span>Non</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              {user.is_superuser && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label>Super utilisateur</Label>
+                    <div className="flex items-center gap-2 p-2 border rounded-md">
+                      <ShieldCheck className="h-4 w-4 text-purple-500" />
+                      <span>Oui (non modifiable)</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Onglet Permissions/Groupe : synthèse des droits + liste des groupes éventuels */}
+        <TabsContent value="permissions" className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Permissions de base</CardTitle>
+                <CardDescription>
+                  Accès hérités des statuts staff / super utilisateur
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={user.is_staff ? "default" : "secondary"} className={user.is_staff ? "bg-green-500" : ""}>
+                    {user.is_staff ? "Peut gérer l'admin" : "Accès utilisateur"}
+                  </Badge>
+                  <Badge variant={user.is_superuser ? "default" : "secondary"} className={user.is_superuser ? "bg-purple-500" : ""}>
+                    {user.is_superuser ? "Super pouvoirs" : "Permissions standard"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Les permissions avancées seront bientôt configurables par groupe. Utilisez l&apos;onglet groupes pour organiser les rôles.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Groupes rattachés</CardTitle>
+                  <CardDescription>Organisez les rôles et accès par groupe</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" disabled>
+                  Gérer les groupes
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {resolvedGroups.length > 0 ? (
+                  <div className="space-y-3">
+                    {resolvedGroups.map((group) => (
+                      <div
+                        key={group.id}
+                        className="flex items-center justify-between rounded-md border p-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                            {typeof group.label === "string" ? group.label.charAt(0).toUpperCase() : "G"}
+                          </div>
+                          <div>
+                            <p className="font-medium">{group.label}</p>
+                            <p className="text-sm text-muted-foreground">
+                              ID&nbsp;: {group.id}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">Actif</Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center">
+                    <Shield className="h-10 w-10 text-muted-foreground" />
+                    <p className="font-medium">Aucun groupe associé</p>
+                    <p className="text-sm text-muted-foreground">
+                      Cet utilisateur héritera uniquement des permissions de base. Ajoutez-le à un groupe pour personnaliser ses accès.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Toggle Staff Confirmation Dialog */}
       <AlertDialog open={toggleStaffOpen} onOpenChange={setToggleStaffOpen}>

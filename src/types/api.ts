@@ -268,6 +268,12 @@ export interface AdminDashboardData {
 }
 
 // Types pour User (admin)
+export interface UserGroup {
+  id: number | string;
+  name?: string;
+  slug?: string;
+}
+
 export interface User {
   slug: string;
   first_name: string;
@@ -276,6 +282,7 @@ export interface User {
   url?: string;
   is_superuser: boolean;
   is_staff: boolean;
+  groups?: (UserGroup | string | number)[];
 }
 
 export interface UserList {
