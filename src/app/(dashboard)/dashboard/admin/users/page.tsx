@@ -10,14 +10,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Search, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Eye,
+  CheckCircle,
+  XCircle,
   Users,
   UserCheck,
   UserX,
@@ -37,27 +35,22 @@ export default function UsersListPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Filters
-  const [searchTerm, setSearchTerm] = useState("");
   const [staffFilter, setStaffFilter] = useState<string>("all");
   
   // Pagination
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const pageSize = 10;
   const [totalCount, setTotalCount] = useState(0);
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const params: { limit?: number; offset?: number; search?: string } = {
+      const params: { limit?: number; offset?: number } = {
         limit: pageSize,
         offset: (page - 1) * pageSize,
       };
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
 
       const data = await AdminAPI.listUsers(params);
       
@@ -84,7 +77,7 @@ export default function UsersListPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, pageSize, searchTerm]);
+  }, [page]);
 
   // Filter users by staff status client-side if needed
   const filteredUsers = staffFilter === "all" 
@@ -95,14 +88,8 @@ export default function UsersListPage() {
         return true;
       });
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setPage(1); // Reset to first page on search
-  };
-
   const handleStaffFilterChange = (value: string) => {
     setStaffFilter(value);
-    setPage(1); // Reset to first page on filter change
   };
 
   return (
@@ -128,42 +115,25 @@ export default function UsersListPage() {
           {isLoading ? (
             <Skeleton className="h-6 w-32" />
           ) : (
-            <CardTitle>Filtres</CardTitle>
+            <CardTitle>Filtre</CardTitle>
           )}
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              {isLoading ? (
-                <Skeleton className="h-10 w-full" />
-              ) : (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Rechercher par nom, prénom ou email..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="w-full sm:w-[200px]">
-              {isLoading ? (
-                <Skeleton className="h-10 w-full" />
-              ) : (
-                <Select value={staffFilter} onValueChange={handleStaffFilterChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Statut staff" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
-                    <SelectItem value="non-staff">Non-staff</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+          <div className="w-full sm:w-[200px]">
+            {isLoading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select value={staffFilter} onValueChange={handleStaffFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Statut staff" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="non-staff">Non-staff</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -319,42 +289,23 @@ export default function UsersListPage() {
                   Page {page} sur {totalPages} ({totalCount} utilisateur{totalCount > 1 ? 's' : ''})
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={pageSize.toString()}
-                  onValueChange={(value) => {
-                    setPageSize(Number(value));
-                    setPage(1);
-                  }}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
                 >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Éléments par page" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 par page</SelectItem>
-                    <SelectItem value="25">25 par page</SelectItem>
-                    <SelectItem value="50">50 par page</SelectItem>
-                    <SelectItem value="100">100 par page</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    Précédent
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                  >
-                    Suivant
-                  </Button>
-                </div>
+                  Précédent
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Suivant
+                </Button>
               </div>
             </div>
           </CardContent>
