@@ -312,3 +312,21 @@ export interface PaginatedUserList {
   previous: string | null;
   results: UserList[];
 }
+
+// Types pour GroupPermission (admin)
+export interface GroupPermission {
+  id: number;
+  name: string;
+}
+
+export interface PaginatedGroupPermissionList {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: GroupPermission[];
+}
+
+export interface PermissionsUsersPayload {
+  users: string[]; // Array of user slugs
+  group: number[]; // Array of group IDs
+}

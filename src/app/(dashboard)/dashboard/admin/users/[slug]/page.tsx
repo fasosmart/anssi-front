@@ -15,12 +15,15 @@ import {
   UserX,
   Edit,
   Save,
-  X
+  X,
+  Plus,
+  Minus
 } from "lucide-react";
 import Link from "next/link";
 import { use as usePromise, useEffect, useState } from "react";
 import { AdminAPI } from "@/lib/api";
-import { User as UserType } from "@/types/api";
+import { User as UserType, GroupPermission, PaginatedGroupPermissionList } from "@/types/api";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -49,6 +52,13 @@ export default function UserDetailPage({ params }: PageProps) {
   // Toggle staff dialog
   const [toggleStaffOpen, setToggleStaffOpen] = useState(false);
   const [newStaffStatus, setNewStaffStatus] = useState(false);
+
+  // Groups management
+  const [availableGroups, setAvailableGroups] = useState<GroupPermission[]>([]);
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false);
+  const [selectedGroupsToAdd, setSelectedGroupsToAdd] = useState<number[]>([]);
+  const [selectedGroupsToRemove, setSelectedGroupsToRemove] = useState<number[]>([]);
+  const [isManagingGroups, setIsManagingGroups] = useState(false);
 
   const refetch = async () => {
     setIsLoading(true);
@@ -162,6 +172,97 @@ export default function UserDetailPage({ params }: PageProps) {
     }
   };
 
+  // Charger les groupes disponibles
+  useEffect(() => {
+    let isMounted = true;
+    const loadGroups = async () => {
+      setIsLoadingGroups(true);
+      try {
+        const data = await AdminAPI.listGroupPermissions({ limit: 100 });
+        if (isMounted) {
+          setAvailableGroups((data as PaginatedGroupPermissionList).results || []);
+        }
+      } catch (e) {
+        if (isMounted) {
+          toast.error("Impossible de charger la liste des groupes");
+        }
+      } finally {
+        if (isMounted) setIsLoadingGroups(false);
+      }
+    };
+    loadGroups();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Obtenir les groupes actuellement assignés à l'utilisateur
+  const getUserGroupIds = (): number[] => {
+    if (!user?.groups) return [];
+    return user.groups
+      .map((g) => {
+        if (typeof g === "object" && g !== null && "id" in g) {
+          return typeof g.id === "number" ? g.id : parseInt(String(g.id), 10);
+        }
+        return typeof g === "number" ? g : parseInt(String(g), 10);
+      })
+      .filter((id) => !isNaN(id));
+  };
+
+  const userGroupIds = getUserGroupIds();
+
+  // Obtenir les groupes disponibles pour l'ajout (non assignés)
+  const getAvailableGroupsToAdd = (): GroupPermission[] => {
+    return availableGroups.filter((g) => !userGroupIds.includes(g.id));
+  };
+
+  // Obtenir les groupes assignés (pour la suppression)
+  const getAssignedGroups = (): GroupPermission[] => {
+    return availableGroups.filter((g) => userGroupIds.includes(g.id));
+  };
+
+  // Gérer l'ajout de groupes
+  const handleAddGroups = async () => {
+    if (selectedGroupsToAdd.length === 0) {
+      toast.error("Veuillez sélectionner au moins un groupe à ajouter");
+      return;
+    }
+
+    setIsManagingGroups(true);
+    try {
+      await AdminAPI.addGroupsToUsers([slug], selectedGroupsToAdd);
+      toast.success(`${selectedGroupsToAdd.length} groupe(s) ajouté(s) avec succès`);
+      setSelectedGroupsToAdd([]);
+      await refetch();
+    } catch (e) {
+      const err = e as AxiosError<{ detail?: string }>;
+      const errorMessage = err.response?.data?.detail || "Erreur lors de l'ajout des groupes";
+      toast.error(errorMessage);
+    } finally {
+      setIsManagingGroups(false);
+    }
+  };
+
+  // Gérer la suppression de groupes
+  const handleRemoveGroups = async () => {
+    if (selectedGroupsToRemove.length === 0) {
+      toast.error("Veuillez sélectionner au moins un groupe à retirer");
+      return;
+    }
+
+    setIsManagingGroups(true);
+    try {
+      await AdminAPI.removeGroupsFromUsers([slug], selectedGroupsToRemove);
+      toast.success(`${selectedGroupsToRemove.length} groupe(s) retiré(s) avec succès`);
+      setSelectedGroupsToRemove([]);
+      await refetch();
+    } catch (e) {
+      const err = e as AxiosError<{ detail?: string }>;
+      const errorMessage = err.response?.data?.detail || "Erreur lors de la suppression des groupes";
+      toast.error(errorMessage);
+    } finally {
+      setIsManagingGroups(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -227,22 +328,6 @@ export default function UserDetailPage({ params }: PageProps) {
       </div>
     );
   }
-
-  // Normalise le format des groupes renvoyés par l'API pour l'affichage (string, number ou objet complet)
-  const resolvedGroups = Array.isArray(user.groups)
-    ? user.groups.map((group, index) => {
-        if (typeof group === "string") {
-          return { id: index, label: group };
-        }
-        if (typeof group === "number") {
-          return { id: group, label: `Groupe #${group}` };
-        }
-        return {
-          id: group.id ?? index,
-          label: group.name ?? `Groupe #${group.id ?? index}`,
-        };
-      })
-    : [];
 
   return (
     <div className="space-y-6">
@@ -450,7 +535,7 @@ export default function UserDetailPage({ params }: PageProps) {
           </Card>
         </TabsContent>
 
-        {/* Onglet Permissions/Groupe : synthèse des droits + liste des groupes éventuels */}
+        {/* Onglet Permissions/Groupe : synthèse des droits + gestion des groupes */}
         <TabsContent value="permissions" className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
@@ -470,35 +555,36 @@ export default function UserDetailPage({ params }: PageProps) {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Les permissions avancées seront bientôt configurables par groupe. Utilisez l&apos;onglet groupes pour organiser les rôles.
+                  Les permissions avancées sont configurables par groupe. Utilisez les sections ci-dessous pour organiser les rôles.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Groupes rattachés</CardTitle>
-                  <CardDescription>Organisez les rôles et accès par groupe</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" disabled>
-                  Gérer les groupes
-                </Button>
+              <CardHeader>
+                <CardTitle>Groupes rattachés</CardTitle>
+                <CardDescription>Groupes actuellement assignés à cet utilisateur</CardDescription>
               </CardHeader>
               <CardContent>
-                {resolvedGroups.length > 0 ? (
+                {isLoadingGroups ? (
                   <div className="space-y-3">
-                    {resolvedGroups.map((group) => (
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : getAssignedGroups().length > 0 ? (
+                  <div className="space-y-3">
+                    {getAssignedGroups().map((group) => (
                       <div
                         key={group.id}
                         className="flex items-center justify-between rounded-md border p-3"
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                            {typeof group.label === "string" ? group.label.charAt(0).toUpperCase() : "G"}
+                            {group.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-medium">{group.label}</p>
+                            <p className="font-medium">{group.name}</p>
                             <p className="text-sm text-muted-foreground">
                               ID&nbsp;: {group.id}
                             </p>
@@ -520,6 +606,146 @@ export default function UserDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
           </div>
+
+          {/* Section Ajouter aux groupes */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                <CardTitle>Ajouter aux groupes</CardTitle>
+              </div>
+              <CardDescription>
+                Sélectionnez les groupes à ajouter à cet utilisateur
+                {selectedGroupsToAdd.length > 0 && (
+                  <span className="ml-2 font-semibold text-primary">
+                    ({selectedGroupsToAdd.length} sélectionné{selectedGroupsToAdd.length > 1 ? "s" : ""})
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoadingGroups ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : getAvailableGroupsToAdd().length > 0 ? (
+                <>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {getAvailableGroupsToAdd().map((group) => (
+                      <div
+                        key={group.id}
+                        className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
+                      >
+                        <Checkbox
+                          id={`add-${group.id}`}
+                          checked={selectedGroupsToAdd.includes(group.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedGroupsToAdd([...selectedGroupsToAdd, group.id]);
+                            } else {
+                              setSelectedGroupsToAdd(selectedGroupsToAdd.filter((id) => id !== group.id));
+                            }
+                          }}
+                          disabled={isManagingGroups}
+                        />
+                        <Label
+                          htmlFor={`add-${group.id}`}
+                          className="flex-1 cursor-pointer font-normal"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                              {group.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>{group.name}</span>
+                          </div>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={handleAddGroups}
+                    disabled={selectedGroupsToAdd.length === 0 || isManagingGroups}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {isManagingGroups ? "Ajout en cours..." : `Ajouter ${selectedGroupsToAdd.length} groupe(s)`}
+                  </Button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center">
+                  <Shield className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Tous les groupes disponibles sont déjà assignés à cet utilisateur.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Section Retirer des groupes */}
+          {getAssignedGroups().length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Minus className="h-5 w-5 text-destructive" />
+                  <CardTitle>Retirer des groupes</CardTitle>
+                </div>
+                <CardDescription>
+                  Sélectionnez les groupes à retirer de cet utilisateur
+                  {selectedGroupsToRemove.length > 0 && (
+                    <span className="ml-2 font-semibold text-destructive">
+                      ({selectedGroupsToRemove.length} sélectionné{selectedGroupsToRemove.length > 1 ? "s" : ""})
+                    </span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {getAssignedGroups().map((group) => (
+                    <div
+                      key={group.id}
+                      className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
+                    >
+                      <Checkbox
+                        id={`remove-${group.id}`}
+                        checked={selectedGroupsToRemove.includes(group.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedGroupsToRemove([...selectedGroupsToRemove, group.id]);
+                          } else {
+                            setSelectedGroupsToRemove(selectedGroupsToRemove.filter((id) => id !== group.id));
+                          }
+                        }}
+                        disabled={isManagingGroups}
+                      />
+                      <Label
+                        htmlFor={`remove-${group.id}`}
+                        className="flex-1 cursor-pointer font-normal"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {group.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span>{group.name}</span>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  onClick={handleRemoveGroups}
+                  disabled={selectedGroupsToRemove.length === 0 || isManagingGroups}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  <Minus className="h-4 w-4 mr-2" />
+                  {isManagingGroups ? "Retrait en cours..." : `Retirer ${selectedGroupsToRemove.length} groupe(s)`}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

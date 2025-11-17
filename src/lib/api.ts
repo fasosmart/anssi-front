@@ -98,6 +98,11 @@ export const API = {
     },
     users: {
       updateStaff: (slug: string) => `${BASE_URL}/administrations/update-user/${slug}/`,
+    },
+    permissions: {
+      listGroupPermissions: () => `${BASE_URL}/administrations/list-group-permissions/`,
+      addPermissionsToUser: () => `${BASE_URL}/administrations/permissions/add_permissions_to_user/`,
+      removePermissionsFromUser: () => `${BASE_URL}/administrations/permissions/remove_permissions_to_user/`,
     }
   }
 };
@@ -180,6 +185,25 @@ export const AdminAPI = {
   },
   updateUser: async (slug: string, data: { first_name?: string; last_name?: string; email?: string; is_staff?: boolean; }) => {
     const response = await apiClient.patch(API.administrations.users.updateStaff(slug), data);
+    return response.data;
+  },
+  // Permissions & Groups (admin)
+  listGroupPermissions: async (params?: { limit?: number; offset?: number; }) => {
+    const response = await apiClient.get(API.administrations.permissions.listGroupPermissions(), { params });
+    return response.data;
+  },
+  addGroupsToUsers: async (users: string[], groupIds: number[]) => {
+    const response = await apiClient.post(API.administrations.permissions.addPermissionsToUser(), {
+      users,
+      group: groupIds,
+    });
+    return response.data;
+  },
+  removeGroupsFromUsers: async (users: string[], groupIds: number[]) => {
+    const response = await apiClient.patch(API.administrations.permissions.removePermissionsFromUser(), {
+      users,
+      group: groupIds,
+    });
     return response.data;
   },
 };
