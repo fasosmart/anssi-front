@@ -211,7 +211,7 @@ export const AdminAPI = {
 // Users - Helpers centralisés
 export const UserAPI = {
   getPermissions: async () => {
-    const response = await apiClient.get(`/api/users/permission/list/`);
+    const response = await apiClient.get(`/users/permission/list/`);
     return response.data;
   },
 };
