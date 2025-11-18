@@ -268,8 +268,28 @@ export interface AdminDashboardData {
 }
 
 export interface AdminDashboardCharts {
-  accreditation_shart: number;
-  entity_shart: number;
+  accreditation_shart?: number;
+  entity_shart?: number;
+  accreditations_per_month?: Array<{
+    month: string | number;
+    count?: number;
+    total?: number;
+    value?: number;
+  }>;
+  entities_per_month?: Array<{
+    month: string | number;
+    count?: number;
+    total?: number;
+    value?: number;
+  }>;
+  type_accreditation_stats?: Array<{
+    type?: string;
+    name?: string;
+    type_accreditation__name?: string;
+    total?: number;
+    count?: number;
+    value?: number;
+  }>;
 }
 
 // Types pour User (admin)

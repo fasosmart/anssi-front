@@ -36,31 +36,35 @@ import {
   Tooltip,
   Legend,
   Cell,
+  PieChart,
+  Pie,
 } from "recharts";
 
-// Couleurs pour les types d'accréditation (temporaire, en attendant les données)
-const accreditationTypeColors: Record<string, string> = {
-  "APACS": "bg-blue-500",
-  "APASSI": "bg-green-500",
-  "APDIS": "bg-purple-500",
-  "APRIS": "bg-orange-500",
-  "APIN": "bg-red-500",
-};
+const typeColorPalette = ["#2563eb", "#16a34a", "#9333ea", "#f97316", "#dc2626", "#0ea5e9", "#f59e0b"];
+const typeColorClassPalette = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-red-500", "bg-sky-500", "bg-amber-500"];
 
-const getAccreditationTypeColor = (type: string): string => {
-  // Chercher une correspondance partielle
-  for (const [key, color] of Object.entries(accreditationTypeColors)) {
-    if (type.includes(key)) return color;
+const resolveTypeName = (
+  entry: {
+    type?: string;
+    name?: string;
+    type_accreditation__name?: string;
+  },
+  index: number
+): string => {
+  const candidates = [entry.type, entry.name, entry.type_accreditation__name];
+  const match = candidates.find((value): value is string => Boolean(value && value.trim().length > 0));
+  if (match) {
+    return match;
   }
-  // Couleur par défaut
-  return "bg-gray-500";
+  return `Type ${index + 1}`;
 };
 
 export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chartData, setChartData] = useState<Array<{ name: string; count: number; color: string }>>([]);
+  const [monthlyChartData, setMonthlyChartData] = useState<Array<{ month: string; accreditations: number; entities: number }>>([]);
+  const [typeDistribution, setTypeDistribution] = useState<Array<{ id: string; name: string; value: number; color: string; className: string }>>([]);
   const [isChartLoading, setIsChartLoading] = useState(true);
   const [chartError, setChartError] = useState<string | null>(null);
 
@@ -85,16 +89,81 @@ export default function AdminDashboard() {
       setChartError(null);
       try {
         const charts: AdminDashboardCharts = await AdminAPI.getDashboardCharts();
-        setChartData([
-          { name: "Accréditations", count: charts.accreditation_shart ?? 0, color: "#2563eb" },
-          { name: "Entités", count: charts.entity_shart ?? 0, color: "#9333ea" },
-        ]);
+
+        const monthMap = new Map<string, { month: string; accreditations: number; entities: number }>();
+        const formatMonthLabel = (value: string | number | undefined, fallbackIndex: number) => {
+          if (typeof value === "number" && Number.isFinite(value)) {
+            const date = new Date(2000, Math.max(0, Number(value) - 1), 1);
+            return date.toLocaleString("fr-FR", { month: "short" });
+          }
+          if (typeof value === "string" && value.trim().length > 0) {
+            const parsed = Date.parse(value);
+            if (!Number.isNaN(parsed)) {
+              return new Date(parsed).toLocaleString("fr-FR", { month: "short", year: "2-digit" });
+            }
+            return value;
+          }
+          return `M${fallbackIndex + 1}`;
+        };
+
+        const ensureMonthEntry = (label: string) => {
+          if (!monthMap.has(label)) {
+            monthMap.set(label, { month: label, accreditations: 0, entities: 0 });
+          }
+          return monthMap.get(label)!;
+        };
+
+        (charts.accreditations_per_month ?? []).forEach((entry, index) => {
+          const label = formatMonthLabel(entry.month, index);
+          const monthEntry = ensureMonthEntry(label);
+          monthEntry.accreditations = entry.count ?? entry.total ?? entry.value ?? 0;
+        });
+
+        (charts.entities_per_month ?? []).forEach((entry, index) => {
+          const label = formatMonthLabel(entry.month, index);
+          const monthEntry = ensureMonthEntry(label);
+          monthEntry.entities = entry.count ?? entry.total ?? entry.value ?? 0;
+        });
+
+        const monthlyData = Array.from(monthMap.values());
+        if (
+          monthlyData.length === 0 &&
+          (typeof charts.accreditation_shart !== "undefined" || typeof charts.entity_shart !== "undefined")
+        ) {
+          monthlyData.push({
+            month: "Ce mois",
+            accreditations: charts.accreditation_shart ?? 0,
+            entities: charts.entity_shart ?? 0,
+          });
+        }
+        setMonthlyChartData(monthlyData);
+
+        const rawTypeStats =
+          charts.type_accreditation_stats?.map((entry, index) => {
+            const name = resolveTypeName(entry, index);
+            return {
+              name,
+              value: entry.total ?? entry.count ?? entry.value ?? 0,
+              id: `${name}-${index}`,
+            };
+          }) ?? [];
+
+        const processedTypeStats = rawTypeStats
+          .filter((entry) => entry.value > 0)
+          .map((entry, index) => ({
+            ...entry,
+            color: typeColorPalette[index % typeColorPalette.length],
+            className: typeColorClassPalette[index % typeColorClassPalette.length],
+          }));
+
+        setTypeDistribution(processedTypeStats);
       } catch (e) {
         const err = e as AxiosError<{ detail?: string }>;
         const message = err.response?.data?.detail || "Impossible de charger les statistiques mensuelles";
         toast.error(message);
         setChartError(message);
-        setChartData([]);
+        setMonthlyChartData([]);
+        setTypeDistribution([]);
       } finally {
         setIsChartLoading(false);
       }
@@ -146,6 +215,7 @@ export default function AdminDashboard() {
     totalRepresentatives: dashboardData.total_representative,
     activeAccreditations: dashboardData.accreditations.approved,
   } : null;
+  const totalTypeDistribution = typeDistribution.reduce((sum, item) => sum + item.value, 0);
 
   if (isLoading) {
     return (
@@ -436,15 +506,15 @@ export default function AdminDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {accreditationCards.map((card) => (
               <Card key={card.label}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
                   <card.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+          </CardHeader>
+          <CardContent>
                   <div className={`text-2xl font-bold ${card.accent}`}>{card.value}</div>
                   <p className="text-xs text-muted-foreground">{card.subLabel}</p>
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
             ))}
           </div>
         </TabsContent>
@@ -453,29 +523,29 @@ export default function AdminDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {entityCards.map((card) => (
               <Card key={card.label}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{card.label}</CardTitle>
                   <card.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+          </CardHeader>
+          <CardContent>
                   <div className={`text-2xl font-bold ${card.accent}`}>{card.value}</div>
                   <p className="text-xs text-muted-foreground">{card.subLabel}</p>
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
             ))}
           </div>
         </TabsContent>
       </Tabs>
 
       {/* Indicateurs globaux (chips) */}
-      <Card>
+        <Card>
         <CardHeader>
           <CardTitle>Indicateurs globaux</CardTitle>
           <CardDescription>
             Vue synthétique sur les ressources clés
           </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div>
@@ -495,9 +565,9 @@ export default function AdminDashboard() {
                 <Activity className="h-6 w-6" />
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
+          </CardContent>
+        </Card>
 
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="overview" className="space-y-4">
@@ -526,7 +596,7 @@ export default function AdminDashboard() {
                     <AlertTriangle className="h-10 w-10 text-destructive mb-2" />
                     <p className="text-sm">{chartError}</p>
                   </div>
-                ) : chartData.length === 0 ? (
+                ) : monthlyChartData.length === 0 ? (
                   <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground border border-dashed rounded-lg">
                     <TrendingUp className="h-12 w-12 mb-2 opacity-50" />
                     <p className="text-sm">Aucune statistique disponible</p>
@@ -534,20 +604,17 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                      <BarChart data={monthlyChartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                        <XAxis dataKey="name" />
+                        <XAxis dataKey="month" />
                         <YAxis allowDecimals={false} />
                         <Tooltip />
                         <Legend />
-                        <Bar dataKey="count" name="Volume" radius={[6, 6, 0, 0]}>
-                          {chartData.map((entry, idx) => (
-                            <Cell key={`cell-${entry.name}`} fill={entry.color} />
-                          ))}
-                        </Bar>
+                        <Bar dataKey="accreditations" name="Accréditations" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="entities" name="Entités" fill="#9333ea" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
+                </div>
                 )}
               </CardContent>
             </Card>
@@ -557,38 +624,64 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Répartition par type</CardTitle>
                 <CardDescription>
-                  Distribution des accréditations
+                  Distribution des accréditations par famille
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {dashboardData.last_accreditation.length > 0 ? (
-                  <div className="space-y-4">
-                    {(() => {
-                      // Calculer la répartition par type depuis les dernières accréditations
-                      const typeCounts = dashboardData.last_accreditation.reduce((acc, accr) => {
-                        const typeName = accr.type_accreditation.split(' ')[0] || accr.type_accreditation;
-                        acc[typeName] = (acc[typeName] || 0) + 1;
-                        return acc;
-                      }, {} as Record<string, number>);
-                      
-                      return Object.entries(typeCounts).map(([name, count]) => (
-                        <div key={name} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${getAccreditationTypeColor(name)}`} />
-                            <span className="text-sm font-medium">{name}</span>
-                          </div>
-                          <Badge variant="secondary">{count}</Badge>
-                        </div>
-                      ));
-                    })()}
-                    <p className="text-xs text-muted-foreground mt-4">
-                      * Basé sur les dernières accréditations (données complètes en attente)
-                    </p>
+                {isChartLoading ? (
+                  <div className="h-[280px] flex items-center justify-center">
+                    <Skeleton className="h-full w-full rounded-md" />
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
+                ) : chartError ? (
+                  <div className="h-[280px] flex flex-col items-center justify-center text-center text-muted-foreground border border-dashed rounded-lg p-4">
+                    <AlertTriangle className="h-10 w-10 text-destructive mb-2" />
+                    <p className="text-sm">{chartError}</p>
+                  </div>
+                ) : typeDistribution.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
                     <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Aucune donnée disponible</p>
+                      </div>
+                ) : (
+                  <div className="flex flex-col lg:flex-row items-center gap-6">
+                    <div className="flex-1 w-full h-[260px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Tooltip />
+                          <Pie
+                            data={typeDistribution}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={4}
+                            stroke="#fff"
+                          >
+                            {typeDistribution.map((entry) => (
+                              <Cell key={`pie-${entry.id}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex-1 w-full space-y-3">
+                      {typeDistribution.map((entry) => (
+                        <div key={entry.id} className="flex items-center justify-between rounded-lg border p-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-3 w-3 rounded-full ${entry.className}`} />
+                            <div>
+                              <p className="text-sm font-medium">{entry.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {entry.value} accréditation{entry.value > 1 ? "s" : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary">
+                            {totalTypeDistribution ? Math.round((entry.value / totalTypeDistribution) * 100) : 0}%
+                          </Badge>
+                    </div>
+                  ))}
+                </div>
                   </div>
                 )}
               </CardContent>
@@ -626,8 +719,8 @@ export default function AdminDashboard() {
                         ) : (
                           <FileText className="h-5 w-5 text-blue-500" />
                         )}
-                      </div>
-                      <div className="flex-1 min-w-0">
+                    </div>
+                    <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
                             <p className="text-sm font-medium">
@@ -656,10 +749,10 @@ export default function AdminDashboard() {
                               ) : (
                                 'Date non disponible'
                               )}
-                            </p>
-                          </div>
+                      </p>
+                    </div>
                           <div className="flex items-center space-x-2 flex-shrink-0">
-                            <Badge 
+                      <Badge 
                               variant={acc.status === "approved" ? "default" : 
                                       acc.status === "rejected" ? "destructive" : "secondary"}
                               className="whitespace-nowrap"
@@ -670,18 +763,18 @@ export default function AdminDashboard() {
                                acc.status === "rejected" ? "Rejetée" :
                                acc.status === "draft" ? "Brouillon" :
                                acc.status}
-                            </Badge>
+                      </Badge>
                             <Button variant="ghost" size="sm" asChild>
                               <Link href={`/dashboard/admin/accreditations/${acc.slug}`}>
-                                <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                               </Link>
-                            </Button>
+                      </Button>
                           </div>
                         </div>
-                      </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -693,16 +786,16 @@ export default function AdminDashboard() {
 
           {/* Entités récentes */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
                 <Building className="h-5 w-5 text-purple-500" />
                 <span>Entités récentes</span>
-              </CardTitle>
-              <CardDescription>
+                  </CardTitle>
+                  <CardDescription>
                 Dernières entités enregistrées
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
               {dashboardData && dashboardData.last_entity.length > 0 ? (
                 <div className="space-y-3">
                   {dashboardData.last_entity.map((entity) => (
@@ -762,9 +855,9 @@ export default function AdminDashboard() {
                             <Button variant="ghost" size="sm" asChild>
                               <Link href={`/dashboard/admin/entities/${entity.slug}`}>
                                 <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                          </div>
+                      </Link>
+                    </Button>
+                  </div>
                         </div>
                       </div>
                     </div>
@@ -776,8 +869,8 @@ export default function AdminDashboard() {
                   <p className="text-sm">Aucune entité récente</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
         </TabsContent>
 
       </Tabs>
@@ -791,7 +884,13 @@ export default function AdminDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Button asChild variant="outline" className="h-20 flex-col">
+              <Link href="/dashboard/admin/entities">
+                <Building className="h-6 w-6 mb-2" />
+                Gérer les entités
+              </Link>
+            </Button>
             <Button asChild variant="outline" className="h-20 flex-col">
               <Link href="/dashboard/admin/accreditations">
                 <FileText className="h-6 w-6 mb-2" />
@@ -799,9 +898,9 @@ export default function AdminDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-20 flex-col">
-              <Link href="/dashboard/admin/entities">
-                <Building className="h-6 w-6 mb-2" />
-                Gérer les entités
+              <Link href="/dashboard/admin/users">
+                <Users className="h-6 w-6 mb-2" />
+                Gérer les utilisateurs
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-20 flex-col">
