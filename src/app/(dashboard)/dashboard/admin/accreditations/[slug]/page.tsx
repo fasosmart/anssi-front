@@ -29,6 +29,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { AxiosError } from "axios";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 const statusConfig = {
   draft: { label: "Brouillon", color: "bg-gray-500", textColor: "text-gray-700" },
@@ -47,6 +48,11 @@ export default function AccreditationDetailPage() {
   const [confirmAction, setConfirmAction] = useState<null | "under_review" | "approved">(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  // On exploite le provider de permissions pour filtrer les actions disponibles côté UI.
+  const { hasPermission } = usePermissions();
+  const canSetUnderReview = hasPermission("accreditations.can_under_review");
+  const canApprove = hasPermission("accreditations.can_approved");
+  const canReject = hasPermission("accreditations.can_declined");
 
   const fetchAccreditation = async () => {
     setIsLoading(true);
@@ -68,7 +74,17 @@ export default function AccreditationDetailPage() {
 
   const handleAction = async () => {
     if (!accreditation || !confirmAction) return;
-    
+    if (confirmAction === "under_review" && !canSetUnderReview) {
+      toast.error("Vous n'avez pas la permission de mettre en révision");
+      setConfirmAction(null);
+      return;
+    }
+    if (confirmAction === "approved" && !canApprove) {
+      toast.error("Vous n'avez pas la permission d'approuver cette accréditation");
+      setConfirmAction(null);
+      return;
+    }
+
     setIsActing(true);
     try {
       if (confirmAction === "under_review") {
@@ -90,6 +106,12 @@ export default function AccreditationDetailPage() {
 
   const handleReject = async () => {
     if (!accreditation || !rejectReason.trim()) return;
+    if (!canReject) {
+      toast.error("Vous n'avez pas la permission de rejeter cette accréditation");
+      setRejectOpen(false);
+      setRejectReason("");
+      return;
+    }
     
     if (rejectReason.trim().length < 5) {
       toast.error("La raison du rejet doit contenir au moins 5 caractères");
@@ -301,7 +323,7 @@ export default function AccreditationDetailPage() {
             </div>
             <div className="flex gap-2">
               {/* Statut submitted : Mettre en révision */}
-              {accreditation.status === "submitted" && (
+              {accreditation.status === "submitted" && canSetUnderReview && (
                 <Button disabled={isActing} onClick={() => setConfirmAction("under_review")}>
                   <Clock className="h-4 w-4 mr-2" />
                   Mettre en révision
@@ -311,14 +333,18 @@ export default function AccreditationDetailPage() {
               {/* Statut under_review : Approuver, Rejeter */}
               {accreditation.status === "under_review" && (
                 <>
-                  <Button disabled={isActing} onClick={() => setConfirmAction("approved")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Approuver
-                  </Button>
-                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
-                  </Button>
+                  {canApprove && (
+                    <Button disabled={isActing} onClick={() => setConfirmAction("approved")}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approuver
+                    </Button>
+                  )}
+                  {canReject && (
+                    <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Rejeter
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -678,49 +704,55 @@ export default function AccreditationDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Modal de rejet avec raison */}
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rejeter l&apos;accréditation</DialogTitle>
-            <DialogDescription>
-              Veuillez indiquer la raison du rejet de cette accréditation. Cette information sera visible par l&apos;entité.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Raison du rejet *</label>
-              <Textarea
-                placeholder="Indiquez la raison du rejet (minimum 5 caractères)..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                rows={4}
-                className="resize-none"
-              />
-              {rejectReason.trim().length > 0 && rejectReason.trim().length < 5 && (
-                <p className="text-sm text-red-600">
-                  La raison doit contenir au moins 5 caractères
-                </p>
-              )}
+      {/* Modal de rejet avec raison (uniquement si l'utilisateur peut rejeter) */}
+      {canReject && (
+        <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rejeter l&apos;accréditation</DialogTitle>
+              <DialogDescription>
+                Veuillez indiquer la raison du rejet de cette accréditation. Cette information sera visible par l&apos;entité.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Raison du rejet *</label>
+                <Textarea
+                  placeholder="Indiquez la raison du rejet (minimum 5 caractères)..."
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                {rejectReason.trim().length > 0 && rejectReason.trim().length < 5 && (
+                  <p className="text-sm text-red-600">
+                    La raison doit contenir au moins 5 caractères
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setRejectOpen(false);
-              setRejectReason("");
-            }} disabled={isActing}>
-              Annuler
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleReject} 
-              disabled={isActing || rejectReason.trim().length < 5}
-            >
-              {isActing ? "Traitement..." : "Rejeter"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectOpen(false);
+                  setRejectReason("");
+                }}
+                disabled={isActing}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleReject}
+                disabled={isActing || rejectReason.trim().length < 5}
+              >
+                {isActing ? "Traitement..." : "Rejeter"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
