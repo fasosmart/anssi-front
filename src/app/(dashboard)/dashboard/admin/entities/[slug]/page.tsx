@@ -75,7 +75,8 @@ export default function EntityDetailPage({ params }: PageProps) {
   const canValidate = hasPermission("entities.can_validated");
   const canBlock = hasPermission("entities.can_blocked");
   const canUnblock = hasPermission("entities.can_unblock");
-  const canReject = hasPermission("entities.can_declined");
+  const canReject = hasPermission("entities.can_ping");
+  const canViewRepresentative = hasPermission("representatives.view_representative");
 
   // Helper utilisé dans le modal de confirmation pour éviter d'exécuter une action non autorisée.
   const canExecuteAction = (action: typeof confirmAction) => {
@@ -539,33 +540,40 @@ export default function EntityDetailPage({ params }: PageProps) {
                   <Skeleton className="h-20 w-full" />
                   <Skeleton className="h-20 w-full" />
                 </div>
+              ) : !canViewRepresentative ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Shield className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Vous n&apos;avez pas la permission de consulter les représentants de cette entité.</p>
+                </div>
               ) : entity?.representatives && entity.representatives.length > 0 ? (
-              <div className="space-y-4">
+                <div className="space-y-4">
                   {entity.representatives.map((rep) => (
-                  <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{rep.first_name} {rep.last_name}</p>
-                        <p className="text-sm text-muted-foreground">{rep.job_title}</p>
+                    <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{rep.first_name} {rep.last_name}</p>
+                          <p className="text-sm text-muted-foreground">{rep.job_title}</p>
                           {rep.email && (
-                        <p className="text-sm text-muted-foreground">{rep.email}</p>
+                            <p className="text-sm text-muted-foreground">{rep.email}</p>
                           )}
                           {rep.phone && (
                             <p className="text-sm text-muted-foreground">{rep.phone}</p>
                           )}
                         </div>
                       </div>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/dashboard/admin/entities/${entity?.slug}/representatives/${rep.slug}`}>
-                        <Eye className="h-4 w-4" />
-                            </Link>
-                      </Button>
-                  </div>
-                ))}
-              </div>
+                      {canViewRepresentative && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/dashboard/admin/entities/${entity?.slug}/representatives/${rep.slug}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />

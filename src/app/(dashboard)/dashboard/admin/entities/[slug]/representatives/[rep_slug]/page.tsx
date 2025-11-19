@@ -27,6 +27,7 @@ import { AdminAPI, API } from "@/lib/api";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 export default function RepresentativeDetailPage() {
   const params = useParams();
@@ -38,6 +39,8 @@ export default function RepresentativeDetailPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions();
+  const canViewRepresentative = hasPermission("representatives.view_representative");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +48,10 @@ export default function RepresentativeDetailPage() {
       
       setIsLoading(true);
       try {
-        // Récupérer les détails du représentant
+        if (!canViewRepresentative) {
+          setIsLoading(false);
+          return;
+         }
         const repResponse = await AdminAPI.getRepresentative(repSlug);
         const degreesRepResponse = repResponse.degrees;
         const experiencesRepResponse = repResponse.experiences;
@@ -65,14 +71,23 @@ export default function RepresentativeDetailPage() {
     };
 
     fetchData();
-  }, [entitySlug, repSlug]);
+  }, [entitySlug, repSlug, canViewRepresentative]);
 
-  if (isLoading) {
+  if (isLoading || permissionsLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!canViewRepresentative) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Shield className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+        <p>Vous n&apos;avez pas l&apos;autorisation de consulter ce représentant.</p>
       </div>
     );
   }
