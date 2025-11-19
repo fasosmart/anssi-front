@@ -141,7 +141,14 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 export function usePermissions() {
   const context = useContext(PermissionsContext);
   if (!context) {
-    throw new Error("usePermissions doit être utilisé au sein d'un PermissionsProvider");
+    // En dehors de l'espace admin, on renvoie un objet neutre pour éviter les erreurs (lecture seule).
+    return {
+      permissions: [],
+      isLoading: false,
+      hasPermission: () => false,
+      hasAnyPermission: () => false,
+      refreshPermissions: async () => {},
+    };
   }
   return context;
 }

@@ -19,6 +19,7 @@ import { useEntity } from "@/contexts/EntityContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSession } from "next-auth/react";
 import { Session } from "next-auth";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 type MenuItem = {
   href: string;
@@ -27,6 +28,7 @@ type MenuItem = {
   requiresValidated?: boolean;
   disabledMessage?: string;
   alwaysVisible?: boolean;
+  requiredPermission?: string | string[];
 };
 
 const userMenuItems: MenuItem[] = [
@@ -70,16 +72,19 @@ const adminMenuItems: MenuItem[] = [
     href: "/dashboard/admin/entities",
     icon: Building,
     label: "Structures",
+    requiredPermission: "entities.view_entity",
   },
   {
     href: "/dashboard/admin/accreditations",
     icon: ShieldCheck,
     label: "Accréditations",
+    requiredPermission: "accreditations.view_accreditation",
   },
   {
     href: "/dashboard/admin/users",
     icon: Users,
     label: "Utilisateurs",
+    requiredPermission: ["users.can_edit_staff", "users.manage_user_groups"],
   },
   // {
   //   href: "/dashboard/admin/settings",
@@ -92,10 +97,22 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { canManageRepresentatives, canCreateDemands } = useEntity();
   const { data } = useSession();
+  // Les permissions staff servent à masquer les sections non autorisées plutôt que d'afficher des liens inutilisables.
+  const { hasPermission, hasAnyPermission } = usePermissions();
 
   const isAdminSpace = pathname?.startsWith("/dashboard/admin");
   const isStaff = Boolean((data as Session)?.user?.is_staff);
-  const items = isAdminSpace && isStaff ? adminMenuItems : userMenuItems;
+  const rawItems = isAdminSpace && isStaff ? adminMenuItems : userMenuItems;
+  // Pour l'espace admin, on filtre les entrées non permises afin d'éviter d'afficher des sections interdites.
+  const items = isAdminSpace
+    ? rawItems.filter((item) => {
+        if (!item.requiredPermission) return true;
+        if (Array.isArray(item.requiredPermission)) {
+          return hasAnyPermission(item.requiredPermission);
+        }
+        return hasPermission(item.requiredPermission);
+      })
+    : rawItems;
 
   return (
     <Sidebar className="border-r">
