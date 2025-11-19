@@ -30,6 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AxiosError } from "axios";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 interface PageProps { params: Promise<{ slug: string }> }
 
@@ -59,6 +60,10 @@ export default function UserDetailPage({ params }: PageProps) {
   const [selectedGroupsToAdd, setSelectedGroupsToAdd] = useState<number[]>([]);
   const [selectedGroupsToRemove, setSelectedGroupsToRemove] = useState<number[]>([]);
   const [isManagingGroups, setIsManagingGroups] = useState(false);
+  // Permissions : on centralise ici les droits liés aux utilisateurs (édition staff / gestion des groupes).
+  const { hasPermission } = usePermissions();
+  const canEditStaff = hasPermission("users.can_edit_staff");
+  const canManageUserGroups = hasPermission("users.manage_user_groups");
 
   const refetch = async () => {
     setIsLoading(true);
@@ -108,6 +113,10 @@ export default function UserDetailPage({ params }: PageProps) {
   }, [slug]);
 
   const handleEdit = () => {
+    if (!canEditStaff) {
+      toast.error("Vous n'avez pas la permission de modifier cet utilisateur");
+      return;
+    }
     setIsEditing(true);
   };
 
@@ -125,6 +134,11 @@ export default function UserDetailPage({ params }: PageProps) {
 
   const handleSave = async () => {
     if (!user) return;
+    if (!canEditStaff) {
+      toast.error("Vous n'avez pas la permission d'enregistrer ces modifications");
+      setIsEditing(false);
+      return;
+    }
     
     setIsActing(true);
     try {
@@ -148,12 +162,21 @@ export default function UserDetailPage({ params }: PageProps) {
 
   const handleToggleStaff = () => {
     if (!user) return;
+    if (!canEditStaff) {
+      toast.error("Vous n'avez pas la permission de changer le statut staff");
+      return;
+    }
     setNewStaffStatus(!user.is_staff);
     setToggleStaffOpen(true);
   };
 
   const confirmToggleStaff = async () => {
     if (!user) return;
+    if (!canEditStaff) {
+      toast.error("Action non autorisée");
+      setToggleStaffOpen(false);
+      return;
+    }
     
     setIsActing(true);
     try {
@@ -174,6 +197,12 @@ export default function UserDetailPage({ params }: PageProps) {
 
   // Charger les groupes disponibles
   useEffect(() => {
+    if (!canManageUserGroups) {
+      setAvailableGroups([]);
+      setSelectedGroupsToAdd([]);
+      setSelectedGroupsToRemove([]);
+      return;
+    }
     let isMounted = true;
     const loadGroups = async () => {
       setIsLoadingGroups(true);
@@ -192,7 +221,7 @@ export default function UserDetailPage({ params }: PageProps) {
     };
     loadGroups();
     return () => { isMounted = false; };
-  }, []);
+  }, [canManageUserGroups]);
 
   // Obtenir les groupes actuellement assignés à l'utilisateur
   const getUserGroupIds = (): number[] => {
@@ -221,6 +250,10 @@ export default function UserDetailPage({ params }: PageProps) {
 
   // Gérer l'ajout de groupes
   const handleAddGroups = async () => {
+    if (!canManageUserGroups) {
+      toast.error("Vous n'avez pas la permission de gérer les groupes");
+      return;
+    }
     if (selectedGroupsToAdd.length === 0) {
       toast.error("Veuillez sélectionner au moins un groupe à ajouter");
       return;
@@ -243,6 +276,10 @@ export default function UserDetailPage({ params }: PageProps) {
 
   // Gérer la suppression de groupes
   const handleRemoveGroups = async () => {
+    if (!canManageUserGroups) {
+      toast.error("Vous n'avez pas la permission de gérer les groupes");
+      return;
+    }
     if (selectedGroupsToRemove.length === 0) {
       toast.error("Veuillez sélectionner au moins un groupe à retirer");
       return;
@@ -373,41 +410,47 @@ export default function UserDetailPage({ params }: PageProps) {
               )}
             </div>
             <div className="flex gap-2">
-              {!isEditing ? (
-                <>
-                  <Button variant="outline" onClick={handleEdit}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </Button>
-                  <Button 
-                    variant={user.is_staff ? "destructive" : "default"}
-                    onClick={handleToggleStaff}
-                    disabled={isActing}
-                  >
-                    {user.is_staff ? (
-                      <>
-                        <UserX className="h-4 w-4 mr-2" />
-                        Retirer le statut staff
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="h-4 w-4 mr-2" />
-                        Accorder le statut staff
-                      </>
-                    )}
-                  </Button>
-                </>
+              {canEditStaff ? (
+                !isEditing ? (
+                  <>
+                    <Button variant="outline" onClick={handleEdit}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier
+                    </Button>
+                    <Button
+                      variant={user.is_staff ? "destructive" : "default"}
+                      onClick={handleToggleStaff}
+                      disabled={isActing}
+                    >
+                      {user.is_staff ? (
+                        <>
+                          <UserX className="h-4 w-4 mr-2" />
+                          Retirer le statut staff
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Accorder le statut staff
+                        </>
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={handleCancelEdit} disabled={isActing}>
+                      <X className="h-4 w-4 mr-2" />
+                      Annuler
+                    </Button>
+                    <Button onClick={handleSave} disabled={isActing}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {isActing ? "Enregistrement..." : "Enregistrer"}
+                    </Button>
+                  </>
+                )
               ) : (
-                <>
-                  <Button variant="outline" onClick={handleCancelEdit} disabled={isActing}>
-                    <X className="h-4 w-4 mr-2" />
-                    Annuler
-                  </Button>
-                  <Button onClick={handleSave} disabled={isActing}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isActing ? "Enregistrement..." : "Enregistrer"}
-                  </Button>
-                </>
+                <span className="text-sm text-muted-foreground">
+                  Vous ne disposez pas des permissions pour modifier ce profil.
+                </span>
               )}
             </div>
           </div>
@@ -607,170 +650,191 @@ export default function UserDetailPage({ params }: PageProps) {
             </Card>
           </div>
 
-          {/* Section Ajouter aux groupes */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Plus className="h-5 w-5 text-primary" />
-                <CardTitle>Ajouter aux groupes</CardTitle>
-              </div>
-              <CardDescription>
-                Sélectionnez les groupes à ajouter à cet utilisateur
-                {selectedGroupsToAdd.length > 0 && (
-                  <span className="ml-2 font-semibold text-primary">
-                    ({selectedGroupsToAdd.length} sélectionné{selectedGroupsToAdd.length > 1 ? "s" : ""})
-                  </span>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isLoadingGroups ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : getAvailableGroupsToAdd().length > 0 ? (
-                <>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {getAvailableGroupsToAdd().map((group) => (
-                      <div
-                        key={group.id}
-                        className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
-                      >
-                        <Checkbox
-                          id={`add-${group.id}`}
-                          checked={selectedGroupsToAdd.includes(group.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedGroupsToAdd([...selectedGroupsToAdd, group.id]);
-                            } else {
-                              setSelectedGroupsToAdd(selectedGroupsToAdd.filter((id) => id !== group.id));
-                            }
-                          }}
-                          disabled={isManagingGroups}
-                        />
-                        <Label
-                          htmlFor={`add-${group.id}`}
-                          className="flex-1 cursor-pointer font-normal"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                              {group.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span>{group.name}</span>
-                          </div>
-                        </Label>
-                      </div>
-                    ))}
+          {canManageUserGroups ? (
+            <>
+              {/* Section Ajouter aux groupes */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-5 w-5 text-primary" />
+                    <CardTitle>Ajouter aux groupes</CardTitle>
                   </div>
-                  <Button
-                    onClick={handleAddGroups}
-                    disabled={selectedGroupsToAdd.length === 0 || isManagingGroups}
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {isManagingGroups ? "Ajout en cours..." : `Ajouter ${selectedGroupsToAdd.length} groupe(s)`}
-                  </Button>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center">
-                  <Shield className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Tous les groupes disponibles sont déjà assignés à cet utilisateur.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  <CardDescription>
+                    Sélectionnez les groupes à ajouter à cet utilisateur
+                    {selectedGroupsToAdd.length > 0 && (
+                      <span className="ml-2 font-semibold text-primary">
+                        ({selectedGroupsToAdd.length} sélectionné{selectedGroupsToAdd.length > 1 ? "s" : ""})
+                      </span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isLoadingGroups ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                      ))}
+                    </div>
+                  ) : getAvailableGroupsToAdd().length > 0 ? (
+                    <>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {getAvailableGroupsToAdd().map((group) => (
+                          <div
+                            key={group.id}
+                            className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
+                          >
+                            <Checkbox
+                              id={`add-${group.id}`}
+                              checked={selectedGroupsToAdd.includes(group.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedGroupsToAdd([...selectedGroupsToAdd, group.id]);
+                                } else {
+                                  setSelectedGroupsToAdd(selectedGroupsToAdd.filter((id) => id !== group.id));
+                                }
+                              }}
+                              disabled={isManagingGroups}
+                            />
+                            <Label
+                              htmlFor={`add-${group.id}`}
+                              className="flex-1 cursor-pointer font-normal"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                  {group.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span>{group.name}</span>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        onClick={handleAddGroups}
+                        disabled={selectedGroupsToAdd.length === 0 || isManagingGroups}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {isManagingGroups ? "Ajout en cours..." : `Ajouter ${selectedGroupsToAdd.length} groupe(s)`}
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center">
+                      <Shield className="h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Tous les groupes disponibles sont déjà assignés à cet utilisateur.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-          {/* Section Retirer des groupes */}
-          {getAssignedGroups().length > 0 && (
+              {/* Section Retirer des groupes */}
+              {getAssignedGroups().length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Minus className="h-5 w-5 text-destructive" />
+                      <CardTitle>Retirer des groupes</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Sélectionnez les groupes à retirer de cet utilisateur
+                      {selectedGroupsToRemove.length > 0 && (
+                        <span className="ml-2 font-semibold text-destructive">
+                          ({selectedGroupsToRemove.length} sélectionné{selectedGroupsToRemove.length > 1 ? "s" : ""})
+                        </span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {getAssignedGroups().map((group) => (
+                        <div
+                          key={group.id}
+                          className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
+                        >
+                          <Checkbox
+                            id={`remove-${group.id}`}
+                            checked={selectedGroupsToRemove.includes(group.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedGroupsToRemove([...selectedGroupsToRemove, group.id]);
+                              } else {
+                                setSelectedGroupsToRemove(selectedGroupsToRemove.filter((id) => id !== group.id));
+                              }
+                            }}
+                            disabled={isManagingGroups}
+                          />
+                          <Label
+                            htmlFor={`remove-${group.id}`}
+                            className="flex-1 cursor-pointer font-normal"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                {group.name.charAt(0).toUpperCase()}
+                              </div>
+                              <span>{group.name}</span>
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={handleRemoveGroups}
+                      disabled={selectedGroupsToRemove.length === 0 || isManagingGroups}
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      <Minus className="h-4 w-4 mr-2" />
+                      {isManagingGroups ? "Retrait en cours..." : `Retirer ${selectedGroupsToRemove.length} groupe(s)`}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Minus className="h-5 w-5 text-destructive" />
-                  <CardTitle>Retirer des groupes</CardTitle>
-                </div>
+                <CardTitle>Gestion des groupes</CardTitle>
                 <CardDescription>
-                  Sélectionnez les groupes à retirer de cet utilisateur
-                  {selectedGroupsToRemove.length > 0 && (
-                    <span className="ml-2 font-semibold text-destructive">
-                      ({selectedGroupsToRemove.length} sélectionné{selectedGroupsToRemove.length > 1 ? "s" : ""})
-                    </span>
-                  )}
+                  Cette section est réservée aux utilisateurs disposant de la permission <code>users.manage_user_groups</code>.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {getAssignedGroups().map((group) => (
-                    <div
-                      key={group.id}
-                      className="flex items-center space-x-3 rounded-md border p-3 hover:bg-accent/50 transition-colors"
-                    >
-                      <Checkbox
-                        id={`remove-${group.id}`}
-                        checked={selectedGroupsToRemove.includes(group.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedGroupsToRemove([...selectedGroupsToRemove, group.id]);
-                          } else {
-                            setSelectedGroupsToRemove(selectedGroupsToRemove.filter((id) => id !== group.id));
-                          }
-                        }}
-                        disabled={isManagingGroups}
-                      />
-                      <Label
-                        htmlFor={`remove-${group.id}`}
-                        className="flex-1 cursor-pointer font-normal"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                            {group.name.charAt(0).toUpperCase()}
-                          </div>
-                          <span>{group.name}</span>
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
+              <CardContent>
+                <div className="flex flex-col items-center text-center text-muted-foreground gap-2">
+                  <Shield className="h-10 w-10 opacity-50" />
+                  <p>Vous ne pouvez pas modifier les groupes de cet utilisateur.</p>
                 </div>
-                <Button
-                  onClick={handleRemoveGroups}
-                  disabled={selectedGroupsToRemove.length === 0 || isManagingGroups}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  <Minus className="h-4 w-4 mr-2" />
-                  {isManagingGroups ? "Retrait en cours..." : `Retirer ${selectedGroupsToRemove.length} groupe(s)`}
-                </Button>
               </CardContent>
             </Card>
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Toggle Staff Confirmation Dialog */}
-      <AlertDialog open={toggleStaffOpen} onOpenChange={setToggleStaffOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {newStaffStatus ? "Accorder le statut staff" : "Retirer le statut staff"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {newStaffStatus 
-                ? `Êtes-vous sûr de vouloir accorder le statut staff à ${user.first_name} ${user.last_name} ?`
-                : `Êtes-vous sûr de vouloir retirer le statut staff à ${user.first_name} ${user.last_name} ?`
-              }
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmToggleStaff} disabled={isActing}>
-              {isActing ? "Traitement..." : "Confirmer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Toggle Staff Confirmation Dialog - uniquement pour les utilisateurs autorisés */}
+      {canEditStaff && (
+        <AlertDialog open={toggleStaffOpen} onOpenChange={setToggleStaffOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {newStaffStatus ? "Accorder le statut staff" : "Retirer le statut staff"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {newStaffStatus 
+                  ? `Êtes-vous sûr de vouloir accorder le statut staff à ${user.first_name} ${user.last_name} ?`
+                  : `Êtes-vous sûr de vouloir retirer le statut staff à ${user.first_name} ${user.last_name} ?`
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmToggleStaff} disabled={isActing}>
+                {isActing ? "Traitement..." : "Confirmer"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
