@@ -35,6 +35,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { AxiosError } from "axios";
+import { usePermissions } from "@/contexts/PermissionsContext";
 
 // Les données sont maintenant récupérées depuis l'API via EntityDetailAdmin
 
@@ -66,6 +67,24 @@ export default function EntityDetailPage({ params }: PageProps) {
   const [confirmAction, setConfirmAction] = useState<null | "under_review" | "validated" | "blocked" | "unblock">(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  // On garde ici un accès centralisé aux permissions pour conditionner toutes les actions sensibles.
+  const { hasPermission } = usePermissions();
+
+  // Chaque permission correspond à un workflow backend (cf. ANSSI API).
+  const canSetUnderReview = hasPermission("entities.can_under_review");
+  const canValidate = hasPermission("entities.can_validated");
+  const canBlock = hasPermission("entities.can_blocked");
+  const canUnblock = hasPermission("entities.can_unblock");
+  const canReject = hasPermission("entities.can_declined");
+
+  // Helper utilisé dans le modal de confirmation pour éviter d'exécuter une action non autorisée.
+  const canExecuteAction = (action: typeof confirmAction) => {
+    if (action === "under_review") return canSetUnderReview;
+    if (action === "validated") return canValidate;
+    if (action === "blocked") return canBlock;
+    if (action === "unblock") return canUnblock;
+    return false;
+  };
 
   const refetch = async () => {
     setIsLoading(true);
@@ -272,7 +291,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             </div>
             <div className="flex gap-2">
               {/* Statut blocked : Débloquer en premier (action unique) */}
-              {!isLoading && entity?.status === "blocked" && (
+              {!isLoading && entity?.status === "blocked" && canUnblock && (
                 <Button disabled={isActing} onClick={() => setConfirmAction("unblock")}>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Débloquer
@@ -282,41 +301,53 @@ export default function EntityDetailPage({ params }: PageProps) {
               {/* Statuts new / submitted : Valider, Mettre en révision, Rejeter */}
               {!isLoading && entity?.status && (entity.status === "new" || entity.status === "submitted") && (
                 <>
-                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Valider
-                  </Button>
-                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
-                    <Clock className="h-4 w-4 mr-2" />
-                    Mettre en révision
-                  </Button>
-                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
-                  </Button>
+                  {canValidate && (
+                    <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Valider
+                    </Button>
+                  )}
+                  {canSetUnderReview && (
+                    <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Mettre en révision
+                    </Button>
+                  )}
+                  {canReject && (
+                    <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Rejeter
+                    </Button>
+                  )}
                 </>
               )}
               
               {/* Statut under_review : Valider, Rejeter, Bloquer */}
               {!isLoading && entity?.status === "under_review" && (
                 <>
-                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Valider
-                  </Button>
-                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rejeter
-                  </Button>
-                  <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Bloquer
-                  </Button>
+                  {canValidate && (
+                    <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Valider
+                    </Button>
+                  )}
+                  {canReject && (
+                    <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Rejeter
+                    </Button>
+                  )}
+                  {canBlock && (
+                    <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Bloquer
+                    </Button>
+                  )}
                 </>
               )}
               
               {/* Statut validated : Bloquer uniquement */}
-              {!isLoading && entity?.status === "validated" && (
+              {!isLoading && entity?.status === "validated" && canBlock && (
                 <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
                   <XCircle className="h-4 w-4 mr-2" />
                   Bloquer
@@ -326,14 +357,18 @@ export default function EntityDetailPage({ params }: PageProps) {
               {/* Statut declined : Mettre en révision, Valider */}
               {!isLoading && entity?.status === "declined" && (
                 <>
-                  <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                    Valider
-                  </Button>
-                  <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
-                    <Clock className="h-4 w-4 mr-2" />
-                    Mettre en révision
-                </Button>
+                  {canValidate && (
+                    <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Valider
+                    </Button>
+                  )}
+                  {canSetUnderReview && (
+                    <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Mettre en révision
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -708,33 +743,40 @@ export default function EntityDetailPage({ params }: PageProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isActing}>Annuler</AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button onClick={async () => {
-                if (!entity) return;
-                setIsActing(true);
-                try {
-                  const eslug = entity.slug as string;
-                  if (confirmAction === "under_review") await AdminAPI.setUnderReview(eslug);
-                  if (confirmAction === "validated") await AdminAPI.setValidated(eslug);
-                  if (confirmAction === "blocked") await AdminAPI.setBlocked(eslug);
-                  if (confirmAction === "unblock") await AdminAPI.unblock(eslug);
-                  toast.success("Statut mis à jour");
-                  await refetch();
-                } catch (e: unknown) {
-                  const err = e as AxiosError<{ detail?: string; message?: string }>;
-                
-                  const message =
-                    err.response?.data?.detail ||
-                    err.response?.data?.message ||
-                    err.message ||
-                    "Erreur inconnue";
-                
-                  toast.error(`Échec de la mise à jour du statut: ${message}`);
-                }
-                finally {
-                  setIsActing(false);
-                  setConfirmAction(null);
-                }
-              }} disabled={isActing}>
+              <Button
+                onClick={async () => {
+                  if (!entity || !confirmAction) return;
+                  if (!canExecuteAction(confirmAction)) {
+                    toast.error("Vous n'avez pas la permission pour cette action");
+                    setConfirmAction(null);
+                    return;
+                  }
+                  setIsActing(true);
+                  try {
+                    const eslug = entity.slug as string;
+                    if (confirmAction === "under_review") await AdminAPI.setUnderReview(eslug);
+                    if (confirmAction === "validated") await AdminAPI.setValidated(eslug);
+                    if (confirmAction === "blocked") await AdminAPI.setBlocked(eslug);
+                    if (confirmAction === "unblock") await AdminAPI.unblock(eslug);
+                    toast.success("Statut mis à jour");
+                    await refetch();
+                  } catch (e: unknown) {
+                    const err = e as AxiosError<{ detail?: string; message?: string }>;
+
+                    const message =
+                      err.response?.data?.detail ||
+                      err.response?.data?.message ||
+                      err.message ||
+                      "Erreur inconnue";
+
+                    toast.error(`Échec de la mise à jour du statut: ${message}`);
+                  } finally {
+                    setIsActing(false);
+                    setConfirmAction(null);
+                  }
+                }}
+                disabled={isActing}
+              >
                 Confirmer
               </Button>
             </AlertDialogAction>
@@ -743,36 +785,43 @@ export default function EntityDetailPage({ params }: PageProps) {
       </AlertDialog>
 
       {/* Reject with reason */}
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rejeter l&apos;entité</DialogTitle>
-            <DialogDescription>Indiquez la raison du rejet. Elle sera visible par l&apos;entité.</DialogDescription>
-          </DialogHeader>
-          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motif de rejet" />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectOpen(false)} disabled={isActing}>Annuler</Button>
-            <Button onClick={async () => {
-              if (!entity) return;
-              if (!rejectReason || rejectReason.trim().length < 5) { toast.warning("Veuillez renseigner un motif (min 5 caractères)"); return; }
-              setIsActing(true);
-              try {
-                await AdminAPI.setDeclined(entity.slug as string, rejectReason.trim());
-                toast.success("Entité rejetée");
-                setRejectOpen(false);
-                setRejectReason("");
-                await refetch();
-              } catch (e) {
-                toast.error("Échec du rejet de l&apos;entité");
-              } finally {
-                setIsActing(false);
-              }
-            }} disabled={isActing}>
-              Rejeter
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {canReject && (
+        <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rejeter l&apos;entité</DialogTitle>
+              <DialogDescription>Indiquez la raison du rejet. Elle sera visible par l&apos;entité.</DialogDescription>
+            </DialogHeader>
+            <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motif de rejet" />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectOpen(false)} disabled={isActing}>Annuler</Button>
+              <Button onClick={async () => {
+                if (!entity) return;
+                if (!canReject) {
+                  toast.error("Vous n'avez pas la permission de rejeter cette entité");
+                  setRejectOpen(false);
+                  return;
+                }
+                if (!rejectReason || rejectReason.trim().length < 5) { toast.warning("Veuillez renseigner un motif (min 5 caractères)"); return; }
+                setIsActing(true);
+                try {
+                  await AdminAPI.setDeclined(entity.slug as string, rejectReason.trim());
+                  toast.success("Entité rejetée");
+                  setRejectOpen(false);
+                  setRejectReason("");
+                  await refetch();
+                } catch (e) {
+                  toast.error("Échec du rejet de l&apos;entité");
+                } finally {
+                  setIsActing(false);
+                }
+              }} disabled={isActing}>
+                Rejeter
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
