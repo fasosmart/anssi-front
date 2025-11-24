@@ -111,6 +111,7 @@ export const {
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         } as User;
         (token.user as User).is_staff = (user as User)?.is_staff ?? false;
+        (token.user as User).is_superuser = (user as User)?.is_superuser ?? false;
       }
 
       // This trigger is fired when the session is updated from the client side.
@@ -144,6 +145,7 @@ export const {
         session.user.slug       = token.user.slug ?? undefined;
         session.user.name       = token.user.name ?? undefined;
         (session.user as User).is_staff = (token.user as User)?.is_staff ?? false;
+        (session.user as User).is_superuser = (token.user as User)?.is_superuser ?? false;
       }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;

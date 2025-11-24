@@ -335,15 +335,15 @@ export default function AccreditationDetailPage() {
                 <>
                   {canApprove && (
                     <Button disabled={isActing} onClick={() => setConfirmAction("approved")}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Approuver
-                    </Button>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approuver
+                  </Button>
                   )}
                   {canReject && (
                     <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Rejeter
-                    </Button>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
                   )}
                 </>
               )}

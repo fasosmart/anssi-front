@@ -328,15 +328,15 @@ export default function EntityDetailPage({ params }: PageProps) {
                 <>
                   {canValidate && (
                     <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 mr-2" />
                       Valider
-                    </Button>
+                  </Button>
                   )}
                   {canReject && (
                     <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setRejectOpen(true)}>
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Rejeter
-                    </Button>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter
+                  </Button>
                   )}
                   {canBlock && (
                     <Button variant="outline" className="text-red-600" disabled={isActing} onClick={() => setConfirmAction("blocked")}>
@@ -360,7 +360,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                 <>
                   {canValidate && (
                     <Button disabled={isActing} onClick={() => setConfirmAction("validated")}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" />
                       Valider
                     </Button>
                   )}
@@ -368,7 +368,7 @@ export default function EntityDetailPage({ params }: PageProps) {
                     <Button variant="outline" disabled={isActing} onClick={() => setConfirmAction("under_review")}>
                       <Clock className="h-4 w-4 mr-2" />
                       Mettre en révision
-                    </Button>
+                </Button>
                   )}
                 </>
               )}
@@ -546,18 +546,18 @@ export default function EntityDetailPage({ params }: PageProps) {
                   <p>Vous n&apos;avez pas la permission de consulter les représentants de cette entité.</p>
                 </div>
               ) : entity?.representatives && entity.representatives.length > 0 ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {entity.representatives.map((rep) => (
-                    <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{rep.first_name} {rep.last_name}</p>
-                          <p className="text-sm text-muted-foreground">{rep.job_title}</p>
+                  <div key={rep.slug} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{rep.first_name} {rep.last_name}</p>
+                        <p className="text-sm text-muted-foreground">{rep.job_title}</p>
                           {rep.email && (
-                            <p className="text-sm text-muted-foreground">{rep.email}</p>
+                        <p className="text-sm text-muted-foreground">{rep.email}</p>
                           )}
                           {rep.phone && (
                             <p className="text-sm text-muted-foreground">{rep.phone}</p>
@@ -567,13 +567,13 @@ export default function EntityDetailPage({ params }: PageProps) {
                       {canViewRepresentative && (
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/dashboard/admin/entities/${entity?.slug}/representatives/${rep.slug}`}>
-                            <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                           </Link>
-                        </Button>
+                      </Button>
                       )}
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
