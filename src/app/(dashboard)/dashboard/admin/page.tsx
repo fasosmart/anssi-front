@@ -26,6 +26,7 @@ import { AdminDashboardData, AdminDashboardCharts } from "@/types/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AxiosError } from "axios";
+import { usePermissions } from "@/contexts/PermissionsContext";
 import {
   ResponsiveContainer,
   BarChart,
@@ -67,6 +68,15 @@ export default function AdminDashboard() {
   const [typeDistribution, setTypeDistribution] = useState<Array<{ id: string; name: string; value: number; color: string; className: string }>>([]);
   const [isChartLoading, setIsChartLoading] = useState(true);
   const [chartError, setChartError] = useState<string | null>(null);
+  
+  // Récupération des permissions pour conditionner l'affichage des actions rapides
+  const { hasPermission, hasAnyPermission } = usePermissions();
+  
+  // Vérification des permissions pour chaque action rapide
+  const canViewEntities = hasPermission("entities.view_entity");
+  const canViewAccreditations = hasPermission("accreditations.view_accreditation");
+  const canManageUsers = hasAnyPermission(["users.can_edit_staff", "users.manage_user_groups"]);
+  // Les paramètres système sont accessibles à tous les staff (pas de permission spécifique requise)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -884,31 +894,44 @@ export default function AdminDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button asChild variant="outline" className="h-20 flex-col">
-              <Link href="/dashboard/admin/entities">
-                <Building className="h-6 w-6 mb-2" />
-                Gérer les entités
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
-              <Link href="/dashboard/admin/accreditations">
-                <FileText className="h-6 w-6 mb-2" />
-                Gérer les accréditations
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
-              <Link href="/dashboard/admin/users">
-                <Users className="h-6 w-6 mb-2" />
-                Gérer les utilisateurs
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-20 flex-col">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Bouton "Gérer les entités" : visible uniquement si l'utilisateur a la permission entities.view_entity */}
+            {canViewEntities && (
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <Link href="/dashboard/admin/entities">
+                  <Building className="h-6 w-6 mb-2" />
+                  Gérer les entités
+                </Link>
+              </Button>
+            )}
+            
+            {/* Bouton "Gérer les accréditations" : visible uniquement si l'utilisateur a la permission accreditations.view_accreditation */}
+            {canViewAccreditations && (
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <Link href="/dashboard/admin/accreditations">
+                  <FileText className="h-6 w-6 mb-2" />
+                  Gérer les accréditations
+                </Link>
+              </Button>
+            )}
+            
+            {/* Bouton "Gérer les utilisateurs" : visible si l'utilisateur a au moins une des permissions users.can_edit_staff ou users.manage_user_groups */}
+            {canManageUsers && (
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <Link href="/dashboard/admin/users">
+                  <Users className="h-6 w-6 mb-2" />
+                  Gérer les utilisateurs
+                </Link>
+              </Button>
+            )}
+            
+            {/* Bouton "Paramètres système" : accessible à tous les staff (pas de permission spécifique requise) */}
+            {/* <Button asChild variant="outline" className="h-20 flex-col">
               <Link href="/dashboard/admin/settings">
                 <Activity className="h-6 w-6 mb-2" />
                 Paramètres système
               </Link>
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>
