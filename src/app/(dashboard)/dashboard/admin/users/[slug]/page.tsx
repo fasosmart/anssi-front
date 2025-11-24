@@ -628,9 +628,6 @@ export default function UserDetailPage({ params }: PageProps) {
                           </div>
                           <div>
                             <p className="font-medium">{group.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              ID&nbsp;: {group.id}
-                            </p>
                           </div>
                         </div>
                         <Badge variant="outline">Actif</Badge>
