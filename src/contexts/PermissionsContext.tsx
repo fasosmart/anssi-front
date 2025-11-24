@@ -29,12 +29,13 @@ const PermissionsContext = createContext<PermissionsContextValue | undefined>(un
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const isStaff = Boolean(session?.user?.is_staff);
+  const isSuperuser = Boolean(session?.user?.is_superuser);
 
   const [permissions, setPermissions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Lecture des permissions stockées localement afin d'éviter des refetchs systématiques.
-  const readCachedPermissions = useCallback(() => {
+  const readCachedPermissions = () => {
     if (typeof window === "undefined") return;
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
@@ -47,7 +48,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.warn("Impossible de lire les permissions depuis le cache local:", error);
     }
-  }, []);
+  };
 
   // Persistance locale pour les prochains rafraîchissements (aide aux rechargements / navigation).
   const writeCachedPermissions = (list: string[]) => {
@@ -76,7 +77,19 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
    * - Les permissions sont mises en cache local pour optimiser les accès.
    */
   const fetchPermissions = useCallback(async () => {
-    if (!isStaff || status !== "authenticated") {
+    if (status !== "authenticated") {
+      setPermissions([]);
+      clearCachedPermissions();
+      return;
+    }
+
+    if (!isStaff && !isSuperuser) {
+      setPermissions([]);
+      clearCachedPermissions();
+      return;
+    }
+
+    if (isSuperuser) {
       setPermissions([]);
       clearCachedPermissions();
       return;
@@ -94,7 +107,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [isStaff, status]);
+  }, [isStaff, isSuperuser, status]);
 
   useEffect(() => {
     if (status !== "authenticated") {
@@ -103,7 +116,20 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!isStaff) {
+    if (!isStaff && !isSuperuser) {
+      setPermissions([]);
+      clearCachedPermissions();
+      return;
+    }
+
+    if (isSuperuser) {
+      // On évite de conserver des permissions obsolètes pour un superuser.
+      setPermissions([]);
+      clearCachedPermissions();
+      return;
+    }
+
+    if (isSuperuser) {
       setPermissions([]);
       clearCachedPermissions();
       return;
@@ -111,17 +137,17 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
     readCachedPermissions();
     fetchPermissions();
-  }, [status, isStaff, readCachedPermissions, fetchPermissions]);
+  }, [status, isStaff, isSuperuser, fetchPermissions]);
 
   // Helpers exposés pour interroger facilement l'état des permissions depuis l'UI.
   const hasPermission = useCallback(
-    (code: string) => permissions.includes(code),
-    [permissions]
+    (code: string) => isSuperuser || permissions.includes(code),
+    [permissions, isSuperuser]
   );
 
   const hasAnyPermission = useCallback(
-    (codes: string[]) => codes.some((code) => permissions.includes(code)),
-    [permissions]
+    (codes: string[]) => isSuperuser || codes.some((code) => permissions.includes(code)),
+    [permissions, isSuperuser]
   );
 
   const value = useMemo<PermissionsContextValue>(
