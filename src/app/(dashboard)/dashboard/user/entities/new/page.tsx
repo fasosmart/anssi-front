@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Card, 
@@ -52,50 +52,116 @@ export default function NewEntityPage() {
     setDocumentsData(documents);
   };
 
+  useEffect(() => {
+    if (!session?.user) return;
+    const names = session.user.name?.split(" ").filter(Boolean) ?? [];
+    const firstName = session.user.first_name || names[0];
+    const lastName =
+      session.user.last_name || (names.length > 1 ? names[names.length - 1] : undefined);
+
+    setEntityData((prev) => {
+      const updates: Partial<Entity> = {};
+      if (firstName && !prev.first_name) {
+        updates.first_name = firstName;
+      }
+      if (lastName && !prev.last_name) {
+        updates.last_name = lastName;
+      }
+      if (!Object.keys(updates).length) {
+        return prev;
+      }
+      return { ...prev, ...updates };
+    });
+  }, [session?.user?.first_name, session?.user?.last_name, session?.user?.name]);
+
   const handleSubmit = async () => {
     if (!session) {
-        toast.error("Authentication required.");
-        return;
+      toast.error("Authentication required.");
+      return;
     }
-    
+
     setIsSubmitting(true);
     const toastId = toast.loading("Création de la structure en cours...");
 
     try {
-        // Step 1: Create the entity
-        if (!entityData.entity_type) {
-            toast.error("Veuillez sélectionner un type de structure.");
-            setIsSubmitting(false);
-            return;
+      if (!entityData.entity_type) {
+        toast.error("Veuillez sélectionner un type de structure.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const isPersonalEntity = entityData.entity_type === "personal";
+      let entityResponse;
+
+      if (isPersonalEntity) {
+        const formData = new FormData();
+        const fieldNames = [
+          "first_name",
+          "last_name",
+          "job_title",
+          "phone",
+          "mobile",
+          "email",
+          "address",
+          "website",
+          "idcard_number",
+          "idcard_issued_at",
+          "idcard_expires_at",
+        ];
+
+        fieldNames.forEach((field) => {
+          const value = (entityData as Record<string, any>)[field];
+          if (value) {
+            formData.append(field, String(value));
+          }
+        });
+
+        formData.append("entity_type", "personal");
+
+        const fileField = entityData.idcard_file;
+        if (fileField instanceof File) {
+          formData.append("idcard_file", fileField);
+        } else if (typeof fileField === "string") {
+          formData.append("idcard_file", fileField);
         }
+
+        entityResponse = await apiClient.post(API.entities.personalEntity(), formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
         const entityPayload = { ...entityData };
-        const entityResponse = await apiClient.post(API.entities.create(), entityPayload);
-        const newEntity = entityResponse.data;
-        setCreatedEntitySlug(newEntity.slug);
+        entityResponse = await apiClient.post(API.entities.create(), entityPayload);
+      }
+
+      const newEntity = entityResponse.data;
+      setCreatedEntitySlug(newEntity.slug);
+
+      if (isPersonalEntity) {
+        toast.success("Structure personne physique créée et représentante liée (backend).", { id: toastId });
+      } else {
         toast.success("Structure créée avec succès. Ajout des documents...", { id: toastId });
 
-        // Step 2: Upload documents for the newly created entity
         if (documentsData.length > 0) {
-            const documentPromises = documentsData.map(doc => {
-                const formData = new FormData();
-                formData.append('name', doc.documentType.name);
-                formData.append('document_type', doc.documentType.slug);
-                formData.append('file', doc.file);
-                formData.append('issued_at', new Date().toISOString().split('T')[0]); 
-                return apiClient.post(API.documents.create(newEntity.slug), formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+          const documentPromises = documentsData.map((doc) => {
+            const formData = new FormData();
+            formData.append("name", doc.documentType.name);
+            formData.append("document_type", doc.documentType.slug);
+            formData.append("file", doc.file);
+            formData.append("issued_at", new Date().toISOString().split("T")[0]);
+            return apiClient.post(API.documents.create(newEntity.slug), formData, {
+              headers: { "Content-Type": "multipart/form-data" },
             });
-            await Promise.all(documentPromises);
-            toast.success("Documents ajoutés avec succès !", { id: toastId });
+          });
+          await Promise.all(documentPromises);
+          toast.success("Documents ajoutés avec succès !", { id: toastId });
         }
+      }
 
-        router.push("/dashboard/user/entities");
-
+      router.push("/dashboard/user/entities");
     } catch {
-        toast.error("Erreur lors de la création de la structure.", { id: toastId });
+      toast.error("Erreur lors de la création de la structure.", { id: toastId });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
   
@@ -113,11 +179,25 @@ export default function NewEntityPage() {
     }
   };
 
-  const steps = [
+  const isPersonalEntity = entityData.entity_type === "personal";
+
+  const defaultSteps = [
     { id: 1, title: "Informations", component: <Step1EntityForm data={entityData} updateData={updateEntityData} /> },
     { id: 2, title: "Documents", component: <Step2Documents entitySlug={createdEntitySlug} updateDocuments={updateDocumentsData} initialDocuments={documentsData} /> },
     { id: 3, title: "Vérification", component: <Step3Review entityData={entityData} documentsData={documentsData} /> },
   ];
+
+  const personalSteps = [
+    { id: 1, title: "Informations", component: <Step1EntityForm data={entityData} updateData={updateEntityData} /> },
+  ];
+
+  const steps = isPersonalEntity ? personalSteps : defaultSteps;
+
+  useEffect(() => {
+    if (currentStep > steps.length) {
+      setCurrentStep(steps.length);
+    }
+  }, [currentStep, steps.length]);
 
   const activeStep = steps.find((step) => step.id === currentStep);
 

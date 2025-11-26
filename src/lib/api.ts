@@ -12,6 +12,7 @@ export const API = {
   entities: {
     list: () => `${BASE_URL}/entities/`,
     create: () => `${BASE_URL}/entities/`,
+    personalEntity: () => `${BASE_URL}/entities/personal_entity/`,
     details: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     update: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     delete: (slug: string) => `${BASE_URL}/entities/${slug}/`,

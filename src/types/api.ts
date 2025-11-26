@@ -2,6 +2,8 @@ export type EntityStatus = 'new' | 'submitted' | 'under_review' | 'validated' | 
 
 export interface Entity {
   slug?: string;
+  first_name?: string;
+  last_name?: string;
   name: string;
   acronym?: string | null;
   business_sector?: string | null;
@@ -14,6 +16,11 @@ export interface Entity {
   mobile?: string | null;
   email?: string | null;
   website?: string | null;
+  job_title?: string | null;
+  idcard_number?: string | null;
+  idcard_issued_at?: string | null;
+  idcard_expires_at?: string | null;
+  idcard_file?: string | File | null;
   entity_type: 'personal' | 'business' | 'ngo';
   status?: EntityStatus;
   rejection_reason?: string | null;
