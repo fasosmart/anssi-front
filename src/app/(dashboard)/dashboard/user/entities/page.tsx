@@ -33,20 +33,24 @@ export default function EntitiesPage() {
     router.push(`/dashboard/user/structure`);
   }
 
+  const hasPersonalEntity = entities.some(entity => entity.entity_type === "personal");
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-2xl font-semibold">Mes Structures</h1>
-            <p className="text-muted-foreground">
-                Gérez vos différentes entités ou ajoutez-en une nouvelle.
-            </p>
+        <div className="flex items-center justify-between">
+          <div>
+              <h1 className="text-2xl font-semibold">Mes Structures</h1>
+              <p className="text-muted-foreground">
+                  Gérez vos différentes entités ou ajoutez-en une nouvelle.
+              </p>
+          </div>
+          {!hasPersonalEntity && (
+            <Button onClick={handleCreateNew}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter une structure
+            </Button>
+          )}
         </div>
-        <Button onClick={handleCreateNew}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter une structure
-        </Button>
-      </div>
 
       {isLoading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

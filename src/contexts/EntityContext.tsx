@@ -35,6 +35,12 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const updateLocalPersonalFlag = (hasPersonal: boolean) => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem("hasPersonalEntity", hasPersonal ? "1" : "0");
+    window.dispatchEvent(new CustomEvent("hasPersonalEntityChanged", { detail: { hasPersonal } }));
+  };
+
   const fetchEntities = async () => {
     if (status !== 'authenticated' || !session) return;
 
@@ -44,6 +50,7 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
       const response = await apiClient.get<{ results: EntityList[] }>(API.entities.list());
       const fetchedEntities = response.data.results || [];
       setEntities(fetchedEntities);
+      updateLocalPersonalFlag(fetchedEntities.some((entity) => entity.entity_type === 'personal'));
 
       // Restaurer l'entité active depuis localStorage si disponible
       const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('activeEntitySlug') : null;
@@ -71,6 +78,7 @@ export const EntityProvider = ({ children }: { children: ReactNode }) => {
     if (status === 'unauthenticated') {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('activeEntitySlug');
+        updateLocalPersonalFlag(false);
       }
       setActiveEntityState(null);
       setEntities([]);

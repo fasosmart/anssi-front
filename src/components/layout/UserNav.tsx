@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,31 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Menu, Building, Home, Shield, Settings } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { Session } from "next-auth";
 
 export function UserNav() {
   const { data: session, status } = useSession();
-  const pathname = usePathname();
   const isStaff = Boolean((session as Session)?.user?.is_staff);
+  const [hasPersonalEntity, setHasPersonalEntity] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateFlag = () => {
+      setHasPersonalEntity(window.localStorage.getItem("hasPersonalEntity") === "1");
+    };
+    updateFlag();
+    window.addEventListener("hasPersonalEntityChanged", updateFlag);
+    return () => {
+      window.removeEventListener("hasPersonalEntityChanged", updateFlag);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!session && typeof window !== "undefined") {
+      setHasPersonalEntity(false);
+      window.localStorage.removeItem("hasPersonalEntity");
+    }
+  }, [session]);
 
   if (status === "loading") {
     return <div className="h-10 w-24 animate-pulse rounded-md bg-muted" />; // Placeholder
@@ -107,26 +126,28 @@ export function UserNav() {
             </DropdownMenuItem>
           </>
         ) : (
-          <>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/user">
-                <Home className="mr-2 h-4 w-4" />
-                <span>Mon Espace</span>
-              </Link>
-            </DropdownMenuItem>
+        <>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/user">
+              <Home className="mr-2 h-4 w-4" />
+              <span>Mon Espace</span>
+            </Link>
+          </DropdownMenuItem>
+          {!hasPersonalEntity && (
             <DropdownMenuItem asChild>
               <Link href="/dashboard/user/entities">
                 <Building className="mr-2 h-4 w-4" />
                 <span>Mes Structures</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/user/profile">
-                <User className="mr-2 h-4 w-4" />
-                <span>Mon Profil</span>
-              </Link>
-            </DropdownMenuItem>
-          </>
+          )}
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/user/profile">
+              <User className="mr-2 h-4 w-4" />
+              <span>Mon Profil</span>
+            </Link>
+          </DropdownMenuItem>
+        </>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => {
