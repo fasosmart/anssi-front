@@ -37,6 +37,7 @@ const InfoField = ({
 export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData, showValidation = false }) => {
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [isRepDetailsLoading, setIsRepDetailsLoading] = useState(false);
+  const isPersonalEntity = data.companyInfo?.entity_type === "personal";
   
   useEffect(() => {
     const fetchRepresentatives = async () => {
@@ -111,28 +112,37 @@ export const Step1EntityInfo: React.FC<StepProps> = ({ data, updateData, showVal
     <div className="space-y-8">
       {/* Section 1: Identité de la société */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Identité de la société</h3>
+        <h3 className="text-lg font-medium">Identité de la structure</h3>
         <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>Informations pré-remplies</AlertTitle>
-            <AlertDescription>
-                Les informations de votre structure sont chargées automatiquement. Pour les modifier, veuillez vous rendre sur la page 
-                <Link href="/dashboard/user/structure" className="font-semibold text-primary hover:underline ml-1">
-                    Gérer ma structure
-                </Link>.
-            </AlertDescription>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Informations pré-remplies</AlertTitle>
+          <AlertDescription>
+            Les informations de votre structure sont chargées automatiquement. Pour les modifier, veuillez vous rendre sur la page
+            <Link href="/dashboard/user/structure" className="font-semibold text-primary hover:underline ml-1">
+              Gérer ma structure
+            </Link>.
+          </AlertDescription>
         </Alert>
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Read-only company info fields remain here */}
           <div className="space-y-2">
             <Label htmlFor="name">Nom / Raison Sociale</Label>
-            <Input id="name" value={data.companyInfo?.name || ''} readOnly />
+            <Input id="name" value={data.companyInfo?.name || ""} readOnly />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="tax_id">Identifiant fiscal N°</Label>
-            <Input id="tax_id" value={data.companyInfo?.tax_id || ''} readOnly />
-          </div>
+          {!isPersonalEntity && (
+            <div className="space-y-2">
+              <Label htmlFor="tax_id">Identifiant fiscal N°</Label>
+              <Input id="tax_id" value={data.companyInfo?.tax_id || ""} readOnly />
+            </div>
+          )}
         </div>
+        {isPersonalEntity && (
+          <Alert variant="default">
+            <AlertTitle>Personne physique</AlertTitle>
+            <AlertDescription>
+              Pour une personne physique, votre profil fait office de structure et de représentant. Les informations ci-dessous sont raccordées au représentant légal.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <Separator />
