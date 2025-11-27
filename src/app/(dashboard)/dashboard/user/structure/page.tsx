@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
-import { Entity, Document } from "@/types/api";
+import { Document, Entity, Representative } from "@/types/api";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -46,13 +47,28 @@ export default function StructurePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [representativeDetails, setRepresentativeDetails] = useState<Representative | null>(null);
+  const isPersonalEntity = (entityDetails?.entity_type || activeEntity?.entity_type) === "personal";
+
+  const fetchRepresentative = async (slug: string) => {
+    try {
+      const response = await apiClient.get(API.representatives.list(slug));
+      setRepresentativeDetails(response.data.results?.[0] ?? null);
+    } catch {
+      setRepresentativeDetails(null);
+    }
+  };
 
   const fetchDetailsAndDocuments = async (slug: string) => {
     setIsLoading(true);
     try {
       const detailsResponse = await apiClient.get(API.entities.details(slug));
       setEntityDetails(detailsResponse.data);
-
+      if (detailsResponse.data.entity_type === "personal") {
+        await fetchRepresentative(slug);
+      } else {
+        setRepresentativeDetails(null);
+      }
       const documentsResponse = await apiClient.get(API.documents.list(slug));
       setDocuments(documentsResponse.data.results || []);
     } catch {
@@ -165,10 +181,14 @@ export default function StructurePage() {
 
   return (
     <div className="grid gap-6">
-      <Link href="/dashboard/user/entities" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
+      {
+        !isPersonalEntity && (
+        <Link href="/dashboard/user/entities" className="inline-flex items-center text-sm font-medium text-primary hover:underline">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Retour à la liste des structures
-      </Link>
+        </Link>
+        )
+      }
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
@@ -228,225 +248,286 @@ export default function StructurePage() {
       )}
       
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className={`grid w-full ${isPersonalEntity ? "grid-cols-1" : "grid-cols-2"}`}>
           <TabsTrigger value="general">Informations Générales</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          {!isPersonalEntity && <TabsTrigger value="documents">Documents</TabsTrigger>}
         </TabsList>
         <TabsContent value="general">
-          <Card>
-            <form onSubmit={handleSubmit}>
+          {isPersonalEntity ? (
+            <Card>
               <CardHeader>
-                <CardTitle>Informations sur l&apos;entreprise</CardTitle>
+                <CardTitle>Données personnelles</CardTitle>
                 <CardDescription>
-                  {canEditEntity() 
-                    ? "Assurez-vous que ces informations sont exactes et à jour."
-                    : "Ces informations sont en lecture seule car votre structure est en cours de validation."
+                  {entityDetails?.status === "validated"
+                    ? "Votre profil est validé. Mettez à jour vos coordonnées via votre profil représentant."
+                    : "Les informations ci-dessous sont synchronisées avec votre profil de représentant."
                   }
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-6">
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Nom de l&apos;entreprise</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={entityDetails?.name || ""}
-                      onChange={handleChange}
-                      placeholder="Ex: FasoSmart"
-                      required
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Désignation</Label>
+                    <Input value={entityDetails?.name || ""} disabled />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="acronym">Sigle</Label>
-                    <Input
-                      id="acronym"
-                      name="acronym"
-                      value={entityDetails?.acronym || ""}
-                      onChange={handleChange}
-                      placeholder="Ex: FS"
-                      disabled={!canEditEntity()}
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
-                    <Input
-                      id="business_sector"
-                      name="business_sector"
-                      value={entityDetails?.business_sector || ""}
-                      onChange={handleChange}
-                      placeholder="Ex: Technologies de l'Information et de la Communication"
-                      disabled={!canEditEntity()}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="address">Adresse complète</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      value={entityDetails?.address || ""}
-                      onChange={handleChange}
-                      placeholder="Siège social, ville, pays"
-                      disabled={!canEditEntity()}
-                    />
-                </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="tax_id">Numéro d&apos;identifiant fiscal (NIF)</Label>
-                    <Input
-                      id="tax_id"
-                      name="tax_id"
-                      value={entityDetails?.tax_id || ""}
-                      onChange={handleChange}
-                      placeholder="NIF"
-                      disabled={!canEditEntity()}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="commercial_register">
-                      Numéro du Registre de Commerce (RCCM)
-                    </Label>
-                    <Input
-                      id="commercial_register"
-                      name="commercial_register"
-                      value={entityDetails?.commercial_register || ""}
-                      onChange={handleChange}
-                      placeholder="RCCM..."
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Statut</Label>
+                    <Input value={entityDetails?.status || ""} disabled />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="total_staff">Effectif Total</Label>
-                    <Input
-                      id="total_staff"
-                      name="total_staff"
-                      type="number"
-                      value={entityDetails?.total_staff || ""}
-                      onChange={handleChange}
-                      placeholder="Ex: 10"
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Nom complet</Label>
+                    <Input value={`${representativeDetails?.first_name ?? ""} ${representativeDetails?.last_name ?? ""}`.trim()} disabled />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
-                    <Input
-                      id="cybersecurity_experts"
-                      name="cybersecurity_experts"
-                      type="number"
-                      value={entityDetails?.cybersecurity_experts || ""}
-                      onChange={handleChange}
-                      placeholder="Ex: 3"
-                      disabled={!canEditEntity()}
-                    />
-                  </div>
-                </div>
-
-                {/* <div className="grid gap-2">
-                    <Label htmlFor="address">Adresse complète</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      value={entityDetails?.address || ""}
-                      onChange={handleChange}
-                      placeholder="Siège social, ville, pays"
-                      disabled={!canEditEntity()}
-                    />
-                </div> */}
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Numéro de téléphone</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={entityDetails?.phone || ""}
-                      onChange={handleChange}
-                      placeholder="+224 XX XX XX XX"
-                      disabled={!canEditEntity()}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="mobile">Téléphone mobile</Label>
-                    <Input
-                      id="mobile"
-                      name="mobile"
-                      value={entityDetails?.mobile || ""}
-                      onChange={handleChange}
-                      placeholder="+224 XX XX XX XX"
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Fonction / Titre</Label>
+                    <Input value={representativeDetails?.job_title || ""} disabled />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="email">Email de l&apos;entreprise</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={entityDetails?.email || ""}
-                      onChange={handleChange}
-                      placeholder="contact@example.com"
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Téléphone</Label>
+                    <Input value={representativeDetails?.phone || representativeDetails?.mobile || ""} disabled />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="website">Site web</Label>
-                    <Input
-                      id="website"
-                      name="website"
-                      type="url"
-                      value={entityDetails?.website || ""}
-                      onChange={handleChange}
-                      placeholder="https://www.example.com"
-                      disabled={!canEditEntity()}
-                    />
+                    <Label>Email</Label>
+                    <Input value={representativeDetails?.email || ""} disabled />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label>Adresse</Label>
+                  <Textarea value={representativeDetails?.address || ""} disabled />
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-2">
+                    <Label>N° de pièce d'identité</Label>
+                    <Input value={representativeDetails?.idcard_number || ""} disabled />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Délivrée le</Label>
+                    <Input value={representativeDetails?.idcard_issued_at || ""} disabled />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Expire le</Label>
+                    <Input value={representativeDetails?.idcard_expires_at || ""} disabled />
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t px-6 py-4">
-                <Button type="submit" disabled={isSubmitting || !canEditEntity()}>
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
-                </Button>
+              <CardFooter className="flex justify-end">
+                <Link
+                  href={`/dashboard/user/representatives/${representativeDetails?.slug || ""}`}
+                  className="w-full sm:w-auto"
+                >
+                  <Button variant="outline" disabled={!representativeDetails?.slug}>
+                    Modifier mon profil
+                  </Button>
+                </Link>
               </CardFooter>
-            </form>
-          </Card>
+            </Card>
+          ) : (
+            <Card>
+              <form onSubmit={handleSubmit}>
+                <CardHeader>
+                  <CardTitle>Informations sur l'entreprise</CardTitle>
+                  <CardDescription>
+                    {canEditEntity()
+                      ? "Assurez-vous que ces informations sont exactes et à jour."
+                      : "Ces informations sont en lecture seule car votre structure est en cours de validation."
+                    }
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">Nom de l'entreprise</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={entityDetails?.name || ""}
+                        onChange={handleChange}
+                        placeholder="Ex: FasoSmart"
+                        required
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="acronym">Sigle</Label>
+                      <Input
+                        id="acronym"
+                        name="acronym"
+                        value={entityDetails?.acronym || ""}
+                        onChange={handleChange}
+                        placeholder="Ex: FS"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="business_sector">Secteur d'activité</Label>
+                      <Input
+                        id="business_sector"
+                        name="business_sector"
+                        value={entityDetails?.business_sector || ""}
+                        onChange={handleChange}
+                        placeholder="Ex: Technologies de l'Information et de la Communication"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="address">Adresse complète</Label>
+                      <Input
+                        id="address"
+                        name="address"
+                        value={entityDetails?.address || ""}
+                        onChange={handleChange}
+                        placeholder="Siège social, ville, pays"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tax_id">Numéro d'identifiant fiscal (NIF)</Label>
+                      <Input
+                        id="tax_id"
+                        name="tax_id"
+                        value={entityDetails?.tax_id || ""}
+                        onChange={handleChange}
+                        placeholder="NIF"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="commercial_register">Numéro du Registre de Commerce (RCCM)</Label>
+                      <Input
+                        id="commercial_register"
+                        name="commercial_register"
+                        value={entityDetails?.commercial_register || ""}
+                        onChange={handleChange}
+                        placeholder="RCCM..."
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="total_staff">Effectif Total</Label>
+                      <Input
+                        id="total_staff"
+                        name="total_staff"
+                        type="number"
+                        value={entityDetails?.total_staff || ""}
+                        onChange={handleChange}
+                        placeholder="Ex: 10"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="cybersecurity_experts">Nombre d'experts en cybersécurité</Label>
+                      <Input
+                        id="cybersecurity_experts"
+                        name="cybersecurity_experts"
+                        type="number"
+                        value={entityDetails?.cybersecurity_experts || ""}
+                        onChange={handleChange}
+                        placeholder="Ex: 3"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="phone">Numéro de téléphone</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={entityDetails?.phone || ""}
+                        onChange={handleChange}
+                        placeholder="+224 XX XX XX XX"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="mobile">Téléphone mobile</Label>
+                      <Input
+                        id="mobile"
+                        name="mobile"
+                        value={entityDetails?.mobile || ""}
+                        onChange={handleChange}
+                        placeholder="+224 XX XX XX XX"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email de l'entreprise</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={entityDetails?.email || ""}
+                        onChange={handleChange}
+                        placeholder="contact@example.com"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="website">Site web</Label>
+                      <Input
+                        id="website"
+                        name="website"
+                        type="url"
+                        value={entityDetails?.website || ""}
+                        onChange={handleChange}
+                        placeholder="https://www.example.com"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t px-6 py-4">
+                  <Button type="submit" disabled={isSubmitting || !canEditEntity()}>
+                    {isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          )}
         </TabsContent>
-        <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documents de l&apos;entreprise</CardTitle>
-              <CardDescription>
-                {canEditEntity() 
-                  ? "Gérez les documents administratifs et légaux de votre structure."
-                  : "Les documents sont en lecture seule car votre structure est en cours de validation."
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {entityDetails?.slug ? (
-                <DocumentManager 
-                  entity={entityDetails as Entity}
-                  initialDocuments={documents}
-                  onDocumentsUpdate={() => fetchDetailsAndDocuments(entityDetails.slug!)}
-                  canEdit={canEditEntity()}
-                />
-              ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  Veuillez d&apos;abord enregistrer les informations générales de la structure pour gérer les documents.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {!isPersonalEntity && (
+          <TabsContent value="documents">
+            <Card>
+              <CardHeader>
+                <CardTitle>Documents de l'entreprise</CardTitle>
+                <CardDescription>
+                  {canEditEntity()
+                    ? "Gérez les documents administratifs et légaux de votre structure."
+                    : "Les documents sont en lecture seule car votre structure est en cours de validation."
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {entityDetails?.slug ? (
+                  <DocumentManager 
+                    entity={entityDetails as Entity}
+                    initialDocuments={documents}
+                    onDocumentsUpdate={() => fetchDetailsAndDocuments(entityDetails.slug!)}
+                    canEdit={canEditEntity()}
+                  />
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    Veuillez d'abord enregistrer les informations générales de la structure pour gérer les documents.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
+
       
       {/* Modal de confirmation pour la soumission */}
       <SubmitEntityConfirmationDialog

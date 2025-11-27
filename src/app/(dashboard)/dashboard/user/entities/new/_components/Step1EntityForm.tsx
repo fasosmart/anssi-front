@@ -74,11 +74,11 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           <Alert variant="default">
             <AlertTitle>Personne physique</AlertTitle>
             <AlertDescription>
-              Votre profil fait office de représentant et de structure : en validant, le backend crée les deux objets en
-              une seule fois. Complétez les champs ci-dessous pour fournir toutes les informations nécessaires à
-              l&apos;enregistrement.
+              Votre profil fait office de représentant et de structure. En validant, le backend crée les deux objets
+              en une seule fois. Complétez les champs ci-dessous pour fournir toutes les informations nécessaires.
             </AlertDescription>
           </Alert>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="first_name">Prénom</Label>
@@ -89,7 +89,6 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 onChange={handleChange}
                 placeholder="Prénom"
                 required
-                readOnly
               />
             </div>
             <div className="grid gap-2">
@@ -101,10 +100,10 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 onChange={handleChange}
                 placeholder="Nom"
                 required
-                readOnly
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="job_title">Fonction / Titre</Label>
@@ -127,6 +126,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="phone">Téléphone</Label>
@@ -149,6 +149,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -173,6 +174,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="grid gap-2">
               <Label htmlFor="idcard_number">N° de pièce d&apos;identité</Label>
@@ -205,6 +207,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="idcard_file">Pièce justificative (scan ou photo)</Label>
             <Input id="idcard_file" name="idcard_file" type="file" onChange={handleChange} />
@@ -242,6 +245,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
@@ -264,11 +268,10 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="commercial_register">
-                Numéro du Registre de Commerce (RCCM)
-              </Label>
+              <Label htmlFor="commercial_register">Numéro du Registre de Commerce (RCCM)</Label>
               <Input
                 id="commercial_register"
                 name="commercial_register"
@@ -289,6 +292,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
@@ -312,6 +316,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="phone">Numéro de téléphone</Label>
@@ -334,6 +339,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
               />
             </div>
           </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="email">Email de l&apos;entreprise</Label>

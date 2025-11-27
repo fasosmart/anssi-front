@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal } from "lucide-react";
 import {
@@ -40,6 +41,7 @@ import { useEntity } from "@/contexts/EntityContext";
 
 export default function RepresentativesPage() {
   const { activeEntity, isLoading: isEntityLoading } = useEntity();
+  const isPersonalEntity = activeEntity?.entity_type === "personal";
   const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -136,9 +138,11 @@ export default function RepresentativesPage() {
 
   const RepresentativeRow = ({rep, index}: {rep: Representative, index: number}) => (
     <TableRow key={rep.slug} onClick={() => handleRowClick(rep)} className="cursor-pointer">
-        <TableCell onClick={(e) => e.stopPropagation()}>
-            <Checkbox aria-label={`Select row ${index + 1}`} />
-        </TableCell>
+        {!isPersonalEntity && (
+          <TableCell onClick={(e) => e.stopPropagation()}>
+              <Checkbox aria-label={`Select row ${index + 1}`} />
+          </TableCell>
+        )}
         <TableCell>{index + 1}</TableCell>
         <TableCell className="font-medium">{rep.first_name} {rep.last_name}</TableCell>
         <TableCell>{rep.job_title}</TableCell>
@@ -152,18 +156,20 @@ export default function RepresentativesPage() {
                         <span className="sr-only">Toggle menu</span>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier les informations</DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/user/representatives/${rep.slug}`}>
-                            Gérer le cursus
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
-                        Supprimer
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier les informations</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/user/representatives/${rep.slug}`}>
+                                Gérer le cursus
+                            </Link>
+                        </DropdownMenuItem>
+                        {!isPersonalEntity && (
+                          <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
+                              Supprimer
+                          </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
             </DropdownMenu>
         </TableCell>
     </TableRow>
@@ -185,9 +191,11 @@ export default function RepresentativesPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => handleRowClick(rep)}>Voir les détails</DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleEdit(rep)}>Modifier</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
-                            Supprimer
-                        </DropdownMenuItem>
+                        {!isPersonalEntity && (
+                          <DropdownMenuItem onClick={() => handleDelete(rep)} className="text-red-600">
+                              Supprimer
+                          </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -208,17 +216,34 @@ export default function RepresentativesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Mes Représentants</h1>
-          <p className="text-muted-foreground">
-            Gérez les représentants pour la structure : <span className="font-semibold text-primary">{activeEntity.name}</span>
-          </p>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">Mes Représentants</h1>
+            <p className="text-muted-foreground">
+              Gérez les représentants pour la structure : <span className="font-semibold text-primary">{activeEntity.name}</span>
+            </p>
+          </div>
+          {!isPersonalEntity ? (
+            <Button onClick={handleAdd}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter un représentant
+            </Button>
+          ) : (
+            <div className="rounded-lg border border-muted-foreground/60 px-4 py-2 text-sm text-muted-foreground">
+              Vous êtes votre propre représentant ; seules les modifications de votre profil sont possibles.
+            </div>
+          )}
         </div>
-        <Button onClick={handleAdd}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter un représentant
-        </Button>
+        {isPersonalEntity && (
+          <Alert variant="default">
+            <AlertTitle>Auto-représentation</AlertTitle>
+            <AlertDescription>
+              Il n&apos;est pas possible d&apos;ajouter ou de supprimer d&apos;autres représentants. Utilisez les actions
+              “Modifier les informations” et “Gérer le cursus”.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
       
       <Card>
@@ -244,10 +269,12 @@ export default function RepresentativesPage() {
             ) : (
                 <Table>
                     <TableHeader>
-                        <TableRow>
+                    <TableRow>
+                        {!isPersonalEntity && (
                             <TableHead className="w-[40px]">
                                 <Checkbox aria-label="Select all" />
                             </TableHead>
+                        )}
                             <TableHead className="w-[50px]">#</TableHead>
                             <TableHead>Nom complet</TableHead>
                             <TableHead>Fonction</TableHead>
