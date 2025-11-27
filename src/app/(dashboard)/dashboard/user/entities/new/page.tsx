@@ -110,7 +110,7 @@ export default function NewEntityPage() {
         ];
 
         fieldNames.forEach((field) => {
-          const value = (entityData as Record<string, any>)[field];
+          const value = (entityData as Record<string, null>)[field];
           if (value) {
             formData.append(field, String(value));
           }

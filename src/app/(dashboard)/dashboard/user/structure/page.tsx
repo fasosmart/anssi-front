@@ -301,7 +301,7 @@ export default function StructurePage() {
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   <div className="grid gap-2">
-                    <Label>N° de pièce d'identité</Label>
+                    <Label>N° de pièce d&apos;identité</Label>
                     <Input value={representativeDetails?.idcard_number || ""} disabled />
                   </div>
                   <div className="grid gap-2">
@@ -329,7 +329,7 @@ export default function StructurePage() {
             <Card>
               <form onSubmit={handleSubmit}>
                 <CardHeader>
-                  <CardTitle>Informations sur l'entreprise</CardTitle>
+                  <CardTitle>Informations sur l&apos;entreprise</CardTitle>
                   <CardDescription>
                     {canEditEntity()
                       ? "Assurez-vous que ces informations sont exactes et à jour."
@@ -340,7 +340,7 @@ export default function StructurePage() {
                 <CardContent className="grid gap-6">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="name">Nom de l'entreprise</Label>
+                      <Label htmlFor="name">Nom de l&apos;entreprise</Label>
                       <Input
                         id="name"
                         name="name"
@@ -365,7 +365,7 @@ export default function StructurePage() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="business_sector">Secteur d'activité</Label>
+                      <Label htmlFor="business_sector">Secteur d&apos;activité</Label>
                       <Input
                         id="business_sector"
                         name="business_sector"
@@ -389,7 +389,7 @@ export default function StructurePage() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="tax_id">Numéro d'identifiant fiscal (NIF)</Label>
+                      <Label htmlFor="tax_id">Numéro d&apos;identifiant fiscal (NIF)</Label>
                       <Input
                         id="tax_id"
                         name="tax_id"
@@ -425,7 +425,7 @@ export default function StructurePage() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="cybersecurity_experts">Nombre d'experts en cybersécurité</Label>
+                      <Label htmlFor="cybersecurity_experts">Nombre d&apos;experts en cybersécurité</Label>
                       <Input
                         id="cybersecurity_experts"
                         name="cybersecurity_experts"
@@ -463,7 +463,7 @@ export default function StructurePage() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="email">Email de l'entreprise</Label>
+                      <Label htmlFor="email">Email de l&apos;entreprise</Label>
                       <Input
                         id="email"
                         name="email"
@@ -501,7 +501,7 @@ export default function StructurePage() {
           <TabsContent value="documents">
             <Card>
               <CardHeader>
-                <CardTitle>Documents de l'entreprise</CardTitle>
+                <CardTitle>Documents de l&apos;entreprise</CardTitle>
                 <CardDescription>
                   {canEditEntity()
                     ? "Gérez les documents administratifs et légaux de votre structure."
@@ -519,7 +519,7 @@ export default function StructurePage() {
                   />
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
-                    Veuillez d'abord enregistrer les informations générales de la structure pour gérer les documents.
+                    Veuillez d&apos;abord enregistrer les informations générales de la structure pour gérer les documents.
                   </div>
                 )}
               </CardContent>
