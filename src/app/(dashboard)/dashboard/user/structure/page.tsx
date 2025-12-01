@@ -221,7 +221,7 @@ export default function StructurePage() {
       {/* Messages explicatifs selon le statut */}
       {activeEntity?.status && (
         <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 space-y-4">
             <div className="flex items-start gap-3">
               {getStatusIcon(activeEntity.status)}
               <div className="space-y-1">
@@ -243,6 +243,17 @@ export default function StructurePage() {
                 </p>
               </div>
             </div>
+
+            {activeEntity.status === 'declined' && entityDetails?.rejection_reason && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
+                <p className="font-semibold text-destructive">
+                  Raison du refus
+                </p>
+                <p className="mt-1 whitespace-pre-line text-destructive">
+                  {entityDetails.rejection_reason}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

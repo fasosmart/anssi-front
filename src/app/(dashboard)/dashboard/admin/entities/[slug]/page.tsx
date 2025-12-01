@@ -744,7 +744,7 @@ export default function EntityDetailPage({ params }: PageProps) {
             <AlertDialogDescription>
               {confirmAction === "under_review" && "Mettre cette entité en révision ?"}
               {confirmAction === "validated" && "Valider définitivement cette entité ?"}
-              {confirmAction === "blocked" && "Bloquer cette entité ? Elle ne pourra plus effectuer d&apos;actions."}
+              {confirmAction === "blocked" && "Bloquer cette entité ? Elle ne pourra plus effectuer des actions."}
               {confirmAction === "unblock" && "Débloquer cette entité ? Elle pourra à nouveau effectuer des actions."}
             </AlertDialogDescription>
           </AlertDialogHeader>
