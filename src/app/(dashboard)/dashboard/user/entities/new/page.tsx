@@ -22,6 +22,7 @@ import apiClient from "@/lib/apiClient";
 import { API } from "@/lib/api";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { useEntity } from "@/contexts/EntityContext";
 
 interface DocumentWithType {
   file: File;
@@ -43,6 +44,7 @@ export default function NewEntityPage() {
 
   const router = useRouter();
   const { data: session } = useSession();
+  const { refreshEntities } = useEntity();
 
   const updateEntityData = (fields: Partial<Entity>) => {
     setEntityData((prev) => ({ ...prev, ...fields }));
@@ -143,12 +145,13 @@ export default function NewEntityPage() {
 
       const newEntity = entityResponse.data;
       setCreatedEntitySlug(newEntity.slug);
+      // Rafraîchir la liste des entités en arrière-plan pour que le contexte et le menu soient à jour
+      refreshEntities();
 
       if (isPersonalEntity) {
-        toast.success("Structure personne physique créée et représentant(e) lié(e) avec succès.");
-        // router.push("/dashboard/user");
+        toast.success("Structure personne physique créée et représentant(e) lié(e) avec succès.", { id: toastId });
       } else {
-        toast.success("Structure créée avec succès. Ajout des documents...", );
+        toast.success("Structure créée avec succès. Ajout des documents...", { id: toastId });
 
         if (documentsData.length > 0) {
           const documentPromises = documentsData.map((doc) => {
