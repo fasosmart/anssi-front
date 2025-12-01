@@ -524,6 +524,62 @@ export default function EntityDetailPage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Utilisateur créateur */}
+          {!isLoading && entity?.entity_users && entity.entity_users.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="h-5 w-5" />
+                  <span>Utilisateur créateur</span>
+                </CardTitle>
+                <CardDescription>
+                  Informations de l&apos;utilisateur ayant créé cette entité
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  // Récupérer le premier utilisateur actif, ou le premier de la liste
+                  const creatorUser = entity.entity_users.find((eu) => eu.status === "active") || entity.entity_users[0];
+                  const statusLabels: Record<string, string> = {
+                    active: "Actif",
+                    pending: "En attente",
+                    blocked: "Bloqué",
+                    left: "Parti",
+                    declined: "Refusé",
+                  };
+                  return (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Email</label>
+                        <p className="text-sm">{creatorUser.email}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Statut</label>
+                        <div className="text-sm">
+                          <Badge variant="secondary" className={creatorUser.status === "active" ? "bg-green-500 text-white" : ""}>
+                            {statusLabels[creatorUser.status] || creatorUser.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      {creatorUser.created_at && (
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Date d&apos;ajout</label>
+                          <p className="text-sm">
+                            {new Date(creatorUser.created_at).toLocaleDateString("fr-FR", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="representatives" className="space-y-4">

@@ -92,7 +92,7 @@ const entityTypeOptions = [
 
 const statusOptions = [
   { value: "all", label: "Tous les statuts" },
-  { value: "new", label: "Nouvelle" },
+  // { value: "new", label: "Nouvelle" },
   { value: "submitted", label: "Soumise" },
   { value: "under_review", label: "En cours de validation" },
   { value: "validated", label: "Validée" },
