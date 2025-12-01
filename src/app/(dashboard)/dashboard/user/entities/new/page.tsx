@@ -137,9 +137,9 @@ export default function NewEntityPage() {
       setCreatedEntitySlug(newEntity.slug);
 
       if (isPersonalEntity) {
-        toast.success("Structure personne physique créée et représentante liée (backend).", { id: toastId });
+        toast.success("Structure personne physique créée et représentant(e) lié(e) avec succès.");
       } else {
-        toast.success("Structure créée avec succès. Ajout des documents...", { id: toastId });
+        toast.success("Structure créée avec succès. Ajout des documents...", );
 
         if (documentsData.length > 0) {
           const documentPromises = documentsData.map((doc) => {

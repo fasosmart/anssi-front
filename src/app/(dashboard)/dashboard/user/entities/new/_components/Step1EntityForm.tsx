@@ -74,8 +74,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           <Alert variant="default">
             <AlertTitle>Personne physique</AlertTitle>
             <AlertDescription>
-              Votre profil fait office de représentant et de structure. En validant, le backend crée les deux objets
-              en une seule fois. Complétez les champs ci-dessous pour fournir toutes les informations nécessaires.
+              Votre profil fait office de représentant et de structure. Complétez les champs ci-dessous pour fournir toutes les informations nécessaires.
             </AlertDescription>
           </Alert>
 
