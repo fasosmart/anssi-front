@@ -54,25 +54,33 @@ export default function NewEntityPage() {
 
   useEffect(() => {
     if (!session?.user) return;
+
     const names = session.user.name?.split(" ").filter(Boolean) ?? [];
     const firstName = session.user.first_name || names[0];
     const lastName =
       session.user.last_name || (names.length > 1 ? names[names.length - 1] : undefined);
+    const email = session.user.email;
 
     setEntityData((prev) => {
       const updates: Partial<Entity> = {};
+
       if (firstName && !prev.first_name) {
         updates.first_name = firstName;
       }
       if (lastName && !prev.last_name) {
         updates.last_name = lastName;
       }
+      if (email && !prev.email) {
+        updates.email = email;
+      }
+
       if (!Object.keys(updates).length) {
         return prev;
       }
+
       return { ...prev, ...updates };
     });
-  }, [session?.user?.first_name, session?.user?.last_name, session?.user?.name]);
+  }, [session?.user?.first_name, session?.user?.last_name, session?.user?.name, session?.user?.email]);
 
   const handleSubmit = async () => {
     if (!session) {
@@ -138,6 +146,7 @@ export default function NewEntityPage() {
 
       if (isPersonalEntity) {
         toast.success("Structure personne physique créée et représentant(e) lié(e) avec succès.");
+        // router.push("/dashboard/user");
       } else {
         toast.success("Structure créée avec succès. Ajout des documents...", );
 

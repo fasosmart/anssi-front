@@ -88,6 +88,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 onChange={handleChange}
                 placeholder="Prénom"
                 required
+                disabled
               />
             </div>
             <div className="grid gap-2">
@@ -99,11 +100,24 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 onChange={handleChange}
                 placeholder="Nom"
                 required
+                disabled
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={data.email || ""}
+                onChange={handleChange}
+                placeholder="user@example.com"
+                disabled
+              />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="job_title">Fonction / Titre</Label>
               <Input
@@ -114,7 +128,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 placeholder="Ex: Consultant cybersécurité"
               />
             </div>
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="address">Adresse complète</Label>
               <Textarea
                 id="address"
@@ -123,7 +137,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 onChange={handleChange}
                 placeholder="Adresse personnelle"
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -150,7 +164,7 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -159,6 +173,16 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 value={data.email || ""}
                 onChange={handleChange}
                 placeholder="user@example.com"
+              />
+            </div> */}
+            <div className="grid gap-2">
+              <Label htmlFor="address">Adresse complète</Label>
+              <Textarea
+                id="address"
+                name="address"
+                value={data.address || ""}
+                onChange={handleChange}
+                placeholder="Adresse personnelle"
               />
             </div>
             <div className="grid gap-2">

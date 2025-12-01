@@ -104,7 +104,7 @@ export default function SelectEntityPage() {
   // Mode: Create (no entities)
   if (entities.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center ">
         <div className="flex flex-col gap-8 max-w-xl w-full">
           <div className="text-center">
             <Building className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -141,7 +141,7 @@ export default function SelectEntityPage() {
   // Mode: Select (multiple entities)
   if (entities.length > 1) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col gap-8 max-w-4xl w-full">
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight mb-2">
