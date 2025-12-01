@@ -12,7 +12,10 @@ export const API = {
   entities: {
     list: () => `${BASE_URL}/entities/`,
     create: () => `${BASE_URL}/entities/`,
+    // Création d'une entité pour personne physique (entité + représentant auto-créé)
     personalEntity: () => `${BASE_URL}/entities/personal_entity/`,
+    // Mise à jour d'une entité de type personne physique (même payload métier que pour la création)
+    personalEntityUpdate: (slug: string) => `${BASE_URL}/entities/${slug}/personal_entity_update/`,
     details: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     update: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     delete: (slug: string) => `${BASE_URL}/entities/${slug}/`,

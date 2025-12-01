@@ -84,10 +84,16 @@ export function AddEditRepresentativeDialog({
         data.append(key, String(value));
       }
     });
-    
-    const promise = isEditMode
-      ? apiClient.patch(API.representatives.update(entity.slug, representative.slug!), data)
-      : apiClient.post(API.representatives.create(entity.slug), data);
+
+    // Pour les entités de type "personal", la mise à jour du représentant
+    // passe par le endpoint dédié qui met à jour l'entité-personne physique dans son ensemble.
+    const isPersonalEntity = entity.entity_type === "personal";
+
+    const promise = isPersonalEntity
+      ? apiClient.patch(API.entities.personalEntityUpdate(entity.slug), data)
+      : isEditMode
+        ? apiClient.patch(API.representatives.update(entity.slug, representative.slug!), data)
+        : apiClient.post(API.representatives.create(entity.slug), data);
 
     try {
       await promise;
