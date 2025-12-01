@@ -46,8 +46,8 @@ export default function AdminProfilePage() {
   const [securityError, setSecurityError] = useState<string | null>(null);
   const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
 
-  const [permissions, setPermissions] = useState<string[]>([]);
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
+  // const [permissions, setPermissions] = useState<string[]>([]);
+  // const [isLoadingPermissions, setIsLoadingPermissions] = useState(true);
 
   useEffect(() => {
     if (session?.user) {
@@ -56,23 +56,23 @@ export default function AdminProfilePage() {
     }
   }, [session]);
 
-  useEffect(() => {
-    const fetchPermissions = async () => {
-      setIsLoadingPermissions(true);
-      try {
-        const data = await UserAPI.getPermissions();
-        // L'API retourne soit un tableau, soit un objet avec une propriété permissions
-        setPermissions(Array.isArray(data) ? data : (data?.permissions || []));
-      } catch (e) {
-        console.error("Erreur lors du chargement des permissions:", e);
-        toast.error("Impossible de charger les permissions");
-        setPermissions([]);
-      } finally {
-        setIsLoadingPermissions(false);
-      }
-    };
-    fetchPermissions();
-  }, []);
+  // useEffect(() => {
+  //   const fetchPermissions = async () => {
+  //     setIsLoadingPermissions(true);
+  //     try {
+  //       const data = await UserAPI.getPermissions();
+  //       // L'API retourne soit un tableau, soit un objet avec une propriété permissions
+  //       setPermissions(Array.isArray(data) ? data : (data?.permissions || []));
+  //     } catch (e) {
+  //       console.error("Erreur lors du chargement des permissions:", e);
+  //       toast.error("Impossible de charger les permissions");
+  //       setPermissions([]);
+  //     } finally {
+  //       setIsLoadingPermissions(false);
+  //     }
+  //   };
+  //   fetchPermissions();
+  // }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +169,7 @@ export default function AdminProfilePage() {
     }
   };
 
-  if (!session || isLoadingPermissions) {
+  if (!session || isLoading) {
     return (
       <div className="space-y-6">
         {/* Header Skeleton */}
@@ -385,7 +385,7 @@ export default function AdminProfilePage() {
       </form>
 
       {/* Permissions */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <div className="flex items-center space-x-2">
             <Key className="h-5 w-5" />
@@ -423,7 +423,7 @@ export default function AdminProfilePage() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Sécurité */}
       <Card>
