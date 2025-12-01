@@ -65,16 +65,23 @@ export function AddEditRepresentativeDialog({
     setIsSubmitting(true);
 
     const data = new FormData();
+
     Object.entries(formData).forEach(([key, value]) => {
-      // Do not append slug for new representatives
-      if (key === 'slug' && !isEditMode) return;
-      
-      if (value) {
+      // Ne jamais envoyer le slug lors de la création
+      if (key === "slug" && !isEditMode) return;
+
+      // Cas particulier du fichier de pièce d'identité :
+      // - En création ou édition, on n'envoie le champ que si l'utilisateur a choisi un NOUVEAU fichier (File)
+      // - Si on est en édition et que la valeur est une string (URL / chemin existant), on laisse le backend conserver le fichier actuel.
+      if (key === "idcard_file") {
         if (value instanceof File) {
           data.append(key, value);
-        } else {
-          data.append(key, String(value));
         }
+        return;
+      }
+
+      if (value !== undefined && value !== null && value !== "") {
+        data.append(key, String(value));
       }
     });
     
