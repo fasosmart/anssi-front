@@ -6,7 +6,7 @@ import { RefreshCw, Plus, Lock } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { KPICard } from "@/components/dashboard/KPICard";
-import { ChartsSection } from "@/components/dashboard/ChartsSection";
+import { DemandsEvolutionChart } from "@/components/dashboard/DemandsEvolutionChart";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { ActiveEntityCard } from "@/components/dashboard/ActiveEntityCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -107,8 +107,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Troisième ligne - Graphiques */}
-      <ChartsSection />
+      {/* Troisième ligne - Graphique d'évolution */}
+      <DemandsEvolutionChart />
 
       {/* Quatrième ligne - Actions récentes */}
       <RecentActivities />
