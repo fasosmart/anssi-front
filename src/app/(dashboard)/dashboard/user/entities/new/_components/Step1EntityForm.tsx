@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Entity } from "@/types/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CountrySelect } from "@/components/ui/country-select";
+import { useCountries } from "@/hooks/use-countries";
 
 interface Step1Props {
   data: Partial<Entity>;
@@ -32,6 +34,7 @@ const entityTypeOptions = [
 export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
   const isPersonalEntity = data.entity_type === "personal";
   const personalData = data as Partial<Entity> & PersonalEntityFields;
+  const { countries, isLoading: countriesLoading } = useCountries();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -164,17 +167,6 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={data.email || ""}
-                onChange={handleChange}
-                placeholder="user@example.com"
-              />
-            </div> */}
             <div className="grid gap-2">
               <Label htmlFor="address">Adresse complète</Label>
               <Textarea
@@ -185,6 +177,21 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 placeholder="Adresse personnelle"
               />
             </div>
+            <div className="grid gap-2">
+              <CountrySelect
+                countries={countries}
+                value={data.country}
+                onValueChange={(value) => updateData({ country: value })}
+                placeholder="Sélectionnez un pays..."
+                disabled={countriesLoading}
+                required
+                label="Pays"
+                id="country"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="website">Site Web</Label>
               <Input
@@ -303,6 +310,21 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
                 placeholder="RCCM..."
               />
             </div>
+            <div className="grid gap-2">
+              <CountrySelect
+                countries={countries}
+                value={data.country}
+                onValueChange={(value) => updateData({ country: value })}
+                placeholder="Sélectionnez un pays..."
+                disabled={countriesLoading}
+                required
+                label="Pays"
+                id="country"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="total_staff">Effectif Total</Label>
               <Input

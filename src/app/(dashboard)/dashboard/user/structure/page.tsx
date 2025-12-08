@@ -387,6 +387,17 @@ export default function StructurePage() {
                       />
                     </div>
                     <div className="grid gap-2">
+                      <Label htmlFor="country">Pays</Label>
+                      <Input
+                        id="country"
+                        name="country"
+                        value={entityDetails?.country?.name || ""}
+                        onChange={handleChange}
+                        placeholder="Pays"
+                        disabled={!canEditEntity()}
+                      />
+                    </div>
+                    <div className="grid gap-2">
                       <Label htmlFor="address">Adresse complète</Label>
                       <Input
                         id="address"

@@ -117,6 +117,7 @@ export default function NewEntityPage() {
           "idcard_number",
           "idcard_issued_at",
           "idcard_expires_at",
+          "country",
         ];
 
         fieldNames.forEach((field) => {
@@ -139,6 +140,7 @@ export default function NewEntityPage() {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
+        // Pour les entités business/ONG, inclure tous les champs y compris country
         const entityPayload = { ...entityData };
         entityResponse = await apiClient.post(API.entities.create(), entityPayload);
       }

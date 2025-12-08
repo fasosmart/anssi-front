@@ -218,4 +218,11 @@ export const UserAPI = {
     const response = await apiClient.get(`${API.permissions()}`);
     return response.data;
   },
+  getCountries: async () => {
+    // Récupérer tous les pays (sans pagination pour simplifier)
+    const response = await apiClient.get(API.countries.list(), {
+      params: { limit: 500 }, // Limite élevée pour récupérer tous les pays
+    });
+    return response.data;
+  },
 };

@@ -1,5 +1,12 @@
 export type EntityStatus = 'new' | 'submitted' | 'under_review' | 'validated' | 'blocked' | 'declined';
 
+export interface Country {
+  slug: string;
+  name: string;
+  code: string;
+  calling_code: string;
+}
+
 export interface Entity {
   slug?: string;
   first_name?: string;
@@ -22,6 +29,7 @@ export interface Entity {
   idcard_expires_at?: string | null;
   idcard_file?: string | File | null;
   entity_type: 'personal' | 'business' | 'ngo';
+  country?: Country; // Slug du pays
   status?: EntityStatus;
   rejection_reason?: string | null;
   created_at?: string;
