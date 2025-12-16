@@ -360,6 +360,7 @@ export default function StructurePage() {
                         placeholder="Ex: FasoSmart"
                         required
                         disabled={!canEditEntity()}
+                        readOnly
                       />
                     </div>
                     <div className="grid gap-2">
@@ -395,6 +396,7 @@ export default function StructurePage() {
                         onChange={handleChange}
                         placeholder="Pays"
                         disabled={!canEditEntity()}
+                        readOnly
                       />
                     </div>
                     <div className="grid gap-2">
