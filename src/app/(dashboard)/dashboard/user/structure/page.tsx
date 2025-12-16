@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { API } from "@/lib/api";
-import { Document, Entity, Representative } from "@/types/api";
+import { Document, Entity, Representative, Country } from "@/types/api";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -26,6 +26,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, Clock, AlertCircle, XCircle, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SubmitEntityConfirmationDialog } from "@/components/ui/submit-entity-confirmation-dialog";
+import { useCountries } from "@/hooks/use-countries";
 
 export default function StructurePage() {
   const { 
@@ -49,6 +50,7 @@ export default function StructurePage() {
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [representativeDetails, setRepresentativeDetails] = useState<Representative | null>(null);
   const isPersonalEntity = (entityDetails?.entity_type || activeEntity?.entity_type) === "personal";
+  const { countries, isLoading: countriesLoading } = useCountries();
 
   const fetchRepresentative = async (slug: string) => {
     try {
@@ -63,8 +65,19 @@ export default function StructurePage() {
     setIsLoading(true);
     try {
       const detailsResponse = await apiClient.get(API.entities.details(slug));
-      setEntityDetails(detailsResponse.data);
-      if (detailsResponse.data.entity_type === "personal") {
+      const entityData = detailsResponse.data;
+      
+      // Si country est un slug (string), trouver l'objet Country correspondant pour l'affichage
+      if (entityData.country && typeof entityData.country === 'string') {
+        const countryObj = countries.find(c => c.slug === entityData.country);
+        if (countryObj) {
+          entityData.country = countryObj;
+        }
+      }
+      // Si country est déjà un objet, on le garde tel quel
+      
+      setEntityDetails(entityData);
+      if (entityData.entity_type === "personal") {
         await fetchRepresentative(slug);
       } else {
         setRepresentativeDetails(null);
@@ -90,6 +103,20 @@ export default function StructurePage() {
     }
   }, [activeEntity, isEntityLoading]);
 
+  // Mettre à jour entityDetails.country quand les pays sont chargés
+  useEffect(() => {
+    if (!countriesLoading && countries.length > 0 && entityDetails?.country) {
+      // Vérifier si country est une string (slug) et non un objet Country
+      const countryValue = entityDetails.country;
+      if (typeof countryValue === 'string') {
+        const countryObj = countries.find(c => c.slug === countryValue);
+        if (countryObj) {
+          setEntityDetails(prev => prev ? { ...prev, country: countryObj } : prev);
+        }
+      }
+    }
+  }, [countries, countriesLoading, entityDetails?.country]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -105,11 +132,38 @@ export default function StructurePage() {
     const url = API.entities.update(entityDetails.slug);
     
     try {
-      const response = await apiClient.put(url, entityDetails);
-      setEntityDetails(response.data);
+      // Normaliser le payload : extraire le slug du pays si c'est un objet
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const payload: any = { ...entityDetails };
+      
+      // Si country est un objet Country, extraire le slug
+      if (payload.country && typeof payload.country === 'object' && 'slug' in payload.country) {
+        payload.country = (payload.country as Country).slug;
+      }
+      
+      // Logger pour debug (à retirer en production)
+      // console.log('Payload envoyé:', JSON.stringify(payload, null, 2));
+      
+      const response = await apiClient.patch(url, payload);
+      
+      // Traiter la réponse : si country est un slug (string), trouver l'objet Country correspondant
+      const responseData = response.data;
+      
+      // Si country est un slug (string), trouver l'objet Country correspondant pour l'affichage
+      if (responseData.country && typeof responseData.country === 'string') {
+        const countryObj = countries.find(c => c.slug === responseData.country);
+        if (countryObj) {
+          responseData.country = countryObj;
+        }
+      }
+      // Si country est déjà un objet, on le garde tel quel
+      
+      setEntityDetails(responseData);
       toast.success(`Structure mise à jour avec succès !`);
     } catch (error) {
       const axiosError = error as AxiosError<{ detail: string }>;
+      console.error('Erreur lors de la mise à jour:', error);
+      // console.error('Payload qui a causé l\'erreur:', entityDetails);
       toast.error(`Erreur: ${axiosError.response?.data?.detail || axiosError.message}`);
     } finally {
       setIsSubmitting(false);
