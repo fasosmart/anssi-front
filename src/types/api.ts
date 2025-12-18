@@ -285,6 +285,45 @@ export interface AdminDashboardData {
   last_entity: LastEntity[];
 }
 
+// Dashboard utilisateur par entité
+export interface UserLastAccreditation {
+  slug: string;
+  status: DemandStatus;
+  type_accreditation: string;
+  representative: string;
+  submission_date: string | null;
+  review_date: string | null;
+  approval_date: string | null;
+  rejection_date: string | null;
+  price?: string | null;
+}
+
+export interface UserEntityDashboardData {
+  accreditations: {
+    total: number;
+    submitted: number;
+    under_review: number;
+    approved: number;
+    rejected: number;
+  };
+  total_entity: number;
+  total_representative: number;
+  last_accreditation: UserLastAccreditation[];
+}
+
+export interface UserEntityDashboardCharts {
+  accreditations_per_month?: Array<{
+    year: number;
+    month: number;
+    total: number;
+  }>;
+  entities_per_month?: Array<{
+    year: number;
+    month: number;
+    total: number;
+  }>;
+}
+
 export interface AdminDashboardCharts {
   accreditation_shart?: number;
   entity_shart?: number;

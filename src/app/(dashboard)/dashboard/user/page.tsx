@@ -6,17 +6,17 @@ import { RefreshCw, Plus, Lock } from "lucide-react";
 import { useEntity } from "@/contexts/EntityContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { KPICard } from "@/components/dashboard/KPICard";
-import { DemandsEvolutionChart } from "@/components/dashboard/DemandsEvolutionChart";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
 import { ActiveEntityCard } from "@/components/dashboard/ActiveEntityCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Building, Users, FileText, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Entity } from "@/types/api";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+// import { EntityDemandsChart } from "@/components/dashboard/EntityDemandsChart";
 
 export default function DashboardPage() {
   const { activeEntity, canCreateDemands } = useEntity();
-  const { stats, isLoading, error } = useDashboardData();
+  const { stats, chartData, recentDemands, isLoading, error } = useDashboardData();
 
   if (error) {
     return (
@@ -71,7 +71,7 @@ export default function DashboardPage() {
         <KPICard
           title="Demandes totales"
           value={stats.totalDemands}
-          change={{ value: "+15% depuis le mois dernier", type: "positive" }}
+          // change={{ value: "+15% depuis le mois dernier", type: "positive" }}
           icon={FileText}
         />
         <KPICard
@@ -96,22 +96,22 @@ export default function DashboardPage() {
         <KPICard
           title="Structures"
           value={stats.totalStructures}
-          change={{ value: "+0% nouvelles structures", type: "neutral" }}
+          // change={{ value: "+0% nouvelles structures", type: "neutral" }}
           icon={Building}
         />
         <KPICard
           title="Représentants"
           value={stats.totalRepresentatives}
-          change={{ value: "+12% nouveaux représentants", type: "positive" }}
+          // change={{ value: "+12% nouveaux représentants", type: "positive" }}
           icon={Users}
         />
       </div>
 
       {/* Troisième ligne - Graphique d'évolution */}
-      <DemandsEvolutionChart />
+      {/* <EntityDemandsChart data={chartData} /> */}
 
       {/* Quatrième ligne - Actions récentes */}
-      <RecentActivities />
+      <RecentActivities demands={recentDemands} />
 
       {/* Cinquième ligne - Structure active et Actions rapides */}
       <div className="grid gap-4 md:grid-cols-2">

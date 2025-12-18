@@ -1,5 +1,6 @@
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 import apiClient from "./apiClient";
+import { UserEntityDashboardData, UserEntityDashboardCharts } from "@/types/api";
 
 export const API = {
   // Authentication
@@ -20,6 +21,9 @@ export const API = {
     update: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     delete: (slug: string) => `${BASE_URL}/entities/${slug}/`,
     submitForReview: (slug: string) => `${BASE_URL}/entities/${slug}/submit_entity_for_review/`,
+    // Tableau de bord utilisateur (par entité)
+    dashboard: (slug: string) => `${BASE_URL}/entities/dashboard/${slug}/`,
+    dashboardCharts: (slug: string) => `${BASE_URL}/entities/dashboard/sharts/${slug}/`,
   },
 
   // Documents
@@ -223,6 +227,18 @@ export const UserAPI = {
     const response = await apiClient.get(API.countries.list(), {
       params: { limit: 500 }, // Limite élevée pour récupérer tous les pays
     });
+    return response.data;
+  },
+};
+
+// Dashboard utilisateur par entité - helpers dédiés
+export const EntityDashboardAPI = {
+  getDashboard: async (entitySlug: string): Promise<UserEntityDashboardData> => {
+    const response = await apiClient.get(API.entities.dashboard(entitySlug));
+    return response.data;
+  },
+  getDashboardCharts: async (entitySlug: string): Promise<UserEntityDashboardCharts> => {
+    const response = await apiClient.get(API.entities.dashboardCharts(entitySlug));
     return response.data;
   },
 };

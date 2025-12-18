@@ -33,15 +33,7 @@ export function RecentActivities({
   demands = [], 
   className 
 }: RecentActivitiesProps) {
-  // Données mockées pour l'instant
-  const mockDemands: RecentDemand[] = [
-    { id: "DOS-0012", entity: "FasoSmart", type: "APASSI", date: "26/10/2023", status: "approved" },
-    { id: "DOS-0011", entity: "Tech Innovate", type: "APACS", date: "24/10/2023", status: "pending" },
-    { id: "DOS-0010", entity: "CyberSec Solutions", type: "APDIS", date: "15/10/2023", status: "rejected" },
-    { id: "DOS-0009", entity: "FasoSmart", type: "APRIS", date: "30/09/2023", status: "under_review" },
-  ];
-
-  const displayDemands = demands.length > 0 ? demands : mockDemands;
+  const displayDemands = demands;
 
   return (
     <Card className={className}>
@@ -63,7 +55,7 @@ export function RecentActivities({
       </CardHeader>
       <CardContent>
         {/* Barre de recherche et filtres */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        {/* <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -84,51 +76,57 @@ export function RecentActivities({
               <SelectItem value="rejected">Rejetées</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {/* Tableau des demandes */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Numéro</TableHead>
-                <TableHead>Structure</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayDemands.map((demand) => {
-                const status = statusConfig[demand.status];
-                return (
-                  <TableRow key={demand.id}>
-                    <TableCell className="font-medium">{demand.id}</TableCell>
-                    <TableCell>{demand.entity}</TableCell>
-                    <TableCell>{demand.type}</TableCell>
-                    <TableCell>{demand.date}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={status.variant}
-                        className={status.className}
-                      >
-                        {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/user/dossiers/${demand.id}`}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        {displayDemands.length === 0 ? (
+          <div className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+            Aucune demande récente pour le moment. Vos prochaines demandes apparaîtront ici dès que vous en créerez.
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {/* <TableHead>Numéro</TableHead> */}
+                  <TableHead>Structure</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayDemands.map((demand) => {
+                  const status = statusConfig[demand.status];
+                  return (
+                    <TableRow key={demand.id}>
+                      {/* <TableCell className="font-medium">{demand.id}</TableCell> */}
+                      <TableCell>{demand.entity}</TableCell>
+                      <TableCell>{demand.type}</TableCell>
+                      <TableCell>{demand.date}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={status.variant}
+                          className={status.className}
+                        >
+                          {status.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/dashboard/user/dossiers/${demand.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
