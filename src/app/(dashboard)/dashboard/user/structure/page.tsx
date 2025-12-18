@@ -446,7 +446,7 @@ export default function StructurePage() {
                       <Input
                         id="country"
                         name="country"
-                        value={entityDetails?.country?.name || ""}
+                        value={typeof entityDetails?.country === "string" ? entityDetails?.country : entityDetails?.country?.name}
                         onChange={handleChange}
                         placeholder="Pays"
                         disabled={!canEditEntity()}

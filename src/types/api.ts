@@ -29,7 +29,10 @@ export interface Entity {
   idcard_expires_at?: string | null;
   idcard_file?: string | File | null;
   entity_type: 'personal' | 'business' | 'ngo';
-  country?: Country; // Slug du pays
+  // Sur le payload (create/update) l'API attend un slug (string),
+  // mais sur certains détails (EntityDetail) on reçoit un objet Country.
+  // On autorise donc string | Country côté front.
+  country?: string | Country;
   status?: EntityStatus;
   rejection_reason?: string | null;
   created_at?: string;

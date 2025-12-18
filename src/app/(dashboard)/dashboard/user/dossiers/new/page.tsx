@@ -249,7 +249,7 @@ export default function NewDossierPage() {
             <Button onClick={handleNext} disabled={isSubmitting || isNextButtonDisabled()}>Suivant</Button>
           ) : (
             <Button onClick={handleSubmit} disabled={!formData.declaration || isSubmitting}>
-              {isSubmitting ? "Soumission en cours..." : "Soumettre le dossier"}
+              {isSubmitting ? "Soumission en cours..." : "Créer la demande"}
             </Button>
           )}
         </CardFooter>

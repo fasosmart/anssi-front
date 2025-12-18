@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Entity } from "@/types/api";
+import { Entity, Country } from "@/types/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CountrySelect } from "@/components/ui/country-select";
 import { useCountries } from "@/hooks/use-countries";
@@ -35,6 +35,14 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
   const isPersonalEntity = data.entity_type === "personal";
   const personalData = data as Partial<Entity> & PersonalEntityFields;
   const { countries, isLoading: countriesLoading } = useCountries();
+
+  // Normalise le champ country pour obtenir toujours un slug (string) à passer au CountrySelect.
+  const getCountrySlug = (country: Entity["country"]): string | undefined => {
+    if (!country) return undefined;
+    if (typeof country === "string") return country;
+    const c = country as Country;
+    return c.slug;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -180,13 +188,13 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
             <div className="grid gap-2">
               <CountrySelect
                 countries={countries}
-                value={data.country}
+                value={getCountrySlug(data.country)}
                 onValueChange={(value) => updateData({ country: value })}
                 placeholder="Sélectionnez un pays..."
                 disabled={countriesLoading}
                 required
                 label="Pays"
-                id="country"
+                id="pays"
               />
             </div>
           </div>
@@ -313,13 +321,13 @@ export const Step1EntityForm: React.FC<Step1Props> = ({ data, updateData }) => {
             <div className="grid gap-2">
               <CountrySelect
                 countries={countries}
-                value={data.country}
+                value={getCountrySlug(data.country)}
                 onValueChange={(value) => updateData({ country: value })}
                 placeholder="Sélectionnez un pays..."
                 disabled={countriesLoading}
                 required
                 label="Pays"
-                id="country"
+                id="pays"
               />
             </div>
           </div>
